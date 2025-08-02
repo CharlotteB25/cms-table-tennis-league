@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HNO Dashboard</title>
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}"
+    />
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(
+          to right,
+          rgb(169, 197, 185),
+          rgb(119, 188, 158)
+        );
+        margin: 0;
+        padding: 0;
+      }
+
+      main {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 90vh;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #007bff;
+        color: white;
+        padding: 1rem;
+      }
+      header h1,
+      header h2 {
+        margin: 0;
+      }
+      header .logout {
+        text-decoration: none;
+        color: white;
+        background: #ff4b4b;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+      }
+      header .logout:hover {
+        background: #e63636;
+      }
+      .cards-container {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 2rem;
+      }
+      .card {
+        background: white;
+        width: 250px;
+        height: 150px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: flex; /* Enables flexbox */
+        justify-content: center; /* Centers content horizontally */
+        align-items: center; /* Centers content vertically */
+        text-align: center; /* Ensures text alignment */
+        padding: 1rem;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      .card:hover {
+        transform: scale(1.05);
+      }
+      .card h2 {
+        margin: 0;
+        font-size: 18px;
+        color: rgb(41, 136, 96);
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'global/nav.twig' %}
+    <main>
+      <div class="cards-container">
+        {% if currentUser and currentUser.admin %}
+
+       
+          <h2>Beheer Drankjes</h2>
+        </div>
+        
+          <h2>Beheer Planning</h2>
+        </div>
+        
+          <h2>Beheer Rekeningen</h2>
+        </div>
+        {% elseif currentUser %}
+
+       lick="window.location.href='{{ url('drinks/manage') }}'"
+        >
+          <h2>Bestel Drankjes</h2>
+        </div>
+        
+          <h2>Speeldata</h2>
+        </div>
+        
+          <h2>Rekeningen</h2>
+        </div>
+
+        {% else %}
+          <h2>Login</h2>
+        </div>
+
+        {% endif %}
+      </div>
+    </main>
+
+    {% include 'global/footer.twig' %}
+  </body>
+</html>

@@ -1,0 +1,23 @@
+dateModified: 1753960748
+email:
+  fromEmail: charlotte.billiet25@gmail.com
+  fromName: 'Table Tennis Tool'
+  transportType: craft\mail\transportadapters\Sendmail
+meta:
+  __names__:
+    0a105f38-fbd5-4242-aba4-6c12d557259c: 'Table Tennis Tool' # Table Tennis Tool
+    4e17cb9a-52a4-49a2-a715-1d4f8e4097dd: 'Table Tennis Tool' # Table Tennis Tool
+    39dab611-7a06-4450-972e-0d8f90d62b79: 'Public Schema' # Public Schema
+system:
+  edition: solo
+  live: true
+  name: 'Table Tennis Tool'
+  schemaVersion: 5.8.0.3
+  timeZone: America/Los_Angeles
+users:
+  allowPublicRegistration: false
+  defaultGroup: null
+  photoSubpath: null
+  photoVolumeUid: null
+  require2fa: false
+  requireEmailVerification: true

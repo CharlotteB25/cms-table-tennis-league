@@ -1,0 +1,8 @@
+baseUrl: $PRIMARY_SITE_URL
+handle: default
+hasUrls: true
+language: en
+name: 'Table Tennis Tool'
+primary: true
+siteGroup: 4e17cb9a-52a4-49a2-a715-1d4f8e4097dd # Table Tennis Tool
+sortOrder: 1

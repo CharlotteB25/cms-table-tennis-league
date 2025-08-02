@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}"
+    />
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(
+          to right,
+          rgb(169, 197, 185),
+          rgb(119, 188, 158)
+        );
+        margin: 0;
+        color: #333;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column; /* Ensures elements are stacked vertically */
+      }
+
+      main {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex: 1; /* Fills available vertical space */
+      }
+
+      .login-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+      }
+
+      .login-container input,
+      .login-container button {
+        width: 100%;
+        max-width: 100%; /* Ensures the button doesn't exceed input width */
+        box-sizing: border-box; /* Includes padding and border in width calculation */
+      }
+
+      .login-container input {
+        padding: 12px;
+        margin-bottom: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+
+      .login-container button {
+        padding: 12px; /* Same padding as input */
+        background-color: rgb(69, 183, 124);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .login-container button:hover {
+        background-color: rgb(51, 134, 91);
+      }
+
+      .pass {
+        color: rgb(4, 118, 59);
+        text-decoration: none;
+        font-weight: bold;
+      }
+
+      .pass:hover {
+        color: rgb(3, 95, 47);
+      }
+
+      #error-message {
+        color: red;
+        display: none;
+        margin-bottom: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'shared/nav.twig' %}
+
+    <main>
+      <div class="login-container">
+        <h1>Login</h1>
+        <p id="error-message">
+          Er is een fout opgetreden. Probeer het later opnieuw.
+        </p>
+        <!-- Error message hidden initially -->
+        <form
+          id="login-form"
+          method="post"
+          action="{{ url('actions/users/login') }}"
+        >
+          {{ csrfInput() }}
+          <input
+            type="text"
+            name="loginName"
+            placeholder="Gebruikersnaam"
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Wachtwoord"
+            required
+          />
+          <button type="submit">Inloggen</button>
+        </form>
+
+        <p>
+          <a class="pass" href="{{ url('forgot-pass') }}"
+            >Wachtwoord vergeten?</a
+          >
+        </p>
+      </div>
+    </main>
+
+    <script>
+      document
+        .getElementById("login-form")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const errorMessage = document.getElementById("error-message");
+          errorMessage.style.display = "none"; // Hide the error message initially
+
+          const formData = new FormData(event.target);
+
+          try {
+            const response = await fetch('{{ url("actions/users/login") }}', {
+              method: "POST",
+              body: formData,
+            });
+
+            if (response.ok) {
+              window.location.href = "/index"; // Redirect on successful login
+            } else {
+              errorMessage.style.display = "block"; // Show the error message
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            errorMessage.style.display = "block"; // Show the error message if there's any other issue
+          }
+        });
+    </script>
+
+    {% include 'shared/footer.twig' %}
+  </body>
+</html>
