@@ -9,4 +9,18 @@
  * @link https://craftcms.com/docs/5.x/system/routing.html
  */
 
-return [];
+return [
+    // Member routes
+    'drinks'            => 'drinks/index',
+    'matches'           => 'matches/index',
+    'account'           => 'account/index',
+
+    // Admin routes
+    'drinks/admin'     => 'drinks/admin',
+    'matches/admin'    => 'matches/admin',
+    'accounts/admin'   => 'accounts/admin',
+
+    // Auth routes (optional if you're customizing login)
+'login' => ['template' => 'auth/login'],
+    'logout'            => 'logout',
+];

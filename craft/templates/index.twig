@@ -9,7 +9,6 @@
       type="image/x-icon"
       href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}"
     />
-
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -20,16 +19,15 @@
         );
         margin: 0;
         padding: 0;
+        display: flex;
       }
 
       main {
-        margin: 0;
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 90vh;
+        margin-left: 200px;
+        padding: 2rem;
+        flex: 1;
       }
+
       header {
         display: flex;
         justify-content: space-between;
@@ -38,37 +36,29 @@
         color: white;
         padding: 1rem;
       }
-      header h1,
-      header h2 {
+
+      header h1 {
         margin: 0;
       }
-      header .logout {
-        text-decoration: none;
-        color: white;
-        background: #ff4b4b;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-      }
-      header .logout:hover {
-        background: #e63636;
-      }
+
       .cards-container {
         display: flex;
         gap: 2rem;
         flex-wrap: wrap;
         justify-content: center;
-        padding: 2rem;
+        margin-top: 2rem;
       }
+
       .card {
         background: white;
         width: 250px;
         height: 150px;
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        display: flex; /* Enables flexbox */
-        justify-content: center; /* Centers content horizontally */
-        align-items: center; /* Centers content vertically */
-        text-align: center; /* Ensures text alignment */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
         padding: 1rem;
         cursor: pointer;
         transition: transform 0.2s;
@@ -77,6 +67,7 @@
       .card:hover {
         transform: scale(1.05);
       }
+
       .card h2 {
         margin: 0;
         font-size: 18px;
@@ -86,36 +77,46 @@
   </head>
   <body>
     {% include 'global/nav.twig' %}
-    <main>
-      <div class="cards-container">
-        {% if currentUser and currentUser.admin %}
 
-       
+    <main>
+      <header>
+        <h1>Welkom, {{ currentUser.friendlyName ?? "Gast" }}</h1>
+      </header>
+
+      <div class="cards-container">
+        {% if currentUser %} {% if currentUser.admin %}
+        <div
+          class="card"
+          onclick="window.location.href='{{ url('drinks/admin') }}'"
+        >
           <h2>Beheer Drankjes</h2>
         </div>
-        
+        <div
+          class="card"
+          onclick="window.location.href='{{ url('matches/admin') }}'"
+        >
           <h2>Beheer Planning</h2>
         </div>
-        
+        <div
+          class="card"
+          onclick="window.location.href='{{ url('accounts/admin') }}'"
+        >
           <h2>Beheer Rekeningen</h2>
         </div>
-        {% elseif currentUser %}
-
-       lick="window.location.href='{{ url('drinks/manage') }}'"
-        >
+        {% else %}
+        <div class="card" onclick="window.location.href='{{ url('drinks') }}'">
           <h2>Bestel Drankjes</h2>
         </div>
-        
+        <div class="card" onclick="window.location.href='{{ url('matches') }}'">
           <h2>Speeldata</h2>
         </div>
-        
+        <div class="card" onclick="window.location.href='{{ url('account') }}'">
           <h2>Rekeningen</h2>
         </div>
-
-        {% else %}
+        {% endif %} {% else %}
+        <div class="card" onclick="window.location.href='{{ url('login') }}'">
           <h2>Login</h2>
         </div>
-
         {% endif %}
       </div>
     </main>

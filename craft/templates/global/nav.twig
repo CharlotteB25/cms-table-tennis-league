@@ -1,0 +1,56 @@
+<style>
+  nav {
+    width: 200px;
+    background: white;
+    padding: 2rem 1rem;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+
+  nav h2 {
+    font-size: 18px;
+    margin-bottom: 1rem;
+    color: #2f8f71;
+  }
+
+  nav ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  nav ul li {
+    margin-bottom: 1rem;
+  }
+
+  nav ul li a {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+  }
+
+  nav ul li a:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<nav>
+  <h2>HNO Menu</h2>
+  <ul>
+    {% if currentUser %} {% if currentUser.admin %}
+    <li><a href="{{ url('drinks/admin') }}">Beheer Drankjes</a></li>
+    <li><a href="{{ url('matches/admin') }}">Beheer Planning</a></li>
+    <li><a href="{{ url('accounts/admin') }}">Beheer Rekeningen</a></li>
+    {% else %}
+    <li><a href="{{ url('drinks') }}">Bestel Drankjes</a></li>
+    <li><a href="{{ url('matches') }}">Speeldata</a></li>
+    <li><a href="{{ url('account') }}">Rekeningen</a></li>
+    {% endif %}
+    <li><a href="{{ url('logout') }}">Uitloggen</a></li>
+    {% else %}
+    <li><a href="{{ url('login') }}">Login</a></li>
+    {% endif %}
+  </ul>
+</nav>
