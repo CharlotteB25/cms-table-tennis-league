@@ -1,0 +1,28 @@
+defaultPlacement: end
+enableVersioning: true
+entryTypes:
+  -
+    uid: 011dad69-aa0c-45c9-81b7-0144dc8f07f4 # TeamA
+handle: csvEntries
+maxAuthors: 1
+name: 'CSV Entries'
+previewTargets:
+  -
+    __assoc__:
+      -
+        - label
+        - 'Primary entry page'
+      -
+        - urlFormat
+        - '{url}'
+      -
+        - refresh
+        - '1'
+propagationMethod: all
+siteSettings:
+  0a105f38-fbd5-4242-aba4-6c12d557259c: # Table Tennis Tool
+    enabledByDefault: true
+    hasUrls: true
+    template: csv-entries/_entry.twig
+    uriFormat: 'csv-entries/{slug}'
+type: channel

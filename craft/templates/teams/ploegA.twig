@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ploeg A</title>
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}"
+    />
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(
+          to right,
+          rgb(169, 197, 185),
+          rgb(119, 188, 158)
+        );
+        margin: 0;
+        padding: 0;
+      }
+
+      main {
+        padding: 20px;
+        margin-bottom: 4rem;
+      }
+
+      .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+      }
+
+      .header-section .terug-button {
+        background-color: #28a745;
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+
+      .header-section .terug-button:hover {
+        background-color: #218838;
+      }
+
+      h1 {
+        text-align: center;
+        color: rgb(15, 61, 25);
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+
+      .matches-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .match-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        text-align: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .match-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .match-card h3 {
+        font-size: 18px;
+        color: #007bff;
+        margin: 0 0 10px;
+      }
+
+      .match-card p {
+        font-size: 14px;
+        margin: 5px 0;
+      }
+
+      .match-card a {
+        display: inline-block;
+        margin-top: 10px;
+        background-color: rgb(0, 95, 159);
+        color: white;
+        text-decoration: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+
+      .match-card a:hover {
+        background-color: rgb(1, 62, 103);
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'global/nav.twig' %}
+
+    <main>
+      <div class="header-section">
+        <a href="{{ url('teams/admin') }}" class="terug-button">Terug</a>
+      </div>
+
+      <h1>Ploeg A</h1>
+
+      <div class="matches-container">
+        {% for match in craft.entries.section('ploegA').all() %}
+        <div class="match-card">
+          <h3 class="match-title">{{ match.title }}</h3>
+          <p>Speeldag en Tijd: {{ match.dateTime|date('d-m-Y H:i') }}</p>
+          <p>Locatie: {{ match.location }}</p>
+          <a href="{{ match.url }}" class="button beschikbaarheid-button"
+            >Beschikbaarheid</a
+          >
+        </div>
+        {% else %}
+        <p>Geen wedstrijden beschikbaar voor Ploeg A.</p>
+        {% endfor %}
+      </div>
+    </main>
+
+    {% include 'global/footer.twig' %}
+  </body>
+</html>

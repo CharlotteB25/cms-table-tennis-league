@@ -1,0 +1,28 @@
+defaultPlacement: end
+enableVersioning: true
+entryTypes:
+  -
+    uid: fcbc034f-08a7-4728-bcb0-b0178b95230c # Teams
+handle: ploegA
+maxAuthors: 1
+name: 'Ploeg A'
+previewTargets:
+  -
+    __assoc__:
+      -
+        - label
+        - 'Primary entry page'
+      -
+        - urlFormat
+        - '{url}'
+      -
+        - refresh
+        - '1'
+propagationMethod: all
+siteSettings:
+  0a105f38-fbd5-4242-aba4-6c12d557259c: # Table Tennis Tool
+    enabledByDefault: true
+    hasUrls: true
+    template: ploeg-a/_entry.twig
+    uriFormat: 'ploeg-a/{slug}'
+type: channel

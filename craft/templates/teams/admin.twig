@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ploegen</title>
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}"
+    />
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(
+          to right,
+          rgb(169, 197, 185),
+          rgb(119, 188, 158)
+        );
+        margin: 0;
+        padding: 0;
+      }
+
+      main {
+        padding: 20px;
+      }
+
+      .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+      }
+
+      .header-section .terug-button {
+        background-color: #28a745;
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+
+      .header-section .terug-button:hover {
+        background-color: #218838;
+      }
+
+      .cards-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .card h2 {
+        font-size: 18px;
+        margin: 0;
+        color: rgb(41, 136, 96);
+      }
+
+      .card .icon {
+        font-size: 24px;
+        margin-bottom: 10px;
+        display: inline-block;
+        color: #007bff;
+      }
+
+      .title-section {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 24px;
+        font-weight: bold;
+        color: rgb(15, 61, 25);
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'global/nav.twig' %}
+    <main>
+      <div class="header-section">
+        <a href="{{ url('index') }}" class="terug-button">Terug</a>
+      </div>
+
+      <!-- Title Section -->
+      <div class="title-section">Selecteer je ploeg</div>
+
+      <div class="cards-container">
+        <div
+          class="card"
+          onclick="window.location.href='{{ url('teams/ploegA') }}'"
+        >
+          <span class="icon">⭐</span>
+          <h2>Beheer Ploeg A</h2>
+        </div>
+        <div
+          class="card"
+          onclick="window.location.href='{{ url('teams/ploegB') }}'"
+        >
+          <span class="icon">⭐</span>
+          <h2>Beheer Ploeg B</h2>
+        </div>
+        <div
+          class="card"
+          onclick="window.location.href='{{ url('teams/ploegC') }}'"
+        >
+          <span class="icon">⭐</span>
+          <h2>Beheer Ploeg C</h2>
+        </div>
+      </div>
+    </main>
+    {% include 'global/footer.twig' %}
+  </body>
+</html>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% set match = craft.entries()
+        .section('ploegA, ploegB, ploegC')
+        .slug(craft.app.request.getSegment(3)) 
+        .one() %}
+        
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% if match %}
+            {{ match.title }}
+        {% else %}
+            Ploeg A
+        {% endif %}
+    </title>
+    <link rel="icon" type="image/x-icon" href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, rgb(169, 197, 185), rgb(119, 188, 158));
+            margin: 0;
+            padding: 0;
+        }
+
+        main {
+            padding: 20px;
+            margin-bottom: 4rem;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        .header-section .terug-button {
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .header-section .terug-button:hover {
+            background-color: #218838;
+        }
+
+        h1 {
+            text-align: center;
+            color: rgb(15, 61, 25);
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .beschikbaarheid-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .beschikbaarheid-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .beschikbaarheid-item {
+            border-bottom: 1px solid #ddd;
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .beschikbaarheid-item:last-child {
+            border-bottom: none;
+        }
+
+        .beschikbaarheid-item span {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .beschikbaarheid-item span.label {
+            font-weight: bold;
+            color: #007BFF;
+        }
+
+        .delete-button {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .delete-button:hover {
+            background-color: darkred;
+        }
+
+        .no-data {
+            text-align: center;
+            font-size: 16px;
+            color: #555;
+        }
+
+        form button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        form button:hover {
+            background-color: #0056b3;
+        }
+
+        .success-message {
+            color: green;
+            font-weight: bold;
+            margin-top: 10px;
+            justify-content: center;
+            align-items: center;
+            text-align: center
+        }
+
+        .error-message {
+            color: green;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+
+        .admin-form {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-family: Arial, sans-serif;
+        }
+        
+        .admin-form h3 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .admin-form label {
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            color: #555555;
+            margin-bottom: 5px;
+        }
+        
+        .admin-form select,
+        .admin-form input[type="text"],
+        .admin-form input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .admin-form button {
+            width: 100%;
+            background-color: #007BFF;
+            color: #ffffff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .admin-form button:hover {
+            background-color: #0056b3;
+        }
+        
+        .admin-form select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .admin-form select:focus,
+        .admin-form input:focus {
+            outline: none;
+            border: 1px solid #007BFF;
+            box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+        }
+        
+        .admin-form .success-message {
+            color: green;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .admin-form .error-message {
+            color: red;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+    </style>
+</head>
+<body>
+    {% include 'shared/nav.twig' %}
+    
+    <main>
+        <div class="header-section">
+            <a href="javascript:history.back()" class="terug-button">Terug</a>
+            <!--Debugging for match and player-->
+            <!---<p>Match ID: {{ match.id }}</p>-->
+            <!---  <p>Current User ID: {{ currentUser.id }}</p>-->
+
+        </div>
+        
+        {% if match %}
+<h1>{{ match.title }}</h1>
+
+{% set beschikbaarheidEntries = craft.entries()
+    .section('beschikbaarheid')
+    .relatedTo({ targetElement: match.id })
+    .all() %}
+
+    <!--Making sure player can only submit once per match-->
+    {% set existingEntry = craft.entries()
+        .section('beschikbaarheid')
+        .relatedTo(['and', { targetElement: match.id }, { targetElement: currentUser.id }])
+        .one() %}
+    
+    
+    <div class="beschikbaarheid-container">
+        <h2>Beschikbaarheid</h2>
+        {% if beschikbaarheidEntries %}
+            <ul class="beschikbaarheid-list">
+                {% for beschikbaarheid in beschikbaarheidEntries %}
+                    <li class="beschikbaarheid-item">
+                        <span class="label">Speler:</span> <span>{{ beschikbaarheid.player.one().username }}</span>
+                        <span class="label">Beschikbaarheid:</span> <span>{{ beschikbaarheid.beschikbaarheid }}</span>
+                        <span class="label">Status:</span> <span>{{ beschikbaarheid.statusAdmin.label }}</span>
+
+                        
+                       <!-- Status form for admin -->
+                        {% if currentUser and currentUser.admin %}
+                            <form method="post" class="admin-status-form" data-entry-id="{{ beschikbaarheid.id }}">
+                                {{ csrfInput() }}
+                                {{ actionInput('entries/save-entry') }}
+                                <input type="hidden" name="entryId" value="{{ beschikbaarheid.id }}">
+                                <label for="statusAdmin-{{ beschikbaarheid.id }}">Update Status:</label>
+                                <select name="fields[statusAdmin]" id="statusAdmin">
+                                    <option value="geselecteerd" {% if beschikbaarheid.statusAdmin == 'geselecteerd' %}selected{% endif %}>Geselecteerd</option>
+                                    <option value="nietGeselecteerd" {% if beschikbaarheid.statusAdmin == 'nietGeselecteerd' %}selected{% endif %}>Niet geselecteerd</option>
+                                    <option value="nogTeBepalen" {% if beschikbaarheid.statusAdmin == 'nogTeBepalen' %}selected{% endif %}>Nog te bepalen</option>
+                                </select>
+                                <button type="submit">Bijwerken</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="no-data">Er zijn nog geen beschikbaarheidsgegevens.</p>
+        {% endif %}
+
+        <div id="availability-form-container">
+            {% if currentUser and not currentUser.admin %}
+                {% if existingEntry %}
+                    <!-- Show this message if the user has already submitted -->
+                    <p class="error-message">Je hebt je al aangemeld voor deze wedstrijd.</p>
+                {% else %}
+                    <!-- Show form if no existing entry is found -->
+                    <form id="availability-form" method="post">
+                        {{ csrfInput() }}
+                        {{ actionInput('entries/save-entry') }}
+        
+                        <!-- Section ID -->
+                        <input type="hidden" name="sectionId" value="6">
+        
+                        <!-- Entry Type ID -->
+                        <input type="hidden" name="typeId" value="6">
+        
+                        <!-- Match Field -->
+                        <input type="hidden" name="fields[match][]" value="{{ match.id }}">
+        
+                        <!-- Player Field -->
+                        <input type="hidden" name="fields[player][]" value="{{ currentUser.id }}">
+        
+                        <!-- Beschikbaarheid Field -->
+                        <label for="beschikbaarheid">Beschikbaarheid:</label>
+                        <select name="fields[beschikbaarheid]" id="beschikbaarheid">
+                            <option value="ja">Ja</option>
+                            <option value="nee">Nee</option>
+                            <option value="reserve">Reserve</option>
+                        </select>
+        
+                        <!-- StatusAdmin Field -->
+                        <input type="hidden" name="fields[statusAdmin]" value="nogTeBepalen">
+        
+                        <!-- Entry Enabled -->
+                        <input type="hidden" name="enabled" value="1">
+        
+                        <button type="submit">Indienen</button>
+                    </form>
+                {% endif %}
+            {% endif %}
+        </div>
+        
+
+    <!-- Admin form for adding players -->
+    {% if currentUser and currentUser.admin %}
+            <div id="admin-add-player-form">
+                <h3>Admin: Speler toegevoegen</h3>
+                <form id="add-player-form" method="post" class="admin-form">
+                    {{ csrfInput() }}
+                    {{ actionInput('entries/save-entry') }}
+                    <input type="hidden" name="sectionId" value="6">
+                    <input type="hidden" name="typeId" value="6">
+                    <input type="hidden" name="fields[match][]" value="{{ match.id }}">
+                    <label for="admin-player">Player:</label>
+                    <select name="fields[player][]" id="admin-player">
+                        {% for user in craft.users.group('players').all() %}
+                            <option value="{{ user.id }}">{{ user.username }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="admin-beschikbaarheid">Beschikbaarheid:</label>
+                    <select name="fields[beschikbaarheid]" id="admin-beschikbaarheid">
+                        <option value="ja">Ja</option>
+                        <option value="nee">Nee</option>
+                        <option value="reserve">Reserve</option>
+                    </select>
+                    <label for="admin-status">Status:</label>
+                    <select name="fields[statusAdmin]" id="admin-status">
+                        <option value="nogTeBepalen">Nog te bepalen</option>
+                        <option value="geselecteerd">Geselecteerd</option>
+                        <option value="nietGeselecteerd">Niet geselecteerd</option>
+                    </select>
+                    <input type="hidden" name="enabled" value="1">
+                    <button type="submit">Toegevoegen</button>
+                </form>
+
+            </div>
+        {% endif %}
+    </div>
+
+    <div id="message-container"></div>
+    
+{% else %}
+<p class="no-data">De wedstrijd is niet gevonden.</p>
+{% endif %}
+
+        </main>
+        
+        {% include 'shared/footer.twig' %}
+        
+        <script>
+            // Existing user form submission script
+            document.getElementById('availability-form').addEventListener('submit', async function (event) {
+                event.preventDefault();
+        
+                const formData = new FormData(this);
+                const messageContainer = document.getElementById('message-container');
+        
+                try {
+                    const response = await fetch('/index.php?action=entries/save-entry', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json' // Ensures Craft returns a JSON response
+                        }
+                    });
+        
+                    const data = await response.json();
+        
+                    if (response.ok && data.message === 'Entry saved.') {
+                        // Success message
+                        messageContainer.innerHTML = '<p class="success-message">Uw inschrijving is succesvol verwerkt.</p>';
+                        
+                        // Fetch the updated availability list
+                        fetchUpdatedAvailability();
+        
+                        // Disable the form to prevent multiple submissions
+                        disableForm();
+                    } else if (data.errors) {
+                        const errorMessages = Object.values(data.errors)
+                            .flat()
+                            .join('<br>');
+                        messageContainer.innerHTML = `<p class="error-message">${errorMessages}</p>`;
+                    } else {
+                        const errorMessage = data.message || 'Er is een fout opgetreden. Probeer het opnieuw.';
+                        messageContainer.innerHTML = `<p class="error-message">${errorMessage}</p>`;
+                    }
+                } catch (error) {
+                    messageContainer.innerHTML = '<p class="error-message">Netwerkfout. Probeer het opnieuw.</p>';
+                    console.error('AJAX Error:', error);
+                }
+            });
+    
+            // Admin form for adding players
+            if (document.getElementById('add-player-form')) {
+                document.getElementById('add-player-form').addEventListener('submit', async function (event) {
+                    event.preventDefault();
+                    const formData = new FormData(this);
+                    
+                    const messageContainer = document.getElementById('message-container');
+                    try {
+                        const response = await fetch('/index.php?action=entries/save-entry', {
+                            method: 'POST',
+                            body: formData,
+                            headers: { 'Accept': 'application/json' },
+                        });
+                        const data = await response.json();
+                        if (response.ok && data.message === 'Entry saved.') {
+                            messageContainer.innerHTML = '<p class="success-message">Speler succesvol toegevoegd.</p>';
+                            fetchUpdatedAvailability();
+                        } else {
+                            const errorMessages = Object.values(data.errors || {}).flat().join('<br>');
+                            messageContainer.innerHTML = `<p class="error-message">${errorMessages}</p>`;
+                        }
+                    } catch (error) {
+                        messageContainer.innerHTML = '<p class="error-message">Netwerkfout. Probeer het opnieuw.</p>';
+                    }
+                });
+            }
+    
+            // Admin form for updating status
+            document.querySelectorAll('.admin-status-form').forEach(form => {
+                form.addEventListener('submit', async function (event) {
+                    event.preventDefault();
+                    const formData = new FormData(this);
+                    const messageContainer = document.getElementById('message-container');
+                    try {
+                        const response = await fetch('/index.php?action=entries/save-entry', {
+                            method: 'POST',
+                            body: formData,
+                            headers: { 'Accept': 'application/json' },
+                        });
+                        const data = await response.json();
+                        if (response.ok && data.message === 'Entry saved.') {
+                            messageContainer.innerHTML = '<p class="success-message">Status succesvol bijgewerkt.</p>';
+                            fetchUpdatedAvailability();
+                        } else {
+                            const errorMessages = Object.values(data.errors || {}).flat().join('<br>');
+                            messageContainer.innerHTML = `<p class="error-message">${errorMessages}</p>`;
+                        }
+                    } catch (error) {
+                        messageContainer.innerHTML = '<p class="error-message">Netwerkfout. Probeer het opnieuw.</p>';
+                    }
+                });
+            });
+    
+            // Fetch and update the availability list
+            async function fetchUpdatedAvailability() {
+                try {
+                    const response = await fetch(window.location.href, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' },
+                    });
+                    const updatedHtml = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(updatedHtml, 'text/html');
+                    const updatedList = doc.querySelector('.beschikbaarheid-list');
+                    const container = document.querySelector('.beschikbaarheid-container');
+                    const currentList = container.querySelector('.beschikbaarheid-list');
+                    const noDataMessage = container.querySelector('.no-data');
+                    if (updatedList) {
+                        if (currentList) {
+                            currentList.innerHTML = updatedList.innerHTML;
+                        } else {
+                            if (noDataMessage) {
+                                noDataMessage.remove();
+                            }
+                            //Create the list if it doesn't exist
+                            const newList = document.createElement('ul');
+                            newList.className = 'beschikbaarheid-list';
+                            newList.innerHTML = updatedList.innerHTML;
+                            container.appendChild(newList);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error updating availability list:', error);
+                }
+            }
+
+            // Disable the form after submission for players
+            function disableForm() {
+                const form = document.getElementById('availability-form');
+                if (form) {
+                    form.innerHTML = '<p class="error-message">Je hebt je al aangemeld voor deze wedstrijd.</p>';
+                }
+            }
+        </script>
+        
+</body>
+</html>
