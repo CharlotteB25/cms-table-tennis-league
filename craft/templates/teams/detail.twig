@@ -1,18 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {# DEBUG: Print all segments #}
+    <p>SEGMENT 1: {{ craft.app.request.getSegment(1) }}</p>
+    <p>SEGMENT 2: {{ craft.app.request.getSegment(2) }}</p>
+    <p>SEGMENT 3: {{ craft.app.request.getSegment(3) }}</p>
+
+    {% set slug = craft.app.request.getSegment(2) %}
+
     {% set match = craft.entries()
-        .section('ploegA, ploegB, ploegC')
-        .slug(craft.app.request.getSegment(3)) 
+        .section(['ploegA', 'ploegB', 'ploegC'])
+        .slug(slug)
         .one() %}
-        
+
+    {# DEBUG: Show resolved match #}
+    <p>DEBUG Match Title: {{ match.title ?? 'NOT FOUND' }}</p>
+    <p>DEBUG Match ID: {{ match.id ?? 'N/A' }}</p>
+
+    {% if match %}
+        {% set availabilityEntries = craft.entries()
+            .section('availability')
+            .relatedTo({ field: 'match', targetElement: match.id })
+            .all() %}
+    {% endif %}
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
         {% if match %}
             {{ match.title }}
         {% else %}
-            Ploeg A
+            Geen Wedstrijd Gevonden
         {% endif %}
     </title>
     <link rel="icon" type="image/x-icon" href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}">
@@ -57,7 +75,7 @@
             margin-bottom: 20px;
         }
 
-        .beschikbaarheid-container {
+        .availability-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
@@ -66,30 +84,30 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .beschikbaarheid-list {
+        .availability-list {
             list-style: none;
             padding: 0;
             margin: 0;
         }
 
-        .beschikbaarheid-item {
+        .availability-item {
             border-bottom: 1px solid #ddd;
             padding: 15px 0;
             display: flex;
             justify-content: space-between;
         }
 
-        .beschikbaarheid-item:last-child {
+        .availability-item:last-child {
             border-bottom: none;
         }
 
-        .beschikbaarheid-item span {
+        .availability-item span {
             display: block;
             font-size: 14px;
             margin-bottom: 5px;
         }
 
-        .beschikbaarheid-item span.label {
+        .availability-item span.label {
             font-weight: bold;
             color: #007BFF;
         }
@@ -232,7 +250,6 @@
     </style>
 </head>
 <body>
-    {% include 'shared/nav.twig' %}
     
     <main>
         <div class="header-section">
@@ -246,40 +263,51 @@
         {% if match %}
 <h1>{{ match.title }}</h1>
 
-{% set beschikbaarheidEntries = craft.entries()
-    .section('beschikbaarheid')
-    .relatedTo({ targetElement: match.id })
-    .all() %}
+{% set existingEntry = craft.entries()
+    .section('availability')
+    .relatedTo([
+        'and',
+        { field: 'match', targetElement: match.id },
+        { field: 'player', targetElement: currentUser.id }
+    ])
+    .one() %}
+
 
     <!--Making sure player can only submit once per match-->
-    {% set existingEntry = craft.entries()
-        .section('beschikbaarheid')
-        .relatedTo(['and', { targetElement: match.id }, { targetElement: currentUser.id }])
-        .one() %}
+   {% set existingEntry = craft.entries()
+    .section('availability')
+    .relatedTo({
+        and: [
+            { field: 'match', targetElement: match.id },
+            { field: 'player', targetElement: currentUser.id }
+        ]
+    })
+    .one() %}
+
     
     
-    <div class="beschikbaarheid-container">
+    <div class="availability-container">
         <h2>Beschikbaarheid</h2>
-        {% if beschikbaarheidEntries %}
-            <ul class="beschikbaarheid-list">
-                {% for beschikbaarheid in beschikbaarheidEntries %}
-                    <li class="beschikbaarheid-item">
-                        <span class="label">Speler:</span> <span>{{ beschikbaarheid.player.one().username }}</span>
-                        <span class="label">Beschikbaarheid:</span> <span>{{ beschikbaarheid.beschikbaarheid }}</span>
-                        <span class="label">Status:</span> <span>{{ beschikbaarheid.statusAdmin.label }}</span>
+        {% if availabilityEntries %}
+            <ul class="availability-list">
+                {% for availability in availabilityEntries %}
+                    <li class="availability-item">
+                        <span class="label">Speler:</span> <span>{{ availability.player.one().username }}</span>
+                        <span class="label">Beschikbaarheid:</span> <span>{{ availability.availability }}</span>
+                        <span class="label">Status:</span> <span>{{ availability.statusAdmin.label }}</span>
 
                         
                        <!-- Status form for admin -->
                         {% if currentUser and currentUser.admin %}
-                            <form method="post" class="admin-status-form" data-entry-id="{{ beschikbaarheid.id }}">
+                            <form method="post" class="admin-status-form" data-entry-id="{{ availability.id }}">
                                 {{ csrfInput() }}
                                 {{ actionInput('entries/save-entry') }}
-                                <input type="hidden" name="entryId" value="{{ beschikbaarheid.id }}">
-                                <label for="statusAdmin-{{ beschikbaarheid.id }}">Update Status:</label>
+                                <input type="hidden" name="entryId" value="{{ availability.id }}">
+                                <label for="statusAdmin-{{ availability.id }}">Update Status:</label>
                                 <select name="fields[statusAdmin]" id="statusAdmin">
-                                    <option value="geselecteerd" {% if beschikbaarheid.statusAdmin == 'geselecteerd' %}selected{% endif %}>Geselecteerd</option>
-                                    <option value="nietGeselecteerd" {% if beschikbaarheid.statusAdmin == 'nietGeselecteerd' %}selected{% endif %}>Niet geselecteerd</option>
-                                    <option value="nogTeBepalen" {% if beschikbaarheid.statusAdmin == 'nogTeBepalen' %}selected{% endif %}>Nog te bepalen</option>
+                                    <option value="geselecteerd" {% if availability.statusAdmin == 'geselecteerd' %}selected{% endif %}>Geselecteerd</option>
+                                    <option value="nietGeselecteerd" {% if availability.statusAdmin == 'nietGeselecteerd' %}selected{% endif %}>Niet geselecteerd</option>
+                                    <option value="nogTeBepalen" {% if availability.statusAdmin == 'nogTeBepalen' %}selected{% endif %}>Nog te bepalen</option>
                                 </select>
                                 <button type="submit">Bijwerken</button>
                             </form>
@@ -303,20 +331,24 @@
                         {{ actionInput('entries/save-entry') }}
         
                         <!-- Section ID -->
-                        <input type="hidden" name="sectionId" value="6">
+                        <input type="hidden" name="sectionId" value="5">
         
                         <!-- Entry Type ID -->
-                        <input type="hidden" name="typeId" value="6">
+                        <input type="hidden" name="typeId" value="3">
         
                         <!-- Match Field -->
                         <input type="hidden" name="fields[match][]" value="{{ match.id }}">
         
                         <!-- Player Field -->
                         <input type="hidden" name="fields[player][]" value="{{ currentUser.id }}">
+
+                         <input type="hidden" name="title" value="{{ match.title }}">
+    <input type="hidden" name="slug" value="{{ match.id }}">
         
                         <!-- Beschikbaarheid Field -->
-                        <label for="beschikbaarheid">Beschikbaarheid:</label>
-                        <select name="fields[beschikbaarheid]" id="beschikbaarheid">
+                        <label for="availability">Beschikbaarheid:</label>
+                        
+                        <select name="fields[availability]" id="availability">
                             <option value="ja">Ja</option>
                             <option value="nee">Nee</option>
                             <option value="reserve">Reserve</option>
@@ -327,6 +359,9 @@
         
                         <!-- Entry Enabled -->
                         <input type="hidden" name="enabled" value="1">
+
+                        <!-- Submit Button -->
+
         
                         <button type="submit">Indienen</button>
                     </form>
@@ -342,8 +377,8 @@
                 <form id="add-player-form" method="post" class="admin-form">
                     {{ csrfInput() }}
                     {{ actionInput('entries/save-entry') }}
-                    <input type="hidden" name="sectionId" value="6">
-                    <input type="hidden" name="typeId" value="6">
+                    <input type="hidden" name="sectionId" value="5">
+                    <input type="hidden" name="typeId" value="3">
                     <input type="hidden" name="fields[match][]" value="{{ match.id }}">
                     <label for="admin-player">Player:</label>
                     <select name="fields[player][]" id="admin-player">
@@ -351,8 +386,8 @@
                             <option value="{{ user.id }}">{{ user.username }}</option>
                         {% endfor %}
                     </select>
-                    <label for="admin-beschikbaarheid">Beschikbaarheid:</label>
-                    <select name="fields[beschikbaarheid]" id="admin-beschikbaarheid">
+                    <label for="admin-availability">Beschikbaarheid:</label>
+                    <select name="fields[availability]" id="admin-availability">
                         <option value="ja">Ja</option>
                         <option value="nee">Nee</option>
                         <option value="reserve">Reserve</option>
@@ -379,50 +414,55 @@
 
         </main>
         
-        {% include 'shared/footer.twig' %}
+        {% include 'global/footer.twig' %}
         
         <script>
             // Existing user form submission script
-            document.getElementById('availability-form').addEventListener('submit', async function (event) {
-                event.preventDefault();
-        
-                const formData = new FormData(this);
-                const messageContainer = document.getElementById('message-container');
-        
-                try {
-                    const response = await fetch('/index.php?action=entries/save-entry', {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'Accept': 'application/json' // Ensures Craft returns a JSON response
-                        }
-                    });
-        
-                    const data = await response.json();
-        
-                    if (response.ok && data.message === 'Entry saved.') {
-                        // Success message
-                        messageContainer.innerHTML = '<p class="success-message">Uw inschrijving is succesvol verwerkt.</p>';
-                        
-                        // Fetch the updated availability list
-                        fetchUpdatedAvailability();
-        
-                        // Disable the form to prevent multiple submissions
-                        disableForm();
-                    } else if (data.errors) {
-                        const errorMessages = Object.values(data.errors)
-                            .flat()
-                            .join('<br>');
-                        messageContainer.innerHTML = `<p class="error-message">${errorMessages}</p>`;
-                    } else {
-                        const errorMessage = data.message || 'Er is een fout opgetreden. Probeer het opnieuw.';
-                        messageContainer.innerHTML = `<p class="error-message">${errorMessage}</p>`;
-                    }
-                } catch (error) {
-                    messageContainer.innerHTML = '<p class="error-message">Netwerkfout. Probeer het opnieuw.</p>';
-                    console.error('AJAX Error:', error);
+           // Existing user form submission script
+const availabilityForm = document.getElementById('availability-form');
+if (availabilityForm) {
+    availabilityForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+        const messageContainer = document.getElementById('message-container');
+
+        try {
+            const response = await fetch('/index.php?action=entries/save-entry', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json' // Ensures Craft returns a JSON response
                 }
             });
+
+            const data = await response.json();
+
+            if (response.ok && data.message === 'Entry saved.') {
+                // Success message
+                messageContainer.innerHTML = '<p class="success-message">Uw inschrijving is succesvol verwerkt.</p>';
+
+                // Fetch the updated availability list
+                fetchUpdatedAvailability();
+
+                // Disable the form to prevent multiple submissions
+                disableForm();
+            } else if (data.errors) {
+                const errorMessages = Object.values(data.errors)
+                    .flat()
+                    .join('<br>');
+                messageContainer.innerHTML = `<p class="error-message">${errorMessages}</p>`;
+            } else {
+                const errorMessage = data.message || 'Er is een fout opgetreden. Probeer het opnieuw.';
+                messageContainer.innerHTML = `<p class="error-message">${errorMessage}</p>`;
+            }
+        } catch (error) {
+            messageContainer.innerHTML = '<p class="error-message">Netwerkfout. Probeer het opnieuw.</p>';
+            console.error('AJAX Error:', error);
+        }
+    });
+}
+
     
             // Admin form for adding players
             if (document.getElementById('add-player-form')) {
@@ -486,9 +526,9 @@
                     const updatedHtml = await response.text();
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(updatedHtml, 'text/html');
-                    const updatedList = doc.querySelector('.beschikbaarheid-list');
-                    const container = document.querySelector('.beschikbaarheid-container');
-                    const currentList = container.querySelector('.beschikbaarheid-list');
+                    const updatedList = doc.querySelector('.availability-list');
+                    const container = document.querySelector('.availability-container');
+                    const currentList = container.querySelector('.availability-list');
                     const noDataMessage = container.querySelector('.no-data');
                     if (updatedList) {
                         if (currentList) {
@@ -499,7 +539,7 @@
                             }
                             //Create the list if it doesn't exist
                             const newList = document.createElement('ul');
-                            newList.className = 'beschikbaarheid-list';
+                            newList.className = 'availability-list';
                             newList.innerHTML = updatedList.innerHTML;
                             container.appendChild(newList);
                         }

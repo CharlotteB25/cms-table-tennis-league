@@ -1,0 +1,62 @@
+columnSuffix: null
+handle: availability
+instructions: null
+name: Availability
+searchable: false
+settings:
+  customOptions: false
+  options:
+    -
+      __assoc__:
+        -
+          - label
+          - Ja
+        -
+          - value
+          - ja
+        -
+          - icon
+          - check
+        -
+          - color
+          - ''
+        -
+          - default
+          - ''
+    -
+      __assoc__:
+        -
+          - label
+          - Nee
+        -
+          - value
+          - nee
+        -
+          - icon
+          - xmark-large
+        -
+          - color
+          - ''
+        -
+          - default
+          - ''
+    -
+      __assoc__:
+        -
+          - label
+          - Reserve
+        -
+          - value
+          - reserve
+        -
+          - icon
+          - ''
+        -
+          - color
+          - ''
+        -
+          - default
+          - ''
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Dropdown

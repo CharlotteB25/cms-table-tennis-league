@@ -1,0 +1,17 @@
+description: null
+handle: players
+name: Players
+permissions:
+  - accesssitewhensystemisoff
+  - 'createentries:2d4738e3-1053-4790-9776-117e946e2f2f' # Availability
+  - 'createentries:4bca08c3-02a0-4f8e-9125-6b09828edd49' # Ploeg C
+  - 'createentries:64e5c2be-5d40-44e0-a6f3-08015b562725' # Ploeg A
+  - 'createentries:dd79136e-3da1-41f1-b9cb-e9c36475201d' # Ploeg B
+  - 'saveentries:2d4738e3-1053-4790-9776-117e946e2f2f' # Availability
+  - 'saveentries:4bca08c3-02a0-4f8e-9125-6b09828edd49' # Ploeg C
+  - 'saveentries:64e5c2be-5d40-44e0-a6f3-08015b562725' # Ploeg A
+  - 'saveentries:dd79136e-3da1-41f1-b9cb-e9c36475201d' # Ploeg B
+  - 'viewentries:2d4738e3-1053-4790-9776-117e946e2f2f' # Availability
+  - 'viewentries:4bca08c3-02a0-4f8e-9125-6b09828edd49' # Ploeg C
+  - 'viewentries:64e5c2be-5d40-44e0-a6f3-08015b562725' # Ploeg A
+  - 'viewentries:dd79136e-3da1-41f1-b9cb-e9c36475201d' # Ploeg B

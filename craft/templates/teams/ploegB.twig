@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ploeg A</title>
+    <title>Ploeg B</title>
     <link
       rel="icon"
       type="image/x-icon"
@@ -108,23 +108,23 @@
 
     <main>
       <div class="header-section">
-        <a href="{{ url('teams/admin') }}" class="terug-button">Terug</a>
+        <a href="{{ url('matches/admin') }}" class="terug-button">Terug</a>
       </div>
 
-      <h1>Ploeg A</h1>
+      <h1>Ploeg B</h1>
 
       <div class="matches-container">
-        {% for match in craft.entries.section('ploegA').all() %}
+        {% for match in craft.entries.section('ploegB').all() %}
         <div class="match-card">
           <h3 class="match-title">{{ match.title }}</h3>
           <p>Speeldag en Tijd: {{ match.dateTime|date('d-m-Y H:i') }}</p>
-          <p>Locatie: {{ match.address }}</p>
+          <p>Locatie: {{ match.location }}</p>
           <a href="{{ match.url }}" class="button beschikbaarheid-button"
             >Beschikbaarheid</a
           >
         </div>
         {% else %}
-        <p>Geen wedstrijden beschikbaar voor Ploeg A.</p>
+        <p>Geen wedstrijden beschikbaar voor Ploeg B.</p>
         {% endfor %}
       </div>
     </main>

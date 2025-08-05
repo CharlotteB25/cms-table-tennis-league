@@ -1,0 +1,28 @@
+columnSuffix: null
+handle: match
+instructions: null
+name: Match
+searchable: false
+settings:
+  allowSelfRelations: false
+  branchLimit: null
+  defaultPlacement: end
+  maintainHierarchy: false
+  maxRelations: null
+  minRelations: null
+  selectionLabel: null
+  showCardsInGrid: false
+  showSearchInput: true
+  showSiteMenu: true
+  showUnpermittedEntries: false
+  showUnpermittedSections: false
+  sources:
+    - 'section:64e5c2be-5d40-44e0-a6f3-08015b562725' # Ploeg A
+    - 'section:dd79136e-3da1-41f1-b9cb-e9c36475201d' # Ploeg B
+    - 'section:4bca08c3-02a0-4f8e-9125-6b09828edd49' # Ploeg C
+  targetSiteId: null
+  validateRelatedElements: false
+  viewMode: list
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Entries

@@ -1,4 +1,4 @@
-dateModified: 1754321974
+dateModified: 1754409048
 email:
   fromEmail: charlotte.billiet25@gmail.com
   fromName: 'Table Tennis Tool'
@@ -6,13 +6,22 @@ email:
 meta:
   __names__:
     0a105f38-fbd5-4242-aba4-6c12d557259c: 'Table Tennis Tool' # Table Tennis Tool
+    1a62614a-305e-4de4-a36a-f09f87efb96d: 'Status Admin' # Status Admin
+    2d4738e3-1053-4790-9776-117e946e2f2f: Availability # Availability
+    3bb9ea28-a19f-4a5f-83b2-41b13f9f4756: Players # Players
+    4ae51205-3df5-4e1d-9109-254cda07c244: Match # Match
     4bca08c3-02a0-4f8e-9125-6b09828edd49: 'Ploeg C' # Ploeg C
     4e17cb9a-52a4-49a2-a715-1d4f8e4097dd: 'Table Tennis Tool' # Table Tennis Tool
+    4ebcefd2-cd60-4639-97dc-a64377d08c24: Availability # Availability
+    4f857955-4d50-4741-a011-849f264bcfa1: Address # Address
+    5d64266d-d136-46ed-a5b6-edb8b02bdbc6: Availability # Availability
     7fa6534c-773d-4769-9d22-a2f534c3b5f4: Location # Location
+    08bf3958-180d-4a63-99da-28479e43e4c2: Admin # Admin
     011dad69-aa0c-45c9-81b7-0144dc8f07f4: TeamA # TeamA
     39dab611-7a06-4450-972e-0d8f90d62b79: 'Public Schema' # Public Schema
     64e5c2be-5d40-44e0-a6f3-08015b562725: 'Ploeg A' # Ploeg A
     4663245d-cb44-4730-80b3-a5caba313759: 'CSV Entries' # CSV Entries
+    ca933992-0281-46e0-9c96-30298c48a53c: Player # Player
     da57e7e9-7915-4119-aa7e-730ad58dd0ac: Date/Time # Date/Time
     dd79136e-3da1-41f1-b9cb-e9c36475201d: 'Ploeg B' # Ploeg B
     fcbc034f-08a7-4728-bcb0-b0178b95230c: Teams # Teams
@@ -27,10 +36,3 @@ system:
   name: 'Table Tennis Tool'
   schemaVersion: 5.8.0.3
   timeZone: America/Los_Angeles
-users:
-  allowPublicRegistration: false
-  defaultGroup: null
-  photoSubpath: null
-  photoVolumeUid: null
-  require2fa: false
-  requireEmailVerification: true

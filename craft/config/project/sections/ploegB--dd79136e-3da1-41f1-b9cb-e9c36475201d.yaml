@@ -23,6 +23,6 @@ siteSettings:
   0a105f38-fbd5-4242-aba4-6c12d557259c: # Table Tennis Tool
     enabledByDefault: true
     hasUrls: true
-    template: ploeg-b/_entry.twig
+    template: teams/detail.twig
     uriFormat: 'ploeg-b/{slug}'
 type: channel

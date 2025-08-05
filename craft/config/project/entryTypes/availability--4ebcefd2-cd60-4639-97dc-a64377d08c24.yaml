@@ -1,7 +1,7 @@
 color: null
 description: null
 fieldLayouts:
-  4e33d0b1-8444-4f1d-ab80-6ddb8f57740c:
+  7839195e-9aac-423e-830c-9a88acc67e44:
     cardThumbAlignment: end
     tabs:
       -
@@ -12,14 +12,14 @@ fieldLayouts:
             autocomplete: false
             autocorrect: true
             class: null
-            dateAdded: '2025-08-04T14:08:03+00:00'
+            dateAdded: '2025-08-05T10:38:40+00:00'
             disabled: false
             elementCondition: null
             id: null
             includeInCards: false
             inputType: null
             instructions: null
-            label: null
+            label: Title
             max: null
             min: null
             name: null
@@ -33,15 +33,15 @@ fieldLayouts:
             tip: null
             title: null
             type: craft\fieldlayoutelements\entries\EntryTitleField
-            uid: 9db2c0e1-3066-4fc3-b32e-fd2df418c40c
+            uid: 409f024d-049a-4ef7-9581-db2329b5c52f
             userCondition: null
             warning: null
             width: 100
           -
-            dateAdded: '2025-08-04T14:12:53+00:00'
+            dateAdded: '2025-08-05T10:47:55+00:00'
             editCondition: null
             elementCondition: null
-            fieldUid: da57e7e9-7915-4119-aa7e-730ad58dd0ac # Date/Time
+            fieldUid: ca933992-0281-46e0-9c96-30298c48a53c # Player
             handle: null
             includeInCards: false
             instructions: null
@@ -50,15 +50,15 @@ fieldLayouts:
             required: false
             tip: null
             type: craft\fieldlayoutelements\CustomField
-            uid: 9b4d9353-ead0-4a38-a619-c50b03ba422c
+            uid: 047f5383-b34a-496a-a222-24995198c80b
             userCondition: null
             warning: null
             width: 100
           -
-            dateAdded: '2025-08-05T13:53:43+00:00'
+            dateAdded: '2025-08-05T10:47:55+00:00'
             editCondition: null
             elementCondition: null
-            fieldUid: 4f857955-4d50-4741-a011-849f264bcfa1 # Address
+            fieldUid: 5d64266d-d136-46ed-a5b6-edb8b02bdbc6 # Availability
             handle: null
             includeInCards: false
             instructions: null
@@ -67,17 +67,51 @@ fieldLayouts:
             required: false
             tip: null
             type: craft\fieldlayoutelements\CustomField
-            uid: eb9924d4-76ae-4320-99f8-aaa0b0bfbd71
+            uid: 57274840-ebe3-4795-9b00-84eac244eaa8
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            dateAdded: '2025-08-05T10:47:55+00:00'
+            editCondition: null
+            elementCondition: null
+            fieldUid: 1a62614a-305e-4de4-a36a-f09f87efb96d # Status Admin
+            handle: null
+            includeInCards: false
+            instructions: null
+            label: null
+            providesThumbs: false
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: 93daf994-37c9-4968-baa2-fb06e5402f68
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            dateAdded: '2025-08-05T15:15:27+00:00'
+            editCondition: null
+            elementCondition: null
+            fieldUid: 4ae51205-3df5-4e1d-9109-254cda07c244 # Match
+            handle: null
+            includeInCards: false
+            instructions: null
+            label: null
+            providesThumbs: false
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: 0ce72b67-eaa6-43ab-a7d2-6aa4f53362c3
             userCondition: null
             warning: null
             width: 100
         name: Content
-        uid: 751e8ff2-bc8e-4afc-a52e-95db584f84f9
+        uid: 992b4be1-c152-4f92-afaa-768ccd9379e5
         userCondition: null
-handle: teams
+handle: availability
 hasTitleField: true
 icon: null
-name: Teams
+name: Availability
 showSlugField: true
 showStatusField: true
 slugTranslationKeyFormat: null

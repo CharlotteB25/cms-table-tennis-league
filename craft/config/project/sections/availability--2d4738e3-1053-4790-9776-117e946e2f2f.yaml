@@ -2,10 +2,10 @@ defaultPlacement: end
 enableVersioning: true
 entryTypes:
   -
-    uid: fcbc034f-08a7-4728-bcb0-b0178b95230c # Teams
-handle: ploegA
+    uid: 4ebcefd2-cd60-4639-97dc-a64377d08c24 # Availability
+handle: availability
 maxAuthors: 1
-name: 'Ploeg A'
+name: Availability
 previewTargets:
   -
     __assoc__:
@@ -23,6 +23,6 @@ siteSettings:
   0a105f38-fbd5-4242-aba4-6c12d557259c: # Table Tennis Tool
     enabledByDefault: true
     hasUrls: true
-    template: teams/detail.twig
-    uriFormat: 'ploeg-a/{slug}'
+    template: availability/_entry.twig
+    uriFormat: 'availability/{slug}'
 type: channel

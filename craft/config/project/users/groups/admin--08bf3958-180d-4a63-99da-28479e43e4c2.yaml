@@ -1,0 +1,23 @@
+description: null
+handle: admin
+name: Admin
+permissions:
+  - accesscp
+  - accesscpwhensystemisoff
+  - assignuserpermissions
+  - 'createentries:2d4738e3-1053-4790-9776-117e946e2f2f' # Availability
+  - 'deleteentries:2d4738e3-1053-4790-9776-117e946e2f2f' # Availability
+  - 'deletepeerentries:2d4738e3-1053-4790-9776-117e946e2f2f' # Availability
+  - deleteusers
+  - editusers
+  - impersonateusers
+  - moderateusers
+  - registerusers
+  - 'saveentries:2d4738e3-1053-4790-9776-117e946e2f2f' # Availability
+  - 'savepeerentries:2d4738e3-1053-4790-9776-117e946e2f2f' # Availability
+  - 'viewentries:2d4738e3-1053-4790-9776-117e946e2f2f' # Availability
+  - 'viewentries:4bca08c3-02a0-4f8e-9125-6b09828edd49' # Ploeg C
+  - 'viewentries:64e5c2be-5d40-44e0-a6f3-08015b562725' # Ploeg A
+  - 'viewentries:dd79136e-3da1-41f1-b9cb-e9c36475201d' # Ploeg B
+  - 'viewpeerentries:2d4738e3-1053-4790-9776-117e946e2f2f' # Availability
+  - viewusers
