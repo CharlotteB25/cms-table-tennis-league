@@ -1,0 +1,22 @@
+<form id="availability-form" method="post">
+  {{ csrfInput() }}
+  {{ actionInput("entries/save-entry") }}
+
+  <input type="hidden" name="sectionId" value="5" />
+  <input type="hidden" name="typeId" value="3" />
+  <input type="hidden" name="fields[match][]" value="{{ match.id }}" />
+  <input type="hidden" name="fields[player][]" value="{{ currentUser.id }}" />
+  <input type="hidden" name="title" value="{{ match.title }}" />
+  <input type="hidden" name="slug" value="{{ match.id }}" />
+  <input type="hidden" name="fields[statusAdmin]" value="nogTeBepalen" />
+  <input type="hidden" name="enabled" value="1" />
+
+  <label for="availability">Beschikbaarheid:</label>
+  <select name="fields[availability]" id="availability">
+    <option value="ja">Ja</option>
+    <option value="nee">Nee</option>
+    <option value="reserve">Reserve</option>
+  </select>
+
+  <button type="submit">Indienen</button>
+</form>

@@ -1,0 +1,34 @@
+<form id="add-player-form" method="post" class="admin-form">
+  {{ csrfInput() }}
+  {{ actionInput("entries/save-entry") }}
+
+  <input type="hidden" name="sectionId" value="5" />
+  <input type="hidden" name="typeId" value="3" />
+  <input type="hidden" name="title" value="{{ match.title }}" />
+  <input type="hidden" name="slug" value="{{ match.id }}" />
+  <input type="hidden" name="fields[match][]" value="{{ match.id }}" />
+  <input type="hidden" name="enabled" value="1" />
+
+  <label for="admin-player">Player:</label>
+  <select name="fields[player][]" id="admin-player">
+    {% for user in craft.users.group('players').all() %}
+    <option value="{{ user.id }}">{{ user.username }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="admin-availability">Beschikbaarheid:</label>
+  <select name="fields[availability]" id="admin-availability">
+    <option value="ja">Ja</option>
+    <option value="nee">Nee</option>
+    <option value="reserve">Reserve</option>
+  </select>
+
+  <label for="admin-status">Status:</label>
+  <select name="fields[statusAdmin]" id="admin-status">
+    <option value="nogTeBepalen">Nog te bepalen</option>
+    <option value="geselecteerd">Geselecteerd</option>
+    <option value="nietGeselecteerd">Niet geselecteerd</option>
+  </select>
+
+  <button type="submit">Toevoegen</button>
+</form>

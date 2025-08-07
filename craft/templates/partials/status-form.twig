@@ -1,0 +1,14 @@
+<form method="post" class="admin-status-form" data-entry-id="{{ availability.id }}">
+  {{ csrfInput() }}
+  {{ actionInput('entries/save-entry') }}
+  <input type="hidden" name="entryId" value="{{ availability.id }}">
+
+  <label for="statusAdmin-{{ availability.id }}">Update Status:</label>
+  <select name="fields[statusAdmin]" id="statusAdmin-{{ availability.id }}">
+    <option value="geselecteerd" {% if availability.statusAdmin == 'geselecteerd' %}selected{% endif %}>Geselecteerd</option>
+    <option value="nietGeselecteerd" {% if availability.statusAdmin == 'nietGeselecteerd' %}selected{% endif %}>Niet geselecteerd</option>
+    <option value="nogTeBepalen" {% if availability.statusAdmin == 'nogTeBepalen' %}selected{% endif %}>Nog te bepalen</option>
+  </select>
+
+  <button type="submit">Bijwerken</button>
+</form>

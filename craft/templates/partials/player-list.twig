@@ -1,0 +1,22 @@
+<h2>Beschikbaarheid</h2>
+
+{% if entries|length %}
+<ul class="availability-list">
+  {% for availability in entries %}
+  <li class="availability-item">
+    <span class="label">Speler:</span>
+    <span>{{ availability.player.one().username }}</span>
+    <span class="label">Beschikbaarheid:</span>
+    <span>{{ availability.availability }}</span>
+    <span class="label">Status:</span>
+    <span>{{ availability.statusAdmin.label }}</span>
+
+    {% if currentUser and currentUser.admin %} {% include
+    'partials/status-form.twig' with { availability: availability } %} {% endif
+    %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="no-data">Er zijn nog geen beschikbaarheidsgegevens.</p>
+{% endif %}
