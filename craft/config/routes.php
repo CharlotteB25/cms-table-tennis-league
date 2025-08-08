@@ -11,16 +11,15 @@
 
 return [
     // Member routes
-    'drinks'            => 'drinks/index',
-    'matches'           => 'matches/index',
+    'drinks'   => ['template' => 'drinks/index'],
+    'teams'           => 'teams/index',
     'account'           => 'account/index',
 
     // Admin routes
-    'drinks/admin'     => 'drinks/admin',
-    'matches/admin'    => 'matches/admin',
-    'accounts/admin'   => 'accounts/admin',
+    'drinks/admin'   => ['template' => 'drinks/admin'],
+    'teams/admin'    => ['template' => 'teams/admin'],
+    'accounts/admin'   => ['template' => 'accounts/admin'],
 
     // Auth routes (optional if you're customizing login)
 'login' => ['template' => 'auth/login'],
-    'logout'            => 'logout',
 ];

@@ -1,15 +1,26 @@
-dateModified: 1754409048
+dateModified: 1754679291
 email:
   fromEmail: charlotte.billiet25@gmail.com
   fromName: 'Table Tennis Tool'
   transportType: craft\mail\transportadapters\Sendmail
+fs:
+  uploads:
+    hasUrls: false
+    name: Uploads
+    settings:
+      path: '@webroot/uploads'
+    type: craft\fs\Local
+    url: null
 meta:
   __names__:
     0a105f38-fbd5-4242-aba4-6c12d557259c: 'Table Tennis Tool' # Table Tennis Tool
+    0b8acdb5-7c02-4309-b649-29c39414b8e5: 'Site Images' # Site Images
     1a62614a-305e-4de4-a36a-f09f87efb96d: 'Status Admin' # Status Admin
+    1cc42db4-c0f6-423d-9347-8e776bb43a58: Price # Price
     2d4738e3-1053-4790-9776-117e946e2f2f: Availability # Availability
     3bb9ea28-a19f-4a5f-83b2-41b13f9f4756: Players # Players
     4ae51205-3df5-4e1d-9109-254cda07c244: Match # Match
+    4b3846ce-db34-45ee-a26b-a2a465df06f8: Drinks # Drinks
     4bca08c3-02a0-4f8e-9125-6b09828edd49: 'Ploeg C' # Ploeg C
     4e17cb9a-52a4-49a2-a715-1d4f8e4097dd: 'Table Tennis Tool' # Table Tennis Tool
     4ebcefd2-cd60-4639-97dc-a64377d08c24: Availability # Availability
@@ -20,7 +31,11 @@ meta:
     011dad69-aa0c-45c9-81b7-0144dc8f07f4: TeamA # TeamA
     39dab611-7a06-4450-972e-0d8f90d62b79: 'Public Schema' # Public Schema
     64e5c2be-5d40-44e0-a6f3-08015b562725: 'Ploeg A' # Ploeg A
+    67fcc8e0-ba5a-4580-9981-d2396d4e9e32: Category # Category
+    556ba6b4-1f6e-4e24-9886-8d1f43ddb8bc: 'Drink Visibility' # Drink Visibility
     4663245d-cb44-4730-80b3-a5caba313759: 'CSV Entries' # CSV Entries
+    13564983-865b-457e-a301-f41345dec271: Drinks # Drinks
+    a22c0783-c99f-406f-a934-529b0b809fac: Image # Image
     ca933992-0281-46e0-9c96-30298c48a53c: Player # Player
     da57e7e9-7915-4119-aa7e-730ad58dd0ac: Date/Time # Date/Time
     dd79136e-3da1-41f1-b9cb-e9c36475201d: 'Ploeg B' # Ploeg B

@@ -1,0 +1,12 @@
+columnSuffix: null
+handle: drinkVisibility
+instructions: null
+name: 'Drink Visibility'
+searchable: false
+settings:
+  default: false
+  offLabel: 'Not Available '
+  onLabel: Available
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Lightswitch

@@ -1,0 +1,96 @@
+columnSuffix: null
+handle: category
+instructions: null
+name: Category
+searchable: false
+settings:
+  customOptions: false
+  options:
+    -
+      __assoc__:
+        -
+          - label
+          - 'Fris Drank'
+        -
+          - value
+          - frisDrank
+        -
+          - icon
+          - ''
+        -
+          - color
+          - ''
+        -
+          - default
+          - ''
+    -
+      __assoc__:
+        -
+          - label
+          - 'Warme Dranken'
+        -
+          - value
+          - warmeDranken
+        -
+          - icon
+          - ''
+        -
+          - color
+          - ''
+        -
+          - default
+          - ''
+    -
+      __assoc__:
+        -
+          - label
+          - Bier
+        -
+          - value
+          - bier
+        -
+          - icon
+          - ''
+        -
+          - color
+          - ''
+        -
+          - default
+          - ''
+    -
+      __assoc__:
+        -
+          - label
+          - Wijn
+        -
+          - value
+          - wijn
+        -
+          - icon
+          - ''
+        -
+          - color
+          - ''
+        -
+          - default
+          - ''
+    -
+      __assoc__:
+        -
+          - label
+          - Water
+        -
+          - value
+          - water
+        -
+          - icon
+          - ''
+        -
+          - color
+          - ''
+        -
+          - default
+          - ''
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Dropdown

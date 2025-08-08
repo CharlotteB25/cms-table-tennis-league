@@ -1,5 +1,333 @@
-{% include 'global/nav.twig' %}
-<main style="margin-left: 200px; padding: 2rem">
-  <h1>Beheer Drankjes</h1>
-  <p>Hier kan je drankjes toevoegen, prijzen aanpassen en verwijderen.</p>
-</main>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Drankjes</title>
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}"
+    />
+    <style>
+      /* Styles for Drink Manage Page */
+      body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(
+          to right,
+          rgb(169, 197, 185),
+          rgb(119, 188, 158)
+        );
+        margin: 0;
+        padding: 0;
+      }
+
+      main {
+        padding: 20px;
+        position: relative;
+      }
+
+      h2 {
+        font-size: 24px;
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+      }
+
+      .drinks-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .terug-button {
+        align-self: flex-start;
+        background-color: #28a745;
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+
+      .terug-button:hover {
+        background-color: #218838;
+      }
+
+      .drinks-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        max-width: 1200px;
+        width: 100%;
+      }
+
+      .drink-card {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .drink-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .drink-card img {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        object-fit: cover;
+        background-color: #f4f4f4;
+      }
+
+      .drink-info h3 {
+        font-size: 18px;
+        margin: 10px 0 5px;
+        color: #333;
+        font-weight: bold;
+      }
+
+      .drink-info p {
+        margin: 5px 0;
+        font-size: 14px;
+        color: #555;
+      }
+
+      .price {
+        color: rgb(0, 127, 191) !important;
+        font-weight: bold;
+        font-size: 18px !important;
+        margin-top: 5px;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .button {
+        padding: 10px 15px;
+        border-radius: 5px;
+        border: none;
+        cursor: pointer;
+        text-align: center;
+        font-size: 14px;
+        text-decoration: none;
+        font-weight: bold;
+      }
+
+      .edit-drink {
+        background-color: #007bff;
+        color: white;
+      }
+
+      .edit-drink:hover {
+        background-color: #0056b3;
+      }
+
+      .buy-drink {
+        background-color: #28a745;
+        color: white;
+      }
+
+      .buy-drink:hover {
+        background-color: #218838;
+      }
+
+      .notification {
+        position: fixed;
+        top: 13%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: green;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 5px;
+        opacity: 0;
+        z-index: 1000;
+        transition: opacity 0.5s ease-in-out;
+        font-size: 16px;
+        text-align: center;
+      }
+
+      .notification.hidden {
+        display: none;
+      }
+
+      .actions-container {
+        display: flex;
+        justify-content: center;
+        padding: 0 20px;
+      }
+
+      .add-drink {
+        background-color: #28a745;
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        display: inline-block;
+      }
+
+      .add-drink:hover {
+        background-color: rgb(28, 118, 49);
+      }
+    </style>
+  </head>
+  <body>
+    {% include 'global/nav.twig' %}
+
+    <main>
+      <div class="actions-container">
+        {% if currentUser and currentUser.admin %}
+        <a
+          href="{{
+            url(
+              'admin/entries/drinks?source=section%3A7e85fc9c-a7a6-4d09-89ce-ebfc0be42e77'
+            )
+          }}"
+          class="button add-drink"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Drankje Toevoegen</a
+        >
+        {% endif %}
+      </div>
+
+      <div class="drinks-section">
+        <a href="{{ url('index') }}" class="button terug-button">Terug</a>
+        <div class="drinks-container">
+          {% for drink in craft.entries.section('drinks').all() %} {# Pre-calc
+          once per drink #} {% set img = drink.image.one() %} {# Category is
+          SingleOptionFieldData, not an element query #} {% set catLabel =
+          drink.category ? (drink.category.label ?? drink.category.value) : '—'
+          %} {# Money\Money handling #} {% set priceMoney = drink.price ?? null
+          %} {% set priceNumber = priceMoney ? (priceMoney.getAmount() / 100) :
+          null %} {% set priceDisplay = priceMoney ?
+          craft.app.formatter.asCurrency(priceNumber,
+          priceMoney.getCurrency().getCode()) : '—' %}
+
+          <div class="drink-card">
+            <img
+              src="{{ img ? img.getUrl() : 'https://via.placeholder.com/64' }}"
+              alt="{{ drink.title }}"
+            />
+            <div class="drink-info">
+              <h3>{{ drink.title }}</h3>
+              <p>Categorie: {{ catLabel }}</p>
+              <p class="price">{{ priceDisplay }}</p>
+              <p>Beschikbaar: {{ drink.availability ? "Ja" : "Nee" }}</p>
+            </div>
+
+            <div class="action-buttons">
+              {% if currentUser and currentUser.admin %}
+              <a
+                href="{{ url('admin/entries/drinks/' ~ drink.id ~ '-' ~ drink.slug) }}"
+                class="button edit-drink"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Drankje Bewerken</a
+              >
+              {% endif %} {% if currentUser %} {% if drink.availability %}
+              <button
+                class="button buy-drink"
+                data-drink-id="{{ drink.id }}"
+                data-drink-name="{{ drink.title }}"
+                data-drink-price="{{ priceNumber is not null ? priceNumber : 0 }}"
+              >
+                Toevoegen
+              </button>
+              {% else %}
+              <button
+                class="button unavailable-drink"
+                onclick="showUnavailableNotification()"
+              >
+                Niet Beschikbaar
+              </button>
+              {% endif %} {% endif %}
+            </div>
+          </div>
+          {% else %}
+          <p>Geen drankjes beschikbaar.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </main>
+
+    <div id="notification" class="notification hidden"></div>
+
+    {% include 'global/footer.twig' %}
+
+    <script>
+      function showUnavailableNotification() {
+        const notification = document.getElementById("notification");
+        notification.textContent = "Dit drankje is momenteel niet beschikbaar.";
+        notification.classList.remove("hidden");
+        notification.style.opacity = 1;
+        setTimeout(() => {
+          notification.style.opacity = 0;
+          notification.classList.add("hidden");
+        }, 2000);
+      }
+
+      function updateCartCount() {
+        const username = '{{ currentUser ? currentUser.username : "guest" }}';
+        const cartKey = `cart_${username}`;
+        const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const cartCountElement = document.getElementById("cart-count");
+        if (cartCountElement) cartCountElement.textContent = totalItems;
+      }
+
+      document.querySelectorAll(".buy-drink").forEach((button) => {
+        button.addEventListener("click", function () {
+          const drinkId = this.getAttribute("data-drink-id");
+          const drinkName = this.getAttribute("data-drink-name");
+          const drinkPrice = parseFloat(this.getAttribute("data-drink-price"));
+
+          const username = '{{ currentUser ? currentUser.username : "guest" }}';
+          const cartKey = `cart_${username}`;
+          const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+
+          const existingDrink = cart.find((item) => item.id === drinkId);
+          if (existingDrink) {
+            existingDrink.quantity++;
+          } else {
+            cart.push({
+              id: drinkId,
+              name: drinkName,
+              price: drinkPrice,
+              quantity: 1,
+            });
+          }
+
+          localStorage.setItem(cartKey, JSON.stringify(cart));
+          updateCartCount();
+
+          const notification = document.getElementById("notification");
+          notification.textContent = "Drankje toegevoegd aan mandje!";
+          notification.classList.remove("hidden");
+          notification.style.opacity = 1;
+          setTimeout(() => {
+            notification.style.opacity = 0;
+            notification.classList.add("hidden");
+          }, 2000);
+        });
+      });
+
+      document.addEventListener("DOMContentLoaded", updateCartCount);
+    </script>
+  </body>
+</html>
