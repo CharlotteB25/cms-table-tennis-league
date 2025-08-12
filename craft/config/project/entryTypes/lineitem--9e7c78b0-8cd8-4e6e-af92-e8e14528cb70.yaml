@@ -1,0 +1,104 @@
+color: null
+description: null
+fieldLayouts:
+  d55e16f0-a870-4e3a-bf46-7b5f97318d13:
+    cardThumbAlignment: end
+    tabs:
+      -
+        elementCondition: null
+        elements:
+          -
+            autocapitalize: true
+            autocomplete: false
+            autocorrect: true
+            class: null
+            dateAdded: '2025-08-12T16:59:41+00:00'
+            disabled: false
+            elementCondition: null
+            id: null
+            includeInCards: false
+            inputType: null
+            instructions: null
+            label: null
+            max: null
+            min: null
+            name: null
+            orientation: null
+            placeholder: null
+            providesThumbs: false
+            readonly: false
+            required: true
+            size: null
+            step: null
+            tip: null
+            title: null
+            type: craft\fieldlayoutelements\entries\EntryTitleField
+            uid: c208b880-448a-4838-b2a6-3f92feb36baa
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            dateAdded: '2025-08-12T17:05:08+00:00'
+            editCondition: null
+            elementCondition: null
+            fieldUid: a9a67530-3b6b-46c7-82c5-f07daddb313a # Drink
+            handle: null
+            includeInCards: false
+            instructions: null
+            label: null
+            providesThumbs: false
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: 105ad416-7e3a-4569-b3ad-b0109365a1bc
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            dateAdded: '2025-08-12T17:05:08+00:00'
+            editCondition: null
+            elementCondition: null
+            fieldUid: 195c2b3f-fd22-4f62-aa83-264d2e89a049 # Qty
+            handle: null
+            includeInCards: false
+            instructions: null
+            label: null
+            providesThumbs: false
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: b3133c7e-f054-468d-bc9d-56a6d035f2ad
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            dateAdded: '2025-08-12T17:05:08+00:00'
+            editCondition: null
+            elementCondition: null
+            fieldUid: 1cc42db4-c0f6-423d-9347-8e776bb43a58 # Price
+            handle: null
+            includeInCards: false
+            instructions: null
+            label: null
+            providesThumbs: false
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: 33fff38a-2b49-4439-bc68-450e4cfbec8a
+            userCondition: null
+            warning: null
+            width: 100
+        name: Content
+        uid: bade99f6-7c96-4b32-ade9-3d1bd8034d74
+        userCondition: null
+handle: lineitem
+hasTitleField: true
+icon: null
+name: lineItem
+showSlugField: true
+showStatusField: true
+slugTranslationKeyFormat: null
+slugTranslationMethod: site
+titleFormat: null
+titleTranslationKeyFormat: null
+titleTranslationMethod: site

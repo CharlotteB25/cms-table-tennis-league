@@ -9,17 +9,23 @@
  * @link https://craftcms.com/docs/5.x/system/routing.html
  */
 
+// config/routes.php
 return [
-    // Member routes
-    'drinks'   => ['template' => 'drinks/index'],
-    'teams'           => 'teams/index',
-    'account'           => 'account/index',
+  // pages
+  'drinks'  => ['template' => 'drinks/index'],
+  'teams'   => 'teams/index',
+  'account' => 'account/index',
+  'tabs'    => ['template' => 'tabs/index'],
 
-    // Admin routes
-    'drinks/admin'   => ['template' => 'drinks/admin'],
-    'teams/admin'    => ['template' => 'teams/admin'],
-    'accounts/admin'   => ['template' => 'accounts/admin'],
+  // actions -> site controller "tabs"
+  'tab/add'   => ['route' => 'tabs/add'],
+  'tab/close' => ['route' => 'tabs/close'],
 
-    // Auth routes (optional if you're customizing login)
-'login' => ['template' => 'auth/login'],
+  // admin pages
+  'drinks/admin'  => ['template' => 'drinks/admin'],
+  'teams/admin'   => ['template' => 'teams/admin'],
+  'accounts/admin'=> ['template' => 'accounts/admin'],
+  'tabs/admin'    => ['template' => 'tabs/admin'],
+
+  'login' => ['template' => 'auth/login'],
 ];

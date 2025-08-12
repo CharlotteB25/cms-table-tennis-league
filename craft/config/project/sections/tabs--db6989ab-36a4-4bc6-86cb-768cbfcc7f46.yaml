@@ -1,0 +1,28 @@
+defaultPlacement: end
+enableVersioning: true
+entryTypes:
+  -
+    uid: 747a930c-6e7b-415a-b10a-a515a8f82b68 # Tabs
+handle: tabs
+maxAuthors: 1
+name: Tabs
+previewTargets:
+  -
+    __assoc__:
+      -
+        - label
+        - 'Primary entry page'
+      -
+        - urlFormat
+        - '{url}'
+      -
+        - refresh
+        - '1'
+propagationMethod: all
+siteSettings:
+  0a105f38-fbd5-4242-aba4-6c12d557259c: # Table Tennis Tool
+    enabledByDefault: true
+    hasUrls: true
+    template: tabs/_entry.twig
+    uriFormat: 'tabs/{slug}'
+type: channel

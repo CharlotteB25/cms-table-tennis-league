@@ -1,0 +1,193 @@
+{% set isAdmin = currentUser and currentUser.admin %}
+
+<style>
+  .container {
+    max-width: 900px;
+    margin: 2rem auto;
+    font-family: Arial, sans-serif;
+    background: #fafafa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  thead {
+    background-color: #f2f2f2;
+  }
+
+  thead th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: bold;
+    border-bottom: 2px solid #ddd;
+  }
+
+  tbody td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin: 0;
+  }
+
+  tfoot th {
+    padding: 0.75rem;
+    text-align: right;
+    border-top: 2px solid #ddd;
+  }
+
+  strong {
+    font-weight: bold;
+    color: #444;
+  }
+
+  button {
+    background-color: #4cafef;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  button:hover {
+    background-color: #3a8cd6;
+  }
+
+  p {
+    text-align: center;
+    color: #666;
+  }
+</style>
+
+<div class="container">
+  {% if isAdmin %}
+  <h2>Alle Open Tabs</h2>
+  {% set openTabs = craft.entries .section('tabs') .tabStatus('open')
+  .with(['tabOwner','items.drink']) .all() %}
+
+  <table>
+    <thead>
+      <tr>
+        <th>Naam</th>
+        <th>Items</th>
+        <th>Totaal</th>
+        <th>Acties</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if openTabs %} {% for tab in openTabs %} {% set owner =
+      tab.tabOwner.one() %} {% set total = 0 %}
+      <tr>
+        <td>{{ owner ? owner.friendlyName : "—" }}</td>
+        <td>
+          <ul>
+            {% for b in tab.items.all() %} {% set qty = b.qty ?? 0 %} {% set
+            priceMoney = (b.price is defined and attribute(b.price,'getAmount')
+            is defined) ? b.price : (b.drink.one() and b.drink.one().price is
+            defined and attribute(b.drink.one().price,'getAmount') is defined ?
+            b.drink.one().price : null) %} {% set priceNumber = priceMoney ?
+            (priceMoney.getAmount() / 100) : (b.price ?? 0)|float %} {% set line
+            = qty * priceNumber %} {% set total = total + line %}
+            <li>
+              {{ b.title ?: (b.drink.one() ? b.drink.one().title : '—') }}
+              × {{ qty }} —
+              {{ craft.app.formatter.asCurrency(priceNumber, "EUR") }}
+            </li>
+            {% endfor %}
+          </ul>
+        </td>
+        <td>
+          <strong>{{ craft.app.formatter.asCurrency(total, "EUR") }}</strong>
+        </td>
+        <td>
+          <form method="post" action="{{ url('tab/close') }}">
+            {{ csrfInput() }}
+            <input type="hidden" name="tabId" value="{{ tab.id }}" />
+            <button type="submit">Markeer als betaald</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %} {% else %}
+      <tr>
+        <td colspan="4">Geen open tabs.</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  {% else %}
+  <h2>Uw Huidige Tab</h2>
+  {% set myTab = craft.entries .section('tabs') .tabOwner(currentUser)
+  .tabStatus('open') .with(['items.drink']) .one() %} {% if myTab %} {% set
+  total = 0 %}
+  <table>
+    <thead>
+      <tr>
+        <th>Drank</th>
+        <th>Aantal</th>
+        <th>Prijs</th>
+        <th>Totaal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in myTab.items.all() %} {% set qty = b.qty ?? 0 %} {% set
+      priceMoney = (b.price is defined and attribute(b.price,'getAmount') is
+      defined) ? b.price : (b.drink.one() and b.drink.one().price is defined and
+      attribute(b.drink.one().price,'getAmount') is defined ?
+      b.drink.one().price : null) %} {% set priceNumber = priceMoney ?
+      (priceMoney.getAmount() / 100) : (b.price ?? 0)|float %} {% set line = qty
+      * priceNumber %} {% set total = total + line %}
+      <tr>
+        <td>{{ b.title ?: (b.drink.one() ? b.drink.one().title : '—') }}</td>
+        <td>{{ qty }}</td>
+        <td>{{ craft.app.formatter.asCurrency(priceNumber, "EUR") }}</td>
+        <td>{{ craft.app.formatter.asCurrency(line, "EUR") }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="3" style="text-align: right">Totaal</th>
+        <th>{{ craft.app.formatter.asCurrency(total, "EUR") }}</th>
+      </tr>
+    </tfoot>
+  </table>
+
+  <form
+    method="post"
+    action="{{ url('tab/close') }}"
+    style="margin-top: 16px; text-align: center"
+  >
+    {{ csrfInput() }}
+    <input type="hidden" name="tabId" value="{{ myTab.id }}" />
+    <button type="submit">Nu betalen / Sluit tab</button>
+  </form>
+  {% else %}
+  <p>Je hebt momenteel geen open tab.</p>
+  {% endif %} {% endif %}
+</div>

@@ -1,16 +1,16 @@
-dateModified: 1754679291
+dateModified: 1755027761
 email:
   fromEmail: charlotte.billiet25@gmail.com
   fromName: 'Table Tennis Tool'
   transportType: craft\mail\transportadapters\Sendmail
 fs:
   uploads:
-    hasUrls: false
+    hasUrls: true
     name: Uploads
     settings:
       path: '@webroot/uploads'
     type: craft\fs\Local
-    url: null
+    url: '@web/uploads'
 meta:
   __names__:
     0a105f38-fbd5-4242-aba4-6c12d557259c: 'Table Tennis Tool' # Table Tennis Tool
@@ -26,18 +26,26 @@ meta:
     4ebcefd2-cd60-4639-97dc-a64377d08c24: Availability # Availability
     4f857955-4d50-4741-a011-849f264bcfa1: Address # Address
     5d64266d-d136-46ed-a5b6-edb8b02bdbc6: Availability # Availability
+    6a8e6fec-287a-47e7-9ab1-4ca8aff38e4c: 'Tab Status' # Tab Status
     7fa6534c-773d-4769-9d22-a2f534c3b5f4: Location # Location
     08bf3958-180d-4a63-99da-28479e43e4c2: Admin # Admin
+    9e7c78b0-8cd8-4e6e-af92-e8e14528cb70: lineItem # lineItem
     011dad69-aa0c-45c9-81b7-0144dc8f07f4: TeamA # TeamA
+    27d37b36-6703-4372-8d44-1bbc2d4a599b: Items # Items
+    35c9edd8-be10-4e6b-8390-5daa27a96a9b: 'Tab Owner' # Tab Owner
     39dab611-7a06-4450-972e-0d8f90d62b79: 'Public Schema' # Public Schema
     64e5c2be-5d40-44e0-a6f3-08015b562725: 'Ploeg A' # Ploeg A
     67fcc8e0-ba5a-4580-9981-d2396d4e9e32: Category # Category
+    195c2b3f-fd22-4f62-aa83-264d2e89a049: Qty # Qty
     556ba6b4-1f6e-4e24-9886-8d1f43ddb8bc: 'Drink Visibility' # Drink Visibility
+    747a930c-6e7b-415a-b10a-a515a8f82b68: Tabs # Tabs
     4663245d-cb44-4730-80b3-a5caba313759: 'CSV Entries' # CSV Entries
     13564983-865b-457e-a301-f41345dec271: Drinks # Drinks
+    a9a67530-3b6b-46c7-82c5-f07daddb313a: Drink # Drink
     a22c0783-c99f-406f-a934-529b0b809fac: Image # Image
     ca933992-0281-46e0-9c96-30298c48a53c: Player # Player
     da57e7e9-7915-4119-aa7e-730ad58dd0ac: Date/Time # Date/Time
+    db6989ab-36a4-4bc6-86cb-768cbfcc7f46: Tabs # Tabs
     dd79136e-3da1-41f1-b9cb-e9c36475201d: 'Ploeg B' # Ploeg B
     fcbc034f-08a7-4728-bcb0-b0178b95230c: Teams # Teams
 plugins:

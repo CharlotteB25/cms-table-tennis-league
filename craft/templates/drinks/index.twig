@@ -1,5 +1,283 @@
 {% include 'global/nav.twig' %}
-<main style="margin-left: 200px; padding: 2rem">
-  <h1>Bestel Drankjes</h1>
-  <p>Hier kan je drankjes bekijken en toevoegen aan je rekening.</p>
-</main>
+
+<style>
+  :root {
+    --bg: #f6faf8;
+    --ink: #1f2937;
+    --muted: #6b7280;
+    --card: #ffffff;
+    --brand: #10b981;
+    --brand-ink: #065f46;
+    --border: #e5e7eb;
+    --danger: #ef4444;
+  }
+  body {
+    background: linear-gradient(to right, rgb(169 197 185), rgb(119 188 158));
+  }
+  .shop-wrap {
+    max-width: 1200px;
+    margin: 24px auto;
+    padding: 0 16px;
+    color: var(--ink);
+  }
+  .shop-head {
+    margin-left: 200px; /* keep your existing sidebar gap */
+    padding: 2rem 0 1rem;
+  }
+  .shop-title {
+    margin: 0 0 6px 0;
+    font-size: 32px;
+    line-height: 1.2;
+  }
+  .shop-sub {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .grid {
+    margin-left: 200px; /* align with content */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    padding-bottom: 32px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .media {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+  .thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #f3f4f6;
+  }
+  .title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .meta {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .price {
+    font-weight: 800;
+    font-size: 18px;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .btn {
+    appearance: none;
+    border: 1px solid var(--brand);
+    background: var(--brand);
+    color: white;
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.04s ease, filter 0.15s ease;
+  }
+  .btn:hover {
+    filter: brightness(0.96);
+  }
+  .btn:active {
+    transform: translateY(1px);
+  }
+  .btn[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .chip {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 8px;
+    color: var(--muted);
+  }
+  .chip-green {
+    background: #ecfdf5;
+    color: var(--brand-ink);
+    border-color: rgba(6, 95, 70, 0.15);
+  }
+  .chip-red {
+    background: #fef2f2;
+    color: #991b1b;
+    border-color: rgba(185, 28, 28, 0.15);
+  }
+
+  .notice {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--brand);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    box-shadow: 0 10px 28px rgba(16, 185, 129, 0.28);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 1000;
+    font-weight: 800;
+  }
+  .notice.show {
+    opacity: 1;
+  }
+  @media (max-width: 720px) {
+    .shop-head,
+    .grid {
+      margin-left: 0;
+    }
+  }
+</style>
+
+<div class="shop-wrap">
+  <header class="shop-head">
+    <h1 class="shop-title">Bestel Drankjes</h1>
+    <p class="shop-sub">
+      Hier kan je drankjes bekijken en toevoegen aan je rekening.
+    </p>
+  </header>
+
+  {% set drinks = craft.entries.section('drinks').with(['image']).all() %}
+
+  <section class="grid">
+    {% for drink in drinks %} {# image #} {% set img = drink.image.one() %} {#
+    category may be an option field (SingleOptionFieldData) #} {% set cat =
+    drink.category ? (drink.category.label ?? drink.category.value) : '—' %} {#
+    price: prefer Money\Money -> display; also keep numeric fallback #} {% set
+    priceMoney = drink.price ?? null %} {% set priceNumber = priceMoney ?
+    (priceMoney.getAmount() / 100) : (drink.price ?? 0)|float %} {% set
+    priceDisplay = priceMoney ? craft.app.formatter.asCurrency(priceNumber,
+    priceMoney.getCurrency().getCode()) :
+    craft.app.formatter.asCurrency(priceNumber, 'EUR') %}
+
+    <article class="card" data-id="{{ drink.id }}">
+      <div class="media">
+        <img
+          class="thumb"
+          src="{{
+            img
+              ? img.getUrl({ width: 256, height: 256, mode: 'fit' })
+              : 'https://via.placeholder.com/64'
+          }}"
+          alt="{{ drink.title }}"
+        />
+        <div>
+          <h3 class="title">{{ drink.title }}</h3>
+          <p class="meta">Categorie: {{ cat }}</p>
+        </div>
+      </div>
+
+      <div class="row">
+        <span class="price">{{ priceDisplay }}</span>
+        {% if drink.drinkVisibility %}
+        <span class="chip chip-green">Beschikbaar</span>
+        {% else %}
+        <span class="chip chip-red">Niet Beschikbaar</span>
+        {% endif %}
+      </div>
+
+      <div class="row">
+        {% if currentUser %} {% if drink.drinkVisibility %}
+        <button
+          class="btn add-to-tab"
+          data-drink-id="{{ drink.id }}"
+          data-drink-title="{{ drink.title }}"
+        >
+          Toevoegen aan rekening
+        </button>
+        {% else %}
+        <button class="btn" disabled>Niet beschikbaar</button>
+        {% endif %} {% else %}
+        <a class="btn" href="{{ url('login') }}">Log in om te bestellen</a>
+        {% endif %}
+      </div>
+    </article>
+    {% else %}
+    <p class="meta" style="grid-column: 1 / -1">Geen drankjes beschikbaar.</p>
+    {% endfor %}
+  </section>
+</div>
+
+<div id="notice" class="notice" role="status" aria-live="polite"></div>
+
+{% if currentUser %}
+<script>
+  // CSRF + endpoint
+  const CSRF_NAME  = '{{ craft.app.config.general.csrfTokenName }}';
+  const CSRF_VALUE = '{{ craft.app.request.csrfToken|e('js') }}';
+  const ADD_TO_TAB_URL = '{{ actionUrl("tabs/add") }}'; // /actions/tabs/add
+
+  const notice = document.getElementById('notice');
+  function flash(msg){
+    if(!notice) return;
+    notice.textContent = msg;
+    notice.classList.add('show');
+    setTimeout(()=> notice.classList.remove('show'), 1600);
+  }
+
+  document.querySelectorAll('.add-to-tab').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const drinkId = btn.dataset.drinkId;
+      const title = btn.dataset.drinkTitle || 'drankje';
+      btn.disabled = true;
+
+      const body = new URLSearchParams();
+      body.append('drinkId', drinkId);
+      body.append('qty', '1');
+      body.append(CSRF_NAME, CSRF_VALUE);
+
+      try{
+        const res = await fetch(ADD_TO_TAB_URL, {
+          method: 'POST',
+          headers: { 'Accept':'application/json', 'Content-Type':'application/x-www-form-urlencoded' },
+          body: body.toString()
+        });
+
+        let msg = '';
+        if(res.ok){
+          const json = await res.json();
+          if(json.success){
+            msg = json.merged ? `${title}: aantal verhoogd` : `${title}: toegevoegd aan je rekening`;
+          } else {
+            msg = 'Kon niet toevoegen';
+            console.error('Save errors:', json.errors || json);
+          }
+        } else {
+          msg = `Fout (${res.status}) bij toevoegen`;
+          console.error('HTTP error:', await res.text());
+        }
+        flash(msg);
+      } catch(err){
+        console.error(err);
+        flash('Netwerkfout');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+</script>
+{% endif %}

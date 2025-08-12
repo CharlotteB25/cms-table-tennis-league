@@ -10,6 +10,11 @@
     "craftcms/generator": "^2.0.0",
     "yiisoft/yii2-shell": "^2.0.3"
   },
+  "autoload": {
+    "psr-4": {
+      "app\\controllers\\": "controllers/"
+    }
+  },
   "config": {
     "allow-plugins": {
       "craftcms/plugin-installer": true,

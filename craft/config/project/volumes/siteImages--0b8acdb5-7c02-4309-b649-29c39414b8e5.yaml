@@ -44,7 +44,7 @@ fs: uploads
 handle: siteImages
 name: 'Site Images'
 sortOrder: 1
-subpath: ''
+subpath: images
 titleTranslationKeyFormat: null
 titleTranslationMethod: site
 transformFs: ''
