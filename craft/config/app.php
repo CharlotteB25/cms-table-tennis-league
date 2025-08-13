@@ -27,5 +27,7 @@ return [
 
      'controllerMap' => [
         'tabs' => \app\controllers\TabsController::class,
+        'pay'  => \app\controllers\PayController::class,
     ],
+   
 ];

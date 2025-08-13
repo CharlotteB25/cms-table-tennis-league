@@ -17,15 +17,22 @@ return [
   'account' => 'account/index',
   'tabs'    => ['template' => 'tabs/index'],
 
-  // actions -> site controller "tabs"
+  // actions to your site controllers
   'tab/add'   => ['route' => 'tabs/add'],
   'tab/close' => ['route' => 'tabs/close'],
 
   // admin pages
-  'drinks/admin'  => ['template' => 'drinks/admin'],
-  'teams/admin'   => ['template' => 'teams/admin'],
-  'accounts/admin'=> ['template' => 'accounts/admin'],
-  'tabs/admin'    => ['template' => 'tabs/admin'],
+  'drinks/admin'   => ['template' => 'drinks/admin'],
+  'teams/admin'    => ['template' => 'teams/admin'],
+  'accounts/admin' => ['template' => 'accounts/admin'],
+  'tabs/admin'     => ['template' => 'tabs/admin'],
 
   'login' => ['template' => 'auth/login'],
+
+  // 🔽 payment endpoints (NO module prefix anymore)
+  'tab/pay'     => 'pay/create',   // POST
+  'tab/webhook' => 'pay/webhook',  // POST (Mollie -> your site)
+  'tab/return'  => 'pay/return',   // GET
+
 ];
+

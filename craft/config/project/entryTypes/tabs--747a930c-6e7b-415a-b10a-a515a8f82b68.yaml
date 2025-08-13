@@ -89,10 +89,10 @@ fieldLayouts:
             warning: null
             width: 100
           -
-            dateAdded: '2025-08-12T19:42:41+00:00'
+            dateAdded: '2025-08-13T10:27:15+00:00'
             editCondition: null
             elementCondition: null
-            fieldUid: 195c2b3f-fd22-4f62-aa83-264d2e89a049 # Qty
+            fieldUid: b998d876-fe54-4528-8ad8-94ef1828adc5 # Mollie Payment ID
             handle: null
             includeInCards: false
             instructions: null
@@ -101,7 +101,24 @@ fieldLayouts:
             required: false
             tip: null
             type: craft\fieldlayoutelements\CustomField
-            uid: 8c8e5ee1-6627-448f-a8da-5c3b7795ce4e
+            uid: e000c1ea-44a3-478c-a506-2c6d05399a02
+            userCondition: null
+            warning: null
+            width: 100
+          -
+            dateAdded: '2025-08-13T10:27:15+00:00'
+            editCondition: null
+            elementCondition: null
+            fieldUid: b1ce8fad-944d-4bac-933b-c569f75a08e3 # Paid Total
+            handle: null
+            includeInCards: false
+            instructions: null
+            label: null
+            providesThumbs: false
+            required: false
+            tip: null
+            type: craft\fieldlayoutelements\CustomField
+            uid: 249cf8c5-8e61-40b5-a69b-c87298ae2589
             userCondition: null
             warning: null
             width: 100

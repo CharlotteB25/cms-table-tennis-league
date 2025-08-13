@@ -1,4 +1,4 @@
-dateModified: 1755027761
+dateModified: 1755099447
 email:
   fromEmail: charlotte.billiet25@gmail.com
   fromName: 'Table Tennis Tool'
@@ -43,6 +43,8 @@ meta:
     13564983-865b-457e-a301-f41345dec271: Drinks # Drinks
     a9a67530-3b6b-46c7-82c5-f07daddb313a: Drink # Drink
     a22c0783-c99f-406f-a934-529b0b809fac: Image # Image
+    b1ce8fad-944d-4bac-933b-c569f75a08e3: 'Paid Total' # Paid Total
+    b998d876-fe54-4528-8ad8-94ef1828adc5: 'Mollie Payment ID' # Mollie Payment ID
     ca933992-0281-46e0-9c96-30298c48a53c: Player # Player
     da57e7e9-7915-4119-aa7e-730ad58dd0ac: Date/Time # Date/Time
     db6989ab-36a4-4bc6-86cb-768cbfcc7f46: Tabs # Tabs

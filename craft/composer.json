@@ -4,6 +4,7 @@
   "require": {
     "craftcms/cms": "^5.0.0",
     "craftcms/feed-me": "6.8.0",
+    "mollie/mollie-api-php": "^2",
     "vlucas/phpdotenv": "^5.4.0"
   },
   "require-dev": {
