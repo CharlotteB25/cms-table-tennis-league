@@ -248,6 +248,7 @@ set user = currentUser %}
       }
     </style>
   </head>
+
   <body>
     {% include 'global/nav.twig' %}
 
@@ -378,90 +379,274 @@ set user = currentUser %}
       </div>
     </div>
 
+    <!-- Cash success modal -->
+    <div
+      id="cash-modal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      "
+    >
+      <div
+        class="modal"
+        style="
+          max-width: 420px;
+          margin: 10vh auto;
+          background: #fff;
+          padding: 20px;
+          border-radius: 12px;
+          text-align: center;
+          border: 1px solid var(--ring);
+          box-shadow: var(--shadow);
+        "
+      >
+        <h3 style="margin: 0 0 8px; color: var(--soft-red-dark)">Betaald</h3>
+        <p style="color: var(--muted)">Je tab is als contant gemarkeerd.</p>
+        <button type="button" class="btn" id="cash-close">Oké</button>
+      </div>
+    </div>
+
     <script
       src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"
       defer
     ></script>
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // Make sure any Cash forms post to current origin (ngrok/local)
+                  document.addEventListener("DOMContentLoaded", () => {
+                    // Make sure any Cash forms post to current origin (ngrok/local)
+                    const CLOSE_URL = window.location.origin + "/tab/close";
+                    document.querySelectorAll('form[action="/tab/close"]').forEach((f) => {
+                      f.action = CLOSE_URL;
+                    });
+
+                    async function startOnlinePay(tabId) {
+                      // Use your existing relative route
+                      const PAY_URL = window.location.origin + "/tab/pay";
+
+                      const res = await fetch(PAY_URL, {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/x-www-form-urlencoded",
+                          "X-CSRF-Token": "{{ craft.app.request.csrfToken }}",
+                        },
+                        body: new URLSearchParams({ tabId }),
+                      });
+
+                      let data;
+                      try {
+                        data = await res.json();
+                      } catch (e) {}
+                      if (!data || !data.ok || !data.checkoutUrl) {
+                        alert("Kon betaling niet starten.");
+                        return;
+                      }
+
+                      // Show QR + link
+                      const modal = document.getElementById("pay-modal");
+                      const qrBox = document.getElementById("qr");
+                      qrBox.innerHTML = "";
+                      if (window.QRCode && window.QRCode.toCanvas) {
+                        window.QRCode.toCanvas(
+                          data.checkoutUrl,
+                          { width: 256 },
+                          (err, canvas) => {
+                            if (!err && canvas) qrBox.appendChild(canvas);
+                          }
+                        );
+                      }
+                      document.getElementById("open-checkout").href = data.checkoutUrl;
+                      modal.style.display = "block";
+
+                      // Poll for status; reload when paid
+                      let tries = 0;
+                      const t = setInterval(async () => {
+                        tries++;
+                        const r = await fetch(window.location.href, { cache: "no-store" });
+                        const html = await r.text();
+                        const re = new RegExp(
+                          'class="js-tab-status"[^>]*data-tab-id="' +
+                            tabId +
+                            '"[^>]*data-status="([^"]+)"',
+                          "i"
+                        );
+                        const m = html.match(re);
+                        const status = m ? (m[1] || "").toLowerCase() : null;
+                        const stillListed =
+                          html.indexOf('data-tab-id="' + tabId + '"') !== -1;
+
+                        if (
+                          status === "paid" ||
+                          (!stillListed && tries >= 2) ||
+                          tries > 200
+                        ) {
+                          clearInterval(t);
+                          modal.style.display = "none";
+                          location.reload();
+                        }
+                      }, 3000);
+                    }
+
+                    document.querySelectorAll("[data-online-pay]").forEach((btn) => {
+                      btn.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        startOnlinePay(btn.getAttribute("data-online-pay"));
+                      });
+                    });
+                  });
+
+            (function(){
+              const USER_ID = '{{ currentUser ? currentUser.id : "" }}';
+              if (!USER_ID) return;
+
+              const CART_KEY = `pos_cart_user_${USER_ID}`;
+              const CSRF_NAME  = '{{ craft.app.config.general.csrfTokenName }}';
+              const CSRF_VALUE = '{{ craft.app.request.csrfToken|e('js') }}';
+              const ADD_TO_TAB_URL = '{{ actionUrl("tabs/add") }}';
+
+              // avoid infinite reload
+              const SYNC_FLAG = 'pos_cart_synced_once';
+              if (sessionStorage.getItem(SYNC_FLAG)) return;
+
+              let state;
+              try { state = JSON.parse(localStorage.getItem(CART_KEY) || '{"items":{}}'); }
+              catch(_) { state = { items:{} }; }
+              state.items = state.items || {};
+
+              const pending = Object.values(state.items).filter(it => (Number(it.pending)||0) > 0);
+              if (!pending.length) return;
+
+              (async () => {
+                let didSync = false;
+
+                for (const it of pending) {
+                  let n = Number(it.pending)||0;
+                  if (!n) continue;
+
+                  // Try batch qty
+                  const body = new URLSearchParams();
+                  body.append('drinkId', it.id);
+                  body.append('qty', String(n));
+                  body.append(CSRF_NAME, CSRF_VALUE);
+
+                  let ok = false;
+                  try{
+                    const res = await fetch(ADD_TO_TAB_URL, {
+                      method:'POST',
+                      headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
+                      body: body.toString()
+                    });
+                    const json = await res.json().catch(()=>({success: res.ok}));
+                    ok = res.ok && (json.success !== false);
+                  }catch(_){}
+
+                  if (!ok){
+                    // fallback 1-by-1
+                    let left = n;
+                    while(left-- > 0){
+                      const one = new URLSearchParams();
+                      one.append('drinkId', it.id);
+                      one.append('qty', '1');
+                      one.append(CSRF_NAME, CSRF_VALUE);
+                      try{
+                        const res = await fetch(ADD_TO_TAB_URL, {
+                          method:'POST',
+                          headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
+                          body: one.toString()
+                        });
+                        if (!res.ok) break;
+                      }catch(_){ break; }
+                    }
+                  }
+
+                  // If we got here, assume we pushed as much as possible
+                  if (n > 0){
+                    it.pending = 0;
+                    didSync = true;
+                  }
+                }
+
+                localStorage.setItem(CART_KEY, JSON.stringify(state));
+                if (didSync){
+                  sessionStorage.setItem(SYNC_FLAG, '1');
+                  location.reload();
+                }
+              })();
+            })();
+
+            document.addEventListener("DOMContentLoaded", () => {
+        // ensure the form action points to current origin
         const CLOSE_URL = window.location.origin + "/tab/close";
         document.querySelectorAll('form[action="/tab/close"]').forEach((f) => {
           f.action = CLOSE_URL;
         });
 
-        async function startOnlinePay(tabId) {
-          // Use your existing relative route
-          const PAY_URL = window.location.origin + "/tab/pay";
-
-          const res = await fetch(PAY_URL, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-              "X-CSRF-Token": "{{ craft.app.request.csrfToken }}",
-            },
-            body: new URLSearchParams({ tabId }),
-          });
-
-          let data;
-          try {
-            data = await res.json();
-          } catch (e) {}
-          if (!data || !data.ok || !data.checkoutUrl) {
-            alert("Kon betaling niet starten.");
-            return;
-          }
-
-          // Show QR + link
-          const modal = document.getElementById("pay-modal");
-          const qrBox = document.getElementById("qr");
-          qrBox.innerHTML = "";
-          if (window.QRCode && window.QRCode.toCanvas) {
-            window.QRCode.toCanvas(
-              data.checkoutUrl,
-              { width: 256 },
-              (err, canvas) => {
-                if (!err && canvas) qrBox.appendChild(canvas);
-              }
-            );
-          }
-          document.getElementById("open-checkout").href = data.checkoutUrl;
-          modal.style.display = "block";
-
-          // Poll for status; reload when paid
-          let tries = 0;
-          const t = setInterval(async () => {
-            tries++;
-            const r = await fetch(window.location.href, { cache: "no-store" });
-            const html = await r.text();
-            const re = new RegExp(
-              'class="js-tab-status"[^>]*data-tab-id="' +
-                tabId +
-                '"[^>]*data-status="([^"]+)"',
-              "i"
-            );
-            const m = html.match(re);
-            const status = m ? (m[1] || "").toLowerCase() : null;
-            const stillListed =
-              html.indexOf('data-tab-id="' + tabId + '"') !== -1;
-
-            if (
-              status === "paid" ||
-              (!stillListed && tries >= 2) ||
-              tries > 200
-            ) {
-              clearInterval(t);
-              modal.style.display = "none";
-              location.reload();
-            }
-          }, 3000);
-        }
-
-        document.querySelectorAll("[data-online-pay]").forEach((btn) => {
-          btn.addEventListener("click", (e) => {
+        // Intercept Cash submits
+        document.querySelectorAll('form[action="'+CLOSE_URL+'"]').forEach((f) => {
+          f.addEventListener('submit', async (e) => {
             e.preventDefault();
-            startOnlinePay(btn.getAttribute("data-online-pay"));
+
+            const btn   = f.querySelector('button[type="submit"]');
+            const tabId = f.querySelector('input[name="tabId"]')?.value;
+            if (!tabId) return;
+
+            // lock button
+            if (btn) { btn.disabled = true; btn.textContent = 'Bezig…'; }
+
+            // send as x-www-form-urlencoded including CSRF (already in form)
+            const body = new URLSearchParams(new FormData(f));
+
+            let ok = false;
+            try {
+              const res = await fetch(f.action, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' }, // server may still return HTML; that's fine
+                body
+              });
+              ok = res.ok;
+              // if server returns JSON { ok:false }, treat as failure
+              try {
+                const json = await res.json();
+                if (json && json.ok === false) ok = false;
+              } catch (_) { /* not JSON -> still okay if status was 2xx */ }
+            } catch (_) {}
+
+            if (ok) {
+              // Update UI for this row
+              const row = document.querySelector(`tr[data-tab-id="${tabId}"]`);
+              if (row) {
+                // status chip
+                const statusCell = row.querySelector('[data-label="Status"]');
+                if (statusCell) {
+                  statusCell.querySelector('.chip')?.remove();
+                  const span = document.createElement('span');
+                  span.className = 'chip chip-paid';
+                  span.textContent = 'Betaald';
+                  statusCell.prepend(span);
+
+                  const marker = row.querySelector('.js-tab-status');
+                  if (marker) marker.dataset.status = 'paid';
+                }
+                // remove action buttons
+                const actionsCell = row.querySelector('[data-label="Acties"]');
+                if (actionsCell) actionsCell.innerHTML = '—';
+              }
+
+              // Show success modal
+              const cm = document.getElementById('cash-modal');
+              if (cm) cm.style.display = 'block';
+            } else {
+              alert('Kon tab niet sluiten. Probeer opnieuw.');
+              if (btn) { btn.disabled = false; btn.textContent = 'Cash'; }
+            }
           });
+        });
+
+        // Close the success modal
+        document.getElementById('cash-close')?.addEventListener('click', () => {
+          const cm = document.getElementById('cash-modal');
+          if (cm) cm.style.display = 'none';
         });
       });
     </script>

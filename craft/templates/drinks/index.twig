@@ -397,139 +397,248 @@
       aria-live="polite"
     ></div>
 
-    {% include 'global/footer.twig' %} {% if currentUser %}
+    {% include 'global/footer.twig' %} {% if currentUser %} {% if currentUser %}
     <script>
-      // CSRF + endpoints
-      const CSRF_NAME  = '{{ craft.app.config.general.csrfTokenName }}';
-      const CSRF_VALUE = '{{ craft.app.request.csrfToken|e('js') }}';
-      const ADD_TO_TAB_URL = '{{ actionUrl("tabs/add") }}';
-      const REMOVE_FROM_TAB_URL = '{{ actionUrl("tabs/remove") }}'; // optional, if implemented
+            // --- config / endpoints ---
+            const CSRF_NAME  = '{{ craft.app.config.general.csrfTokenName }}';
+            const CSRF_VALUE = '{{ craft.app.request.csrfToken|e('js') }}';
+            const ADD_TO_TAB_URL    = '{{ actionUrl("tabs/add") }}';
+            const REMOVE_FROM_TAB_URL = '{{ actionUrl("tabs/remove") }}'; // optional
+            const USER_ID = '{{ currentUser.id }}';
+            const CART_KEY = `pos_cart_user_${USER_ID}`;
 
-      const fmt = new Intl.NumberFormat('nl-BE', { style:'currency', currency:'EUR' });
+            // --- utils ---
+            const fmt = new Intl.NumberFormat('nl-BE', { style:'currency', currency:'EUR' });
+            const noticeEl = document.getElementById('notice');
+            function toast(msg){
+              noticeEl.textContent = msg;
+              noticeEl.classList.remove('hidden');
+              requestAnimationFrame(()=> noticeEl.style.opacity = 1);
+              setTimeout(()=>{ noticeEl.style.opacity = 0; noticeEl.classList.add('hidden'); }, 1800);
+            }
 
-      const noticeEl = document.getElementById('notice');
-      function toast(msg){
-        noticeEl.textContent = msg;
-        noticeEl.classList.remove('hidden');
-        requestAnimationFrame(()=> noticeEl.style.opacity = 1);
-        setTimeout(()=>{ noticeEl.style.opacity = 0; noticeEl.classList.add('hidden'); }, 1800);
-      }
+            // --- local cart state (with pending sync) ---
+            // Structure in localStorage:
+            // { items: { [id]: { id, title, price, qty, pending } } }
+            let state = loadState();
+            function loadState(){
+              try{
+                const raw = localStorage.getItem(CART_KEY);
+                const obj = raw ? JSON.parse(raw) : { items:{} };
+                obj.items ||= {};
+                // coerce numbers
+                for (const it of Object.values(obj.items)){
+                  it.price = Number(it.price)||0;
+                  it.qty = Number(it.qty)||0;
+                  it.pending = Number(it.pending)||0;
+                }
+                return obj;
+              }catch(_){ return { items:{} }; }
+            }
+            function saveState(){
+              localStorage.setItem(CART_KEY, JSON.stringify(state));
+            }
 
-      // Local cart view
-      const cart = new Map(); // id -> { id, title, price, qty }
-      const cartItemsEl = document.getElementById('cartItems');
-      const totalEl = document.getElementById('cartTotal');
+            // --- DOM refs ---
+            const cartItemsEl = document.getElementById('cartItems');
+            const totalEl = document.getElementById('cartTotal');
 
-      function renderCart(){
-        cartItemsEl.innerHTML = '';
-        let total = 0;
-        for (const item of cart.values()){
-          total += item.price * item.qty;
-          const row = document.createElement('div');
-          row.className = 'cart-row';
-          row.innerHTML = `
-            <div class="line"><strong>${item.title}</strong><br><span>${fmt.format(item.price)} × ${item.qty}</span></div>
-            <div class="qty">
-              <button class="qbtn" data-action="dec" data-id="${item.id}">−</button>
-              <button class="qbtn" data-action="inc" data-id="${item.id}">＋</button>
-            </div>
-          `;
-          cartItemsEl.appendChild(row);
-        }
-        if (cart.size === 0){
-          cartItemsEl.innerHTML = '<p class="dmeta">Nog geen items. Voeg links drankjes toe.</p>';
-        }
-        totalEl.textContent = fmt.format(total);
-      }
+            // --- render ---
+            function renderCart(){
+              cartItemsEl.innerHTML = '';
+              const items = Object.values(state.items);
+              if (!items.length){
+                cartItemsEl.innerHTML = '<p class="dmeta">Nog geen items. Voeg links drankjes toe.</p>';
+                totalEl.textContent = fmt.format(0);
+                return;
+              }
+              let total = 0;
+              for (const it of items){
+                total += it.price * it.qty;
+                const row = document.createElement('div');
+                row.className = 'cart-row';
+                row.innerHTML = `
+                  <div class="line">
+                    <strong>${it.title}</strong><br>
+                    <span>${fmt.format(it.price)} × ${it.qty}${it.pending>0 ? ` <em style="opacity:.7">(+${it.pending} in wachtrij)</em>`:''}</span>
+                  </div>
+                  <div class="qty">
+                    <button class="qbtn" data-action="dec" data-id="${it.id}">−</button>
+                    <button class="qbtn" data-action="inc" data-id="${it.id}">＋</button>
+                  </div>
+                `;
+                cartItemsEl.appendChild(row);
+              }
+              totalEl.textContent = fmt.format(total);
+            }
 
-      async function addOne(id, title, price){
-        // local
-        const cur = cart.get(id) || { id, title, price, qty: 0 };
-        cur.qty += 1; cart.set(id, cur); renderCart();
-
-        // server
-        const body = new URLSearchParams();
-        body.append('drinkId', id);
-        body.append('qty', '1');
-        body.append(CSRF_NAME, CSRF_VALUE);
-        try{
-          const res = await fetch(ADD_TO_TAB_URL, {
-            method:'POST',
-            headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
-            body: body.toString()
-          });
-          if(!res.ok){ console.error('Add failed', res.status, await res.text()); toast('Kon niet toevoegen.'); return; }
-          const json = await res.json().catch(()=>({}));
-          if(json && json.success){
-            toast(json.merged ? 'Aantal verhoogd!' : 'Toegevoegd aan je rekening!');
-          } else {
-            toast('Onbekend antwoord van server.');
-          }
-        }catch(e){ console.error(e); toast('Netwerkfout bij toevoegen.'); }
-      }
-
-      // Add buttons
-      document.querySelectorAll('.add-btn').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          const row = btn.closest('.drink-row');
-          const id = row.dataset.id;
-          const price = parseFloat(row.dataset.price||'0');
-          const title = row.dataset.title;
-          addOne(id, title, price);
-        });
-      });
-
-      // Qty inc/dec in cart
-      cartItemsEl.addEventListener('click', async (e)=>{
-        const b = e.target.closest('.qbtn'); if(!b) return;
-        const id = b.dataset.id; const action = b.dataset.action;
-        const item = cart.get(id); if(!item) return;
-
-        if(action === 'inc'){
-          await addOne(id, item.title, item.price);
-        } else {
-          // local dec
-          item.qty -= 1; if(item.qty <= 0) cart.delete(id); else cart.set(id, item);
-          renderCart();
-
-          // optional server dec (if you implement /tabs/remove)
-          if(REMOVE_FROM_TAB_URL){
-            const body = new URLSearchParams();
-            body.append('drinkId', id);
-            body.append('qty', '1');
-            body.append(CSRF_NAME, CSRF_VALUE);
-            try{
-              const res = await fetch(REMOVE_FROM_TAB_URL, {
+            // --- server calls ---
+            async function addOneServer(id){
+              const body = new URLSearchParams();
+              body.append('drinkId', id);
+              body.append('qty', '1');
+              body.append(CSRF_NAME, CSRF_VALUE);
+              const res = await fetch(ADD_TO_TAB_URL, {
                 method:'POST',
                 headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
                 body: body.toString()
               });
-              if(!res.ok) console.warn('Remove endpoint not ready? HTTP', res.status);
-            }catch(e){ console.warn('Dec network error', e); }
-          }
-        }
-      });
+              let ok = res.ok;
+              let msg = '';
+              try{
+                const json = await res.json();
+                ok = ok && !!json.success;
+                msg = json && json.merged ? 'Aantal verhoogd!' : 'Toegevoegd aan je rekening!';
+              }catch(_){}
+              if (!ok) throw new Error('server add failed');
+              return msg || 'Toegevoegd aan je rekening!';
+            }
 
-      // Search & filter
-      const searchEl = document.getElementById('search');
-      const filterCatEl = document.getElementById('filterCat');
-      function applyFilters(){
-        const term = (searchEl.value||'').trim().toLowerCase();
-        const cat = (filterCatEl.value||'').trim().toLowerCase();
-        document.querySelectorAll('.drink-row').forEach(row=>{
-          const matchName = row.dataset.name.includes(term);
-          const matchCat  = !cat || row.dataset.cat === cat;
-          const visible   = row.dataset.visible === '1';
-          row.style.display = (matchName && matchCat && visible) ? '' : 'none';
+            async function removeOneServer(id){
+              if (!REMOVE_FROM_TAB_URL) return; // optional
+              const body = new URLSearchParams();
+              body.append('drinkId', id);
+              body.append('qty', '1');
+              body.append(CSRF_NAME, CSRF_VALUE);
+              await fetch(REMOVE_FROM_TAB_URL, {
+                method:'POST',
+                headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
+                body: body.toString()
+              });
+            }
+
+            // --- high-level ops (local-first; server best-effort) ---
+            async function addOne(id, title, price){
+              // local
+              const it = state.items[id] || { id, title, price:Number(price)||0, qty:0, pending:0 };
+              it.qty += 1;
+              it.pending += 1; // mark one to sync
+              state.items[id] = it;
+              saveState(); renderCart();
+
+              // server (fulfil one pending)
+              try{
+                const msg = await addOneServer(id);
+                // success: clear one pending
+                const now = state.items[id];
+                if (now){ now.pending = Math.max(0, (now.pending||0) - 1); saveState(); renderCart(); }
+                toast(msg);
+              }catch(e){
+                // keep pending; will retry on next load
+                console.warn(e);
+                toast('Wachten op verbinding… item blijft in de wachtrij.');
+              }
+            }
+
+            async function inc(id){
+              const it = state.items[id];
+              if (!it) return;
+              await addOne(it.id, it.title, it.price);
+            }
+
+            async function dec(id){
+              const it = state.items[id];
+              if (!it) return;
+              // If we still have unsent "pending" increments, consume one of those first
+              if (it.pending > 0){
+                it.pending -= 1;
+                it.qty -= 1;
+                if (it.qty <= 0) delete state.items[id];
+                saveState(); renderCart();
+                return;
+              }
+              // Otherwise we try to sync a server decrement (optional endpoint)
+              it.qty -= 1;
+              if (it.qty <= 0) delete state.items[id];
+              saveState(); renderCart();
+              try{
+                await removeOneServer(id);
+              }catch(_){}
+            }
+
+            // --- retry any pending adds on load (e.g., previous failures) ---
+            async function flushPending(){
+              const items = Object.values(state.items);
+              for (const it of items){
+                let tries = Math.min(20, it.pending||0); // hard cap
+                while (tries-- > 0){
+                  try{
+                    const msg = await addOneServer(it.id);
+                    it.pending = Math.max(0, it.pending - 1);
+                    saveState(); renderCart();
+                    // only toast the first successful retry for this item to avoid spam
+                    if (tries === it.pending) toast(`${it.title}: ${msg}`);
+                  }catch(e){
+                    console.warn('pending retry failed for', it.id, e);
+                    // stop retry loop for this item for now
+                    break;
+                  }
+                }
+              }
+            }
+
+            // --- wire UI ---
+            // Add buttons
+            document.querySelectorAll('.add-btn').forEach(btn=>{
+              btn.addEventListener('click', ()=>{
+                const row = btn.closest('.drink-row');
+                const id = row.dataset.id;
+                const price = parseFloat(row.dataset.price||'0');
+                const title = row.dataset.title;
+                addOne(id, title, price);
+              });
+            });
+
+            // Qty inc/dec
+            cartItemsEl.addEventListener('click', (e)=>{
+              const b = e.target.closest('.qbtn'); if(!b) return;
+              const id = b.dataset.id;
+              const action = b.dataset.action;
+              if (action === 'inc') inc(id); else dec(id);
+            });
+
+            // Search & filter
+            const searchEl = document.getElementById('search');
+            const filterCatEl = document.getElementById('filterCat');
+            function applyFilters(){
+              const term = (searchEl.value||'').trim().toLowerCase();
+              const cat = (filterCatEl.value||'').trim().toLowerCase();
+              document.querySelectorAll('.drink-row').forEach(row=>{
+                const matchName = row.dataset.name.includes(term);
+                const matchCat  = !cat || row.dataset.cat === cat;
+                const visible   = row.dataset.visible === '1';
+                row.style.display = (matchName && matchCat && visible) ? '' : 'none';
+              });
+            }
+            searchEl.addEventListener('input', applyFilters);
+            filterCatEl.addEventListener('change', applyFilters);
+
+            // --- init ---
+            applyFilters();
+            renderCart();
+            flushPending(); // push any queued adds to the server
+
+            // Ensure all pending adds are flushed before navigating to tabs
+      const payBtn = document.querySelector('.btn-pay');
+      if (payBtn) {
+        payBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          // simple UX lock
+          const original = payBtn.textContent;
+          payBtn.textContent = 'Synchroniseren…';
+          payBtn.style.pointerEvents = 'none';
+          payBtn.setAttribute('disabled', 'disabled');
+
+          // wait for all pending increments to finish
+          try {
+            await flushPending();
+          } catch (_) {}
+
+          // tiny delay to let the server persist, then go
+          setTimeout(() => { window.location.href = payBtn.href; }, 150);
         });
       }
-      searchEl.addEventListener('input', applyFilters);
-      filterCatEl.addEventListener('change', applyFilters);
-      applyFilters();
-
-      // Initial render
-      renderCart();
     </script>
-    {% endif %}
+    {% endif %} {% endif %}
   </body>
 </html>
