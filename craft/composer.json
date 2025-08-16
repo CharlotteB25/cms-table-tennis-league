@@ -13,7 +13,8 @@
   },
   "autoload": {
     "psr-4": {
-      "app\\controllers\\": "controllers/"
+      "app\\controllers\\": "controllers/",
+      "modules\\hno\\": "modules/hno/src/"
     }
   },
   "config": {

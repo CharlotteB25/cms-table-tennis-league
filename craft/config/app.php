@@ -29,5 +29,11 @@ return [
         'tabs' => \app\controllers\TabsController::class,
         'pay'  => \app\controllers\PayController::class,
     ],
+      'modules' => [
+        'hno' => [
+            'class' => \modules\hno\Module::class,
+        ],
+    ],
+    'bootstrap' => ['hno'],
    
 ];

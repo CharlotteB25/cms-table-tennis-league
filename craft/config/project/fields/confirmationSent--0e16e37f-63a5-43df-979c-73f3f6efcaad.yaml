@@ -1,0 +1,12 @@
+columnSuffix: null
+handle: confirmationSent
+instructions: null
+name: 'Confirmation Sent'
+searchable: false
+settings:
+  default: true
+  offLabel: null
+  onLabel: null
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Lightswitch

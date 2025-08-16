@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,71 +7,177 @@
     <link
       rel="icon"
       type="image/x-icon"
-      href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}"
+      href="{{ siteUrl('uploads/favicon/favicon.ico') }}"
     />
+
     <style>
+      :root {
+        --cream: #fdfaf6;
+        --soft-red: #d9534f;
+        --soft-red-dark: #b52e2a;
+        --text: #333;
+        --muted: #6b6b6b;
+        --card: #ffffff;
+        --ring: #e9e9e9;
+        --shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+        --tint: #fff7f5;
+      }
+
       body {
-        font-family: Arial, sans-serif;
-        background: linear-gradient(
-          to right,
-          rgb(169, 197, 185),
-          rgb(119, 188, 158)
-        );
-        margin: 0;
-        padding: 0;
+        margin: 5;
+        min-height: 100vh;
         display: flex;
+        flex-direction: column;
+        font-family: Arial, sans-serif;
+        color: var(--text);
+        background: var(--cream);
       }
 
       main {
-        margin-left: 200px;
+        margin-left: 225px; /* space for fixed side nav */
         padding: 2rem;
         flex: 1;
       }
 
-      header {
+      .dash-intro {
+        margin: 0.25rem 0 1.25rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      /* Left smaller, right bigger (and resilient) */
+      .grid {
+        margin-top: 50px;
+        display: grid;
+        grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+        gap: 1.5rem;
+        align-items: start;
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--ring);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .panel-header {
+        padding: 12px 16px;
+        background: var(--tint);
+        border-bottom: 1px solid var(--ring);
+        color: var(--soft-red-dark);
+        font-weight: 700;
+      }
+      .panel-body {
+        padding: 12px 16px;
+      }
+      .panel-section + .panel-section {
+        border-top: 1px solid var(--ring);
+        padding-top: 12px;
+        margin-top: 12px;
+      }
+
+      /* Quick actions */
+      .action-list {
         display: flex;
-        justify-content: space-between;
+        flex-direction: column;
+      }
+      .action-item {
+        display: flex;
         align-items: center;
-        background-color: #007bff;
-        color: white;
-        padding: 1rem;
-      }
-
-      header h1 {
-        margin: 0;
-      }
-
-      .cards-container {
-        display: flex;
-        gap: 2rem;
-        flex-wrap: wrap;
-        justify-content: center;
-        margin-top: 2rem;
-      }
-
-      .card {
-        background: white;
-        width: 250px;
-        height: 150px;
+        gap: 12px;
+        padding: 12px 10px;
         border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.15s ease, transform 0.15s ease;
+      }
+      .action-item:hover {
+        background: var(--tint);
+        transform: translateX(2px);
+      }
+      .action-icon {
+        min-width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: #fde3e2;
+        color: var(--soft-red-dark);
         display: flex;
-        justify-content: center;
         align-items: center;
-        text-align: center;
-        padding: 1rem;
-        cursor: pointer;
-        transition: transform 0.2s;
+        justify-content: center;
+        font-weight: 700;
       }
-
-      .card:hover {
-        transform: scale(1.05);
-      }
-
-      .card h2 {
+      .action-text h3 {
         margin: 0;
-        font-size: 18px;
-        color: rgb(41, 136, 96);
+        font-size: 1.02rem;
+        color: var(--soft-red-dark);
+      }
+      .action-text p {
+        margin: 0.25rem 0 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      /* Announcements */
+      .announce {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .announce-item {
+        padding: 10px 12px;
+        border: 1px solid var(--ring);
+        border-radius: 10px;
+        background: #fff;
+      }
+      .announce-item h4 {
+        margin: 0 0 4px;
+        font-size: 1rem;
+        color: var(--soft-red-dark);
+      }
+      .announce-item .meta {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .announce-item p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: var(--text);
+      }
+
+      /* Activity */
+      .kv {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        row-gap: 8px;
+        column-gap: 12px;
+      }
+      .kv .k {
+        color: var(--muted);
+      }
+      .kv .v {
+        font-weight: 600;
+      }
+
+      .section-title {
+        margin: 0 0 0.5rem;
+        font-size: 1rem;
+        color: var(--soft-red-dark);
+        border-left: 4px solid var(--soft-red);
+        padding-left: 0.6rem;
+      }
+
+      /* Responsive */
+      @media (max-width: 980px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 700px) {
+        main {
+          padding: 1.25rem;
+        }
       }
     </style>
   </head>
@@ -79,48 +185,167 @@
     {% include 'global/nav.twig' %}
 
     <main>
-      <header>
-        <h1>Welkom, {{ currentUser.friendlyName ?? "Gast" }}</h1>
-      </header>
+      {% include 'global/header.twig' %}
+      <p class="dash-intro">
+        Welkom terug! Kies een actie of bekijk het laatste nieuws.
+      </p>
 
-      <div class="cards-container">
-        {% if currentUser %} {% if currentUser.admin %}
-        <div
-          class="card"
-          onclick="window.location.href='{{ url('drinks/admin') }}'"
-        >
-          <h2>Beheer Drankjes</h2>
-        </div>
-        <div
-          class="card"
-          onclick="window.location.href='{{ url('teams/admin') }}'"
-        >
-          <h2>Beheer Planning</h2>
-        </div>
-        <div
-          class="card"
-          onclick="window.location.href='{{ url('tabs/admin') }}'"
-        >
-          <h2>Beheer Rekeningen</h2>
-        </div>
-        {% else %}
-        <div class="card" onclick="window.location.href='{{ url('drinks') }}'">
-          <h2>Bestel Drankjes</h2>
-        </div>
-        <div
-          class="card"
-          onclick="window.location.href='{{ url('teams/admin') }}'"
-        >
-          <h2>Speeldata</h2>
-        </div>
-        <div class="card" onclick="window.location.href='{{ url('tabs') }}'">
-          <h2>Rekeningen</h2>
-        </div>
-        {% endif %} {% else %}
-        <div class="card" onclick="window.location.href='{{ url('login') }}'">
-          <h2>Login</h2>
-        </div>
-        {% endif %}
+      <div class="grid">
+        <!-- LEFT: Quick actions -->
+        <section class="panel">
+          <div class="panel-header">Snelle acties</div>
+          <div class="panel-body">
+            {% if currentUser %} {% if currentUser.admin %}
+            <div class="action-list">
+              <a class="action-item" href="{{ url('drinks/admin') }}">
+                <span class="action-icon">D</span>
+                <div class="action-text">
+                  <h3>Beheer Drankjes</h3>
+                  <p>Voorraad, prijzen en zichtbaarheid.</p>
+                </div>
+              </a>
+              <a class="action-item" href="{{ url('teams/admin') }}">
+                <span class="action-icon">P</span>
+                <div class="action-text">
+                  <h3>Beheer Planning</h3>
+                  <p>Wedstrijddagen toevoegen en aanpassen.</p>
+                </div>
+              </a>
+              <a class="action-item" href="{{ url('tabs/admin') }}">
+                <span class="action-icon">R</span>
+                <div class="action-text">
+                  <h3>Beheer Rekeningen</h3>
+                  <p>Openstaande rekeningen beheren.</p>
+                </div>
+              </a>
+              <a class="action-item" href="{{ url('profile') }}">
+                <span class="action-icon">⟐</span>
+                <div class="action-text">
+                  <h3>Beheer Profiel</h3>
+                  <p>Naam, notificaties en profielfoto.</p>
+                </div>
+              </a>
+            </div>
+            {% else %}
+            <div class="action-list">
+              <a class="action-item" href="{{ url('drinks') }}">
+                <span class="action-icon">D</span>
+                <div class="action-text">
+                  <h3>Bestel Drankjes</h3>
+                  <p>Snel een drankje bestellen.</p>
+                </div>
+              </a>
+              <a class="action-item" href="{{ url('teams/admin') }}">
+                <span class="action-icon">S</span>
+                <div class="action-text">
+                  <h3>Speeldata</h3>
+                  <p>Aankomende wedstrijden en tijden.</p>
+                </div>
+              </a>
+              <a class="action-item" href="{{ url('tabs') }}">
+                <span class="action-icon">R</span>
+                <div class="action-text">
+                  <h3>Rekeningen</h3>
+                  <p>Je lopende rekening en betalingen.</p>
+                </div>
+              </a>
+              <a class="action-item" href="{{ url('profile') }}">
+                <span class="action-icon">⟐</span>
+                <div class="action-text">
+                  <h3>Profiel</h3>
+                  <p>Gegevens en notificaties beheren.</p>
+                </div>
+              </a>
+            </div>
+            {% endif %} {% else %}
+            <div class="action-list">
+              <a class="action-item" href="{{ url('login') }}">
+                <span class="action-icon">⟶</span>
+                <div class="action-text">
+                  <h3>Login</h3>
+                  <p>Meld je aan om verder te gaan.</p>
+                </div>
+              </a>
+            </div>
+            {% endif %}
+          </div>
+        </section>
+
+        <!-- RIGHT: Announcements & Activity -->
+        <aside class="panel">
+          <div class="panel-header">Updates & Activiteit</div>
+          <div class="panel-body">
+            <div class="panel-section">
+              <h3 class="section-title">Mededelingen</h3>
+              {% set announcements =
+              craft.entries.section('announcements').orderBy('postDate
+              desc').limit(5).all() ?? [] %} {% if announcements|length %}
+              <div class="announce">
+                {% for entry in announcements %}
+                <article class="announce-item">
+                  <h4>{{ entry.title }}</h4>
+                  <div class="meta">{{ entry.postDate|date('d-m-Y') }}</div>
+                  <p>
+                    {% if entry.summary is defined and entry.summary|length %}
+                    {{ entry.summary|striptags|slice(0,180) ~ (entry.summary|length > 180 ? '…' : '') }}
+                    {% else %}
+                    {{ entry.plainText ?? '' | slice(0,180) }}{% if
+                    (entry.plainText ?? '')|length > 180 %}…{% endif %} {% endif
+                    %}
+                  </p>
+                </article>
+                {% endfor %}
+              </div>
+              {% else %}
+              <p class="muted">Geen recente mededelingen.</p>
+              {% endif %}
+            </div>
+
+            <div class="panel-section">
+              <h3 class="section-title">Jouw activiteit</h3>
+              <div class="kv">
+                <div class="k">Volgende wedstrijd</div>
+                <div class="v">
+                  {% set nextGame = craft.entries()
+                  .section(['ploegA','ploegB','ploegC']) .relatedTo(currentUser)
+                  .orderBy('postDate asc') .after(now|date('Y-m-d H:i:s'))
+                  .one() %} {% if nextGame %}
+                  {{ nextGame.title }} <br />
+                  <small>{{ nextGame.postDate|date('d-m-Y H:i') }}</small>
+                  {% else %} Je hebt momenteel geen wedstrijden. {% endif %}
+                </div>
+
+                <div class="k">E-mailnotificaties</div>
+                <div class="v">
+                  {% set notify = currentUser ? (currentUser.emailNotifications
+                  ?? currentUser.getFieldValue('emailNotifications')) : null %}
+                  {% if notify is not null %}
+                  {{ notify ? "Aan" : "Uit" }}
+                  {% else %} — {% endif %}
+                </div>
+
+                <div class="k">Profielfoto</div>
+                <div class="v">
+                  {% if currentUser and currentUser.photo %} ✔ {% else %} ✖ {%
+                  endif %}
+                </div>
+              </div>
+              <p class="muted" style="margin-top: 8px">
+                Tip: ga naar
+                <a
+                  href="{{ url('profile') }}"
+                  style="
+                    color: var(--soft-red);
+                    font-weight: 600;
+                    text-decoration: none;
+                  "
+                  >Profiel</a
+                >
+                om je instellingen bij te werken.
+              </p>
+            </div>
+          </div>
+        </aside>
       </div>
     </main>
 

@@ -1,342 +1,535 @@
+{% include 'global/nav.twig' %}
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Drankjes</title>
+    <title>Drankjes – POS</title>
     <link
       rel="icon"
       type="image/x-icon"
       href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}"
     />
+
     <style>
-      /* Styles for Drink Manage Page */
+      :root {
+        --cream: #fdfaf6;
+        --soft-red: #d9534f;
+        --soft-red-dark: #b52e2a;
+        --text: #333;
+        --muted: #6b6b6b;
+        --card: #ffffff;
+        --ring: #e9e9e9;
+        --shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+        --tint: #fff7f5;
+      }
+
       body {
-        font-family: Arial, sans-serif;
-        background: linear-gradient(
-          to right,
-          rgb(169, 197, 185),
-          rgb(119, 188, 158)
-        );
         margin: 0;
-        padding: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: Arial, sans-serif;
+        color: var(--text);
+        background: var(--cream);
       }
-
       main {
-        padding: 20px;
-        position: relative;
+        margin-left: 200px;
+        padding: 2rem;
+        flex: 1;
       }
 
-      h2 {
-        font-size: 24px;
-        text-align: center;
-        color: #333;
-        margin-bottom: 20px;
-      }
-
-      .drinks-section {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 20px;
-      }
-
-      .terug-button {
-        align-self: flex-start;
-        background-color: #28a745;
-        color: white;
-        text-decoration: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        font-weight: bold;
-      }
-
-      .terug-button:hover {
-        background-color: #218838;
-      }
-
-      .drinks-container {
+      /* Layout: left menu | right cart */
+      .pos-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        max-width: 1200px;
-        width: 100%;
+        grid-template-columns: minmax(340px, 1.4fr) minmax(280px, 1fr);
+        gap: 1.5rem;
+        align-items: start;
+        margin-top: 1rem;
+        margin-left: 1rem;
       }
 
-      .drink-card {
-        background: white;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s, box-shadow 0.3s;
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--ring);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .panel-header {
+        padding: 12px 16px;
+        background: var(--tint);
+        border-bottom: 1px solid var(--ring);
+        color: var(--soft-red-dark);
+        font-weight: 700;
         display: flex;
-        flex-direction: column;
+        justify-content: space-between;
         align-items: center;
-        text-align: center;
+      }
+      .panel-body {
+        padding: 12px 16px;
       }
 
-      .drink-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-      }
-
-      .drink-card img {
-        width: 64px;
-        height: 64px;
-        border-radius: 50%;
-        object-fit: cover;
-        background-color: #f4f4f4;
-      }
-
-      .drink-info h3 {
-        font-size: 18px;
-        margin: 10px 0 5px;
-        color: #333;
-        font-weight: bold;
-      }
-
-      .drink-info p {
-        margin: 5px 0;
-        font-size: 14px;
-        color: #555;
-      }
-
-      .price {
-        color: rgb(0, 127, 191) !important;
-        font-weight: bold;
-        font-size: 18px !important;
-        margin-top: 5px;
-      }
-
-      .action-buttons {
+      /* Left: drinks list */
+      .tools {
         display: flex;
         gap: 10px;
-        margin-top: 15px;
-        width: 100%;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+      .input {
+        border: 1px solid var(--ring);
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: #fff;
+      }
+      .drinks-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        max-height: calc(100vh - 240px);
+        overflow: auto;
+        padding-right: 4px;
+      }
+      .drink-row {
+        display: grid;
+        grid-template-columns: 48px 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid var(--ring);
+        border-radius: 10px;
+        background: #fff;
+        transition: background 0.15s ease, border-color 0.15s ease;
+      }
+      .drink-row:hover {
+        background: var(--tint);
+        border-color: var(--soft-red);
+      }
+      .thumb {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid #eee;
+        background: #f4f4f4;
+      }
+      .dname {
+        margin: 0;
+        font-weight: 700;
+        color: var(--soft-red-dark);
+        font-size: 1rem;
+      }
+      .dmeta {
+        margin: 2px 0 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .price {
+        color: var(--soft-red-dark);
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .btn {
+        appearance: none;
+        border: none;
+        border-radius: 8px;
+        padding: 9px 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease,
+          border-color 0.15s ease, transform 0.1s ease;
+      }
+      .btn-add {
+        background: var(--soft-red);
+        color: var(--cream);
+        border: 2px solid var(--soft-red);
+      }
+      .btn-add:hover {
+        background: var(--soft-red-dark);
+        border-color: var(--soft-red-dark);
+        transform: translateY(-1px);
+      }
+
+      .btn-outline {
+        background: #fff;
+        color: var(--soft-red);
+        border: 2px solid var(--soft-red);
+      }
+      .btn-outline:hover {
+        background: var(--soft-red);
+        color: var(--cream);
+      }
+
+      /* Right: selection/cart */
+      .cart {
+        position: sticky;
+        top: 1rem;
+      }
+      .cart-items {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .cart-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        border: 1px solid var(--ring);
+        border-radius: 10px;
+        padding: 10px 12px;
+        background: #fff;
+      }
+      .qty {
+        display: inline-grid;
+        grid-auto-flow: column;
+        gap: 6px;
+        align-items: center;
+      }
+      .qty .qbtn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: 2px solid var(--soft-red);
+        background: #fff;
+        color: var(--soft-red);
+        font-weight: 900;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
         justify-content: center;
       }
-
-      .button {
-        padding: 10px 15px;
-        border-radius: 5px;
-        border: none;
-        cursor: pointer;
-        text-align: center;
-        font-size: 14px;
-        text-decoration: none;
-        font-weight: bold;
+      .qty .qbtn:hover {
+        background: var(--soft-red);
+        color: var(--cream);
+      }
+      .line {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      .line strong {
+        color: var(--soft-red-dark);
       }
 
-      .edit-drink {
-        background-color: #007bff;
-        color: white;
+      .cart-footer {
+        border-top: 1px solid var(--ring);
+        margin-top: 12px;
+        padding-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+      .total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 800;
+        color: var(--soft-red-dark);
+      }
+      .cta-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      } /* single button for users */
+
+      .btn-pay {
+        background: var(--soft-red);
+        color: var(--cream);
+        border: 2px solid var(--soft-red);
+        justify-self: start; /* pay button aligned left */
+      }
+      .btn-pay:hover {
+        background: var(--soft-red-dark);
+        border-color: var(--soft-red-dark);
       }
 
-      .edit-drink:hover {
-        background-color: #0056b3;
-      }
-
-      .buy-drink {
-        background-color: #28a745;
-        color: white;
-      }
-
-      .buy-drink:hover {
-        background-color: #218838;
-      }
-
-      .notification {
+      .notice {
+        background: var(--soft-red);
+        color: var(--cream);
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--soft-red-dark);
+        box-shadow: var(--shadow);
         position: fixed;
-        top: 13%;
+        top: 14px;
         left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: green;
-        color: white;
-        padding: 15px 25px;
-        border-radius: 5px;
-        opacity: 0;
+        transform: translateX(-50%);
         z-index: 1000;
-        transition: opacity 0.5s ease-in-out;
-        font-size: 16px;
-        text-align: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        font-weight: 600;
       }
-
-      .notification.hidden {
+      .notice.hidden {
         display: none;
       }
 
-      .actions-container {
-        display: flex;
-        justify-content: center;
-        padding: 0 20px;
+      @media (max-width: 1000px) {
+        .pos-grid {
+          grid-template-columns: 1fr;
+        }
+        .cart {
+          position: static;
+        }
       }
-
-      .add-drink {
-        background-color: #28a745;
-        color: white;
-        text-decoration: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        font-weight: bold;
-        display: inline-block;
-      }
-
-      .add-drink:hover {
-        background-color: rgb(28, 118, 49);
+      @media (max-width: 700px) {
+        main {
+          padding: 1.25rem;
+        }
       }
     </style>
   </head>
   <body>
-    {% include 'global/nav.twig' %}
-
     <main>
-      <div class="actions-container">
-        {% if currentUser and currentUser.admin %}
-        <a
-          href="{{
-            url(
-              'admin/entries/drinks?source=section%3A7e85fc9c-a7a6-4d09-89ce-ebfc0be42e77'
-            )
-          }}"
-          class="button add-drink"
-          target="_blank"
-          rel="noopener noreferrer"
-          >Drankje Toevoegen</a
-        >
-        {% endif %}
-      </div>
+      {% include 'global/header.twig' %}
 
-      <div class="drinks-section">
-        <a href="{{ url('index') }}" class="button terug-button">Terug</a>
-        <div class="drinks-container">
-          {% for drink in craft.entries.section('drinks').all() %} {# Pre-calc
-          once per drink #} {% set img = drink.image.one() %} {# Category is
-          SingleOptionFieldData, not an element query #} {% set catLabel =
-          drink.category ? (drink.category.label ?? drink.category.value) : '—'
-          %} {# Money\Money handling #} {% set priceMoney = drink.price ?? null
-          %} {% set priceNumber = priceMoney ? (priceMoney.getAmount() / 100) :
-          null %} {% set priceDisplay = priceMoney ?
-          craft.app.formatter.asCurrency(priceNumber,
-          priceMoney.getCurrency().getCode()) : '—' %}
-
-          <div class="drink-card">
-            <img
-              src="{{ img ? img.getUrl() : 'https://via.placeholder.com/64' }}"
-              alt="{{ drink.title }}"
-            />
-            <div class="drink-info">
-              <h3>{{ drink.title }}</h3>
-              <p>Categorie: {{ catLabel }}</p>
-              <p class="price">{{ priceDisplay }}</p>
-              <p>Beschikbaar: {{ drink.drinkVisibility ? "Ja" : "Nee" }}</p>
+      <div class="pos-grid">
+        <!-- LEFT: Drinks -->
+        <section class="panel">
+          <div class="panel-header">
+            <span>Drankjes</span>
+            {# No +Nieuw button on the user page #}
+          </div>
+          <div class="panel-body">
+            <div class="tools">
+              <input
+                id="search"
+                class="input"
+                type="text"
+                placeholder="Zoek drankjes…"
+              />
+              <select id="filterCat" class="input">
+                <option value="">Alle categorieën</option>
+                <option value="bier">Bier</option>
+                <option value="wijn">Wijn</option>
+                <option value="fris">Fris</option>
+              </select>
             </div>
 
-            <div class="action-buttons">
-              {% if currentUser and currentUser.admin %}
-              <a
-                href="{{ url('admin/entries/drinks/' ~ drink.id ~ '-' ~ drink.slug) }}"
-                class="button edit-drink"
-                target="_blank"
-                rel="noopener noreferrer"
-                >Drankje Bewerken</a
+            <div id="drinksList" class="drinks-list">
+              {% for drink in craft.entries.section('drinks').all() %} {% set
+              img = drink.image.one() %} {% set catLabel = drink.category ?
+              (drink.category.label ?? drink.category.value) : '—' %} {% set
+              priceMoney = drink.price ?? null %} {% set priceNumber =
+              priceMoney ? (priceMoney.getAmount() / 100) : 0 %} {% set
+              priceDisplay = priceMoney ?
+              craft.app.formatter.asCurrency(priceNumber,
+              priceMoney.getCurrency().getCode()) : '—' %}
+
+              <article
+                class="drink-row"
+                data-name="{{ drink.title | lower }}"
+                data-cat="{{ catLabel | lower }}"
+                data-visible="{{ drink.drinkVisibility ? '1' : '0' }}"
+                data-id="{{ drink.id }}"
+                data-price="{{ priceNumber }}"
+                data-title="{{ drink.title }}"
               >
-              {% endif %} {% if currentUser %} {% if drink.drinkVisibility %}
-              <button
-                class="button buy-drink"
-                data-drink-id="{{ drink.id }}"
-                data-drink-name="{{ drink.title }}"
-                data-drink-price="{{ priceNumber is not null ? priceNumber : 0 }}"
-              >
-                Toevoegen
-              </button>
+                <img
+                  class="thumb"
+                  src="{{
+                    img ? img.getUrl() : 'https://via.placeholder.com/64'
+                  }}"
+                  alt="{{ drink.title }}"
+                />
+                <div>
+                  <h3 class="dname">{{ drink.title }}</h3>
+                  <p class="dmeta">Categorie: {{ catLabel }}</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px">
+                  <span class="price">{{ priceDisplay }}</span>
+                  {% if currentUser and drink.drinkVisibility %}
+                  <button class="btn btn-add add-btn">Toevoegen</button>
+                  {% elseif currentUser %}
+                  <button class="btn btn-outline" disabled>
+                    Niet beschikbaar
+                  </button>
+                  {% else %}
+                  <a class="btn btn-outline" href="{{ url('login') }}">Login</a>
+                  {% endif %}
+                </div>
+              </article>
               {% else %}
-              <button
-                class="button unavailable-drink"
-                onclick="showUnavailableNotification()"
-              >
-                Niet Beschikbaar
-              </button>
-              {% endif %} {% endif %}
+              <p class="dmeta">Geen drankjes beschikbaar.</p>
+              {% endfor %}
             </div>
           </div>
-          {% else %}
-          <p>Geen drankjes beschikbaar.</p>
-          {% endfor %}
-        </div>
+        </section>
+
+        <!-- RIGHT: Selection -->
+        <aside class="panel cart">
+          <div class="panel-header">Jouw selectie</div>
+          <div class="panel-body">
+            <div id="cartItems" class="cart-items"></div>
+
+            <div class="cart-footer">
+              <div class="total">
+                <span>Totaal</span>
+                <span id="cartTotal">€ 0,00</span>
+              </div>
+              <div class="cta-row">
+                <a class="btn btn-pay" href="{{ url('tabs') }}">Afrekenen</a>
+              </div>
+              <p class="dmeta" style="margin: 6px 0 0">
+                Items worden direct toegevoegd aan je rekening. Beheer en betaal
+                op de
+                <a
+                  href="{{ url('tabs') }}"
+                  style="
+                    color: var(--soft-red);
+                    font-weight: 700;
+                    text-decoration: none;
+                  "
+                  >rekeningpagina</a
+                >.
+              </p>
+            </div>
+          </div>
+        </aside>
       </div>
     </main>
 
-    <div id="notification" class="notification hidden"></div>
+    <div
+      id="notice"
+      class="notice hidden"
+      role="status"
+      aria-live="polite"
+    ></div>
 
-    {% include 'global/footer.twig' %}
-
+    {% include 'global/footer.twig' %} {% if currentUser %}
     <script>
-          // 1) Define CSRF + URL FIRST
-          const CSRF_NAME  = '{{ craft.app.config.general.csrfTokenName }}';
-          const CSRF_VALUE = '{{ craft.app.request.csrfToken|e('js') }}';
-      const ADD_TO_TAB_URL = '{{ actionUrl("tabs/add") }}'; // hits /actions/tabs/add
-          // 2) Helpers
-          function showUnavailableNotification() {
-            const n = document.getElementById("notification");
-            n.textContent = "Dit drankje is momenteel niet beschikbaar.";
-            n.classList.remove("hidden");
-            n.style.opacity = 1;
-            setTimeout(() => { n.style.opacity = 0; n.classList.add("hidden"); }, 2000);
-          }
+      // CSRF + endpoints
+      const CSRF_NAME  = '{{ craft.app.config.general.csrfTokenName }}';
+      const CSRF_VALUE = '{{ craft.app.request.csrfToken|e('js') }}';
+      const ADD_TO_TAB_URL = '{{ actionUrl("tabs/add") }}';
+      const REMOVE_FROM_TAB_URL = '{{ actionUrl("tabs/remove") }}'; // optional, if implemented
 
-          function showNotification(msg) {
-            const n = document.getElementById("notification");
-            if (!n) return;
-            n.textContent = msg;
-            n.classList.remove("hidden");
-            n.style.opacity = 1;
-            setTimeout(() => { n.style.opacity = 0; n.classList.add("hidden"); }, 2000);
-          }
+      const fmt = new Intl.NumberFormat('nl-BE', { style:'currency', currency:'EUR' });
 
-          // 3) Wire up Add-to-Tab buttons
-          document.querySelectorAll(".buy-drink").forEach((button) => {
-            button.addEventListener("click", async function () {
-              const drinkId = this.getAttribute("data-drink-id");
+      const noticeEl = document.getElementById('notice');
+      function toast(msg){
+        noticeEl.textContent = msg;
+        noticeEl.classList.remove('hidden');
+        requestAnimationFrame(()=> noticeEl.style.opacity = 1);
+        setTimeout(()=>{ noticeEl.style.opacity = 0; noticeEl.classList.add('hidden'); }, 1800);
+      }
 
-              const body = new URLSearchParams();
-              body.append("drinkId", drinkId);
-              body.append("qty", "1");
-              body.append(CSRF_NAME, CSRF_VALUE);
+      // Local cart view
+      const cart = new Map(); // id -> { id, title, price, qty }
+      const cartItemsEl = document.getElementById('cartItems');
+      const totalEl = document.getElementById('cartTotal');
 
-              try {
-                const res = await fetch(ADD_TO_TAB_URL, {
-                  method: "POST",
-                  headers: {
-                    "Accept": "application/json",
-                    "Content-Type": "application/x-www-form-urlencoded",
-                  },
-                  body: body.toString(),
-                });
+      function renderCart(){
+        cartItemsEl.innerHTML = '';
+        let total = 0;
+        for (const item of cart.values()){
+          total += item.price * item.qty;
+          const row = document.createElement('div');
+          row.className = 'cart-row';
+          row.innerHTML = `
+            <div class="line"><strong>${item.title}</strong><br><span>${fmt.format(item.price)} × ${item.qty}</span></div>
+            <div class="qty">
+              <button class="qbtn" data-action="dec" data-id="${item.id}">−</button>
+              <button class="qbtn" data-action="inc" data-id="${item.id}">＋</button>
+            </div>
+          `;
+          cartItemsEl.appendChild(row);
+        }
+        if (cart.size === 0){
+          cartItemsEl.innerHTML = '<p class="dmeta">Nog geen items. Voeg links drankjes toe.</p>';
+        }
+        totalEl.textContent = fmt.format(total);
+      }
 
-                // If you ever see a 403 here, it's CSRF mismatch
-                if (!res.ok) {
-                  const txt = await res.text();
-                  console.error('Server error', res.status, txt);
-                  alert('Kon niet toevoegen (HTTP ' + res.status + ').');
-                  return;
-                }
+      async function addOne(id, title, price){
+        // local
+        const cur = cart.get(id) || { id, title, price, qty: 0 };
+        cur.qty += 1; cart.set(id, cur); renderCart();
 
-                const json = await res.json();
-                if (json.success) {
-                  showNotification(json.merged ? "Aantal verhoogd op je tab!" : "Toegevoegd aan je tab!");
-                } else {
-                  console.error(json);
-                  alert("Kon niet toevoegen: " + (json.errors ? JSON.stringify(json.errors) : "onbekende fout"));
-                }
-              } catch (e) {
-                console.error(e);
-                alert("Netwerkfout: " + e.message);
-              }
-            });
+        // server
+        const body = new URLSearchParams();
+        body.append('drinkId', id);
+        body.append('qty', '1');
+        body.append(CSRF_NAME, CSRF_VALUE);
+        try{
+          const res = await fetch(ADD_TO_TAB_URL, {
+            method:'POST',
+            headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
+            body: body.toString()
           });
+          if(!res.ok){ console.error('Add failed', res.status, await res.text()); toast('Kon niet toevoegen.'); return; }
+          const json = await res.json().catch(()=>({}));
+          if(json && json.success){
+            toast(json.merged ? 'Aantal verhoogd!' : 'Toegevoegd aan je rekening!');
+          } else {
+            toast('Onbekend antwoord van server.');
+          }
+        }catch(e){ console.error(e); toast('Netwerkfout bij toevoegen.'); }
+      }
 
-          // 4) Do NOT call updateCartCount anymore (we removed the cart)
-          // document.addEventListener("DOMContentLoaded", updateCartCount); // <- delete
+      // Add buttons
+      document.querySelectorAll('.add-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const row = btn.closest('.drink-row');
+          const id = row.dataset.id;
+          const price = parseFloat(row.dataset.price||'0');
+          const title = row.dataset.title;
+          addOne(id, title, price);
+        });
+      });
+
+      // Qty inc/dec in cart
+      cartItemsEl.addEventListener('click', async (e)=>{
+        const b = e.target.closest('.qbtn'); if(!b) return;
+        const id = b.dataset.id; const action = b.dataset.action;
+        const item = cart.get(id); if(!item) return;
+
+        if(action === 'inc'){
+          await addOne(id, item.title, item.price);
+        } else {
+          // local dec
+          item.qty -= 1; if(item.qty <= 0) cart.delete(id); else cart.set(id, item);
+          renderCart();
+
+          // optional server dec (if you implement /tabs/remove)
+          if(REMOVE_FROM_TAB_URL){
+            const body = new URLSearchParams();
+            body.append('drinkId', id);
+            body.append('qty', '1');
+            body.append(CSRF_NAME, CSRF_VALUE);
+            try{
+              const res = await fetch(REMOVE_FROM_TAB_URL, {
+                method:'POST',
+                headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
+                body: body.toString()
+              });
+              if(!res.ok) console.warn('Remove endpoint not ready? HTTP', res.status);
+            }catch(e){ console.warn('Dec network error', e); }
+          }
+        }
+      });
+
+      // Search & filter
+      const searchEl = document.getElementById('search');
+      const filterCatEl = document.getElementById('filterCat');
+      function applyFilters(){
+        const term = (searchEl.value||'').trim().toLowerCase();
+        const cat = (filterCatEl.value||'').trim().toLowerCase();
+        document.querySelectorAll('.drink-row').forEach(row=>{
+          const matchName = row.dataset.name.includes(term);
+          const matchCat  = !cat || row.dataset.cat === cat;
+          const visible   = row.dataset.visible === '1';
+          row.style.display = (matchName && matchCat && visible) ? '' : 'none';
+        });
+      }
+      searchEl.addEventListener('input', applyFilters);
+      filterCatEl.addEventListener('change', applyFilters);
+      applyFilters();
+
+      // Initial render
+      renderCart();
     </script>
+    {% endif %}
   </body>
 </html>

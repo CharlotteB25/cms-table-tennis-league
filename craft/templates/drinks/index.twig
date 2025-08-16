@@ -1,283 +1,535 @@
 {% include 'global/nav.twig' %}
 
-<style>
-  :root {
-    --bg: #f6faf8;
-    --ink: #1f2937;
-    --muted: #6b7280;
-    --card: #ffffff;
-    --brand: #10b981;
-    --brand-ink: #065f46;
-    --border: #e5e7eb;
-    --danger: #ef4444;
-  }
-  body {
-    background: linear-gradient(to right, rgb(169 197 185), rgb(119 188 158));
-  }
-  .shop-wrap {
-    max-width: 1200px;
-    margin: 24px auto;
-    padding: 0 16px;
-    color: var(--ink);
-  }
-  .shop-head {
-    margin-left: 200px; /* keep your existing sidebar gap */
-    padding: 2rem 0 1rem;
-  }
-  .shop-title {
-    margin: 0 0 6px 0;
-    font-size: 32px;
-    line-height: 1.2;
-  }
-  .shop-sub {
-    margin: 0;
-    color: var(--muted);
-  }
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Drankjes – POS</title>
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}"
+    />
 
-  .grid {
-    margin-left: 200px; /* align with content */
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 18px;
-    padding-bottom: 32px;
-  }
-
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .media {
-    display: grid;
-    grid-template-columns: 64px 1fr;
-    gap: 12px;
-    align-items: center;
-  }
-  .thumb {
-    width: 64px;
-    height: 64px;
-    border-radius: 12px;
-    object-fit: cover;
-    background: #f3f4f6;
-  }
-  .title {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 800;
-  }
-  .meta {
-    margin: 0;
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .price {
-    font-weight: 800;
-    font-size: 18px;
-  }
-  .row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .btn {
-    appearance: none;
-    border: 1px solid var(--brand);
-    background: var(--brand);
-    color: white;
-    border-radius: 10px;
-    padding: 9px 12px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: transform 0.04s ease, filter 0.15s ease;
-  }
-  .btn:hover {
-    filter: brightness(0.96);
-  }
-  .btn:active {
-    transform: translateY(1px);
-  }
-  .btn[disabled] {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .chip {
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.3px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 4px 8px;
-    color: var(--muted);
-  }
-  .chip-green {
-    background: #ecfdf5;
-    color: var(--brand-ink);
-    border-color: rgba(6, 95, 70, 0.15);
-  }
-  .chip-red {
-    background: #fef2f2;
-    color: #991b1b;
-    border-color: rgba(185, 28, 28, 0.15);
-  }
-
-  .notice {
-    position: fixed;
-    top: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--brand);
-    color: #fff;
-    padding: 10px 14px;
-    border-radius: 10px;
-    box-shadow: 0 10px 28px rgba(16, 185, 129, 0.28);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-    z-index: 1000;
-    font-weight: 800;
-  }
-  .notice.show {
-    opacity: 1;
-  }
-  @media (max-width: 720px) {
-    .shop-head,
-    .grid {
-      margin-left: 0;
-    }
-  }
-</style>
-
-<div class="shop-wrap">
-  <header class="shop-head">
-    <h1 class="shop-title">Bestel Drankjes</h1>
-    <p class="shop-sub">
-      Hier kan je drankjes bekijken en toevoegen aan je rekening.
-    </p>
-  </header>
-
-  {% set drinks = craft.entries.section('drinks').with(['image']).all() %}
-
-  <section class="grid">
-    {% for drink in drinks %} {# image #} {% set img = drink.image.one() %} {#
-    category may be an option field (SingleOptionFieldData) #} {% set cat =
-    drink.category ? (drink.category.label ?? drink.category.value) : '—' %} {#
-    price: prefer Money\Money -> display; also keep numeric fallback #} {% set
-    priceMoney = drink.price ?? null %} {% set priceNumber = priceMoney ?
-    (priceMoney.getAmount() / 100) : (drink.price ?? 0)|float %} {% set
-    priceDisplay = priceMoney ? craft.app.formatter.asCurrency(priceNumber,
-    priceMoney.getCurrency().getCode()) :
-    craft.app.formatter.asCurrency(priceNumber, 'EUR') %}
-
-    <article class="card" data-id="{{ drink.id }}">
-      <div class="media">
-        <img
-          class="thumb"
-          src="{{
-            img
-              ? img.getUrl({ width: 256, height: 256, mode: 'fit' })
-              : 'https://via.placeholder.com/64'
-          }}"
-          alt="{{ drink.title }}"
-        />
-        <div>
-          <h3 class="title">{{ drink.title }}</h3>
-          <p class="meta">Categorie: {{ cat }}</p>
-        </div>
-      </div>
-
-      <div class="row">
-        <span class="price">{{ priceDisplay }}</span>
-        {% if drink.drinkVisibility %}
-        <span class="chip chip-green">Beschikbaar</span>
-        {% else %}
-        <span class="chip chip-red">Niet Beschikbaar</span>
-        {% endif %}
-      </div>
-
-      <div class="row">
-        {% if currentUser %} {% if drink.drinkVisibility %}
-        <button
-          class="btn add-to-tab"
-          data-drink-id="{{ drink.id }}"
-          data-drink-title="{{ drink.title }}"
-        >
-          Toevoegen aan rekening
-        </button>
-        {% else %}
-        <button class="btn" disabled>Niet beschikbaar</button>
-        {% endif %} {% else %}
-        <a class="btn" href="{{ url('login') }}">Log in om te bestellen</a>
-        {% endif %}
-      </div>
-    </article>
-    {% else %}
-    <p class="meta" style="grid-column: 1 / -1">Geen drankjes beschikbaar.</p>
-    {% endfor %}
-  </section>
-</div>
-
-<div id="notice" class="notice" role="status" aria-live="polite"></div>
-
-{% if currentUser %}
-<script>
-  // CSRF + endpoint
-  const CSRF_NAME  = '{{ craft.app.config.general.csrfTokenName }}';
-  const CSRF_VALUE = '{{ craft.app.request.csrfToken|e('js') }}';
-  const ADD_TO_TAB_URL = '{{ actionUrl("tabs/add") }}'; // /actions/tabs/add
-
-  const notice = document.getElementById('notice');
-  function flash(msg){
-    if(!notice) return;
-    notice.textContent = msg;
-    notice.classList.add('show');
-    setTimeout(()=> notice.classList.remove('show'), 1600);
-  }
-
-  document.querySelectorAll('.add-to-tab').forEach(btn=>{
-    btn.addEventListener('click', async ()=>{
-      const drinkId = btn.dataset.drinkId;
-      const title = btn.dataset.drinkTitle || 'drankje';
-      btn.disabled = true;
-
-      const body = new URLSearchParams();
-      body.append('drinkId', drinkId);
-      body.append('qty', '1');
-      body.append(CSRF_NAME, CSRF_VALUE);
-
-      try{
-        const res = await fetch(ADD_TO_TAB_URL, {
-          method: 'POST',
-          headers: { 'Accept':'application/json', 'Content-Type':'application/x-www-form-urlencoded' },
-          body: body.toString()
-        });
-
-        let msg = '';
-        if(res.ok){
-          const json = await res.json();
-          if(json.success){
-            msg = json.merged ? `${title}: aantal verhoogd` : `${title}: toegevoegd aan je rekening`;
-          } else {
-            msg = 'Kon niet toevoegen';
-            console.error('Save errors:', json.errors || json);
-          }
-        } else {
-          msg = `Fout (${res.status}) bij toevoegen`;
-          console.error('HTTP error:', await res.text());
-        }
-        flash(msg);
-      } catch(err){
-        console.error(err);
-        flash('Netwerkfout');
-      } finally {
-        btn.disabled = false;
+    <style>
+      :root {
+        --cream: #fdfaf6;
+        --soft-red: #d9534f;
+        --soft-red-dark: #b52e2a;
+        --text: #333;
+        --muted: #6b6b6b;
+        --card: #ffffff;
+        --ring: #e9e9e9;
+        --shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+        --tint: #fff7f5;
       }
-    });
-  });
-</script>
-{% endif %}
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: Arial, sans-serif;
+        color: var(--text);
+        background: var(--cream);
+      }
+      main {
+        margin-left: 200px;
+        padding: 2rem;
+        flex: 1;
+      }
+
+      /* Layout: left menu | right cart */
+      .pos-grid {
+        display: grid;
+        grid-template-columns: minmax(340px, 1.4fr) minmax(280px, 1fr);
+        gap: 1.5rem;
+        align-items: start;
+        margin-top: 1rem;
+        margin-left: 1rem;
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--ring);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .panel-header {
+        padding: 12px 16px;
+        background: var(--tint);
+        border-bottom: 1px solid var(--ring);
+        color: var(--soft-red-dark);
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .panel-body {
+        padding: 12px 16px;
+      }
+
+      /* Left: drinks list */
+      .tools {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+      .input {
+        border: 1px solid var(--ring);
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: #fff;
+      }
+      .drinks-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        max-height: calc(100vh - 240px);
+        overflow: auto;
+        padding-right: 4px;
+      }
+      .drink-row {
+        display: grid;
+        grid-template-columns: 48px 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid var(--ring);
+        border-radius: 10px;
+        background: #fff;
+        transition: background 0.15s ease, border-color 0.15s ease;
+      }
+      .drink-row:hover {
+        background: var(--tint);
+        border-color: var(--soft-red);
+      }
+      .thumb {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid #eee;
+        background: #f4f4f4;
+      }
+      .dname {
+        margin: 0;
+        font-weight: 700;
+        color: var(--soft-red-dark);
+        font-size: 1rem;
+      }
+      .dmeta {
+        margin: 2px 0 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .price {
+        color: var(--soft-red-dark);
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .btn {
+        appearance: none;
+        border: none;
+        border-radius: 8px;
+        padding: 9px 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease,
+          border-color 0.15s ease, transform 0.1s ease;
+      }
+      .btn-add {
+        background: var(--soft-red);
+        color: var(--cream);
+        border: 2px solid var(--soft-red);
+      }
+      .btn-add:hover {
+        background: var(--soft-red-dark);
+        border-color: var(--soft-red-dark);
+        transform: translateY(-1px);
+      }
+
+      .btn-outline {
+        background: #fff;
+        color: var(--soft-red);
+        border: 2px solid var(--soft-red);
+      }
+      .btn-outline:hover {
+        background: var(--soft-red);
+        color: var(--cream);
+      }
+
+      /* Right: selection/cart */
+      .cart {
+        position: sticky;
+        top: 1rem;
+      }
+      .cart-items {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .cart-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        border: 1px solid var(--ring);
+        border-radius: 10px;
+        padding: 10px 12px;
+        background: #fff;
+      }
+      .qty {
+        display: inline-grid;
+        grid-auto-flow: column;
+        gap: 6px;
+        align-items: center;
+      }
+      .qty .qbtn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: 2px solid var(--soft-red);
+        background: #fff;
+        color: var(--soft-red);
+        font-weight: 900;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .qty .qbtn:hover {
+        background: var(--soft-red);
+        color: var(--cream);
+      }
+      .line {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      .line strong {
+        color: var(--soft-red-dark);
+      }
+
+      .cart-footer {
+        border-top: 1px solid var(--ring);
+        margin-top: 12px;
+        padding-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+      .total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 800;
+        color: var(--soft-red-dark);
+      }
+      .cta-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      } /* single button for users */
+
+      .btn-pay {
+        background: var(--soft-red);
+        color: var(--cream);
+        border: 2px solid var(--soft-red);
+        justify-self: start; /* pay button aligned left */
+      }
+      .btn-pay:hover {
+        background: var(--soft-red-dark);
+        border-color: var(--soft-red-dark);
+      }
+
+      .notice {
+        background: var(--soft-red);
+        color: var(--cream);
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--soft-red-dark);
+        box-shadow: var(--shadow);
+        position: fixed;
+        top: 14px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        font-weight: 600;
+      }
+      .notice.hidden {
+        display: none;
+      }
+
+      @media (max-width: 1000px) {
+        .pos-grid {
+          grid-template-columns: 1fr;
+        }
+        .cart {
+          position: static;
+        }
+      }
+      @media (max-width: 700px) {
+        main {
+          padding: 1.25rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      {% include 'global/header.twig' %}
+
+      <div class="pos-grid">
+        <!-- LEFT: Drinks -->
+        <section class="panel">
+          <div class="panel-header">
+            <span>Drankjes</span>
+            {# No +Nieuw button on the user page #}
+          </div>
+          <div class="panel-body">
+            <div class="tools">
+              <input
+                id="search"
+                class="input"
+                type="text"
+                placeholder="Zoek drankjes…"
+              />
+              <select id="filterCat" class="input">
+                <option value="">Alle categorieën</option>
+                <option value="bier">Bier</option>
+                <option value="wijn">Wijn</option>
+                <option value="fris">Fris</option>
+              </select>
+            </div>
+
+            <div id="drinksList" class="drinks-list">
+              {% for drink in craft.entries.section('drinks').all() %} {% set
+              img = drink.image.one() %} {% set catLabel = drink.category ?
+              (drink.category.label ?? drink.category.value) : '—' %} {% set
+              priceMoney = drink.price ?? null %} {% set priceNumber =
+              priceMoney ? (priceMoney.getAmount() / 100) : 0 %} {% set
+              priceDisplay = priceMoney ?
+              craft.app.formatter.asCurrency(priceNumber,
+              priceMoney.getCurrency().getCode()) : '—' %}
+
+              <article
+                class="drink-row"
+                data-name="{{ drink.title | lower }}"
+                data-cat="{{ catLabel | lower }}"
+                data-visible="{{ drink.drinkVisibility ? '1' : '0' }}"
+                data-id="{{ drink.id }}"
+                data-price="{{ priceNumber }}"
+                data-title="{{ drink.title }}"
+              >
+                <img
+                  class="thumb"
+                  src="{{
+                    img ? img.getUrl() : 'https://via.placeholder.com/64'
+                  }}"
+                  alt="{{ drink.title }}"
+                />
+                <div>
+                  <h3 class="dname">{{ drink.title }}</h3>
+                  <p class="dmeta">Categorie: {{ catLabel }}</p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px">
+                  <span class="price">{{ priceDisplay }}</span>
+                  {% if currentUser and drink.drinkVisibility %}
+                  <button class="btn btn-add add-btn">Toevoegen</button>
+                  {% elseif currentUser %}
+                  <button class="btn btn-outline" disabled>
+                    Niet beschikbaar
+                  </button>
+                  {% else %}
+                  <a class="btn btn-outline" href="{{ url('login') }}">Login</a>
+                  {% endif %}
+                </div>
+              </article>
+              {% else %}
+              <p class="dmeta">Geen drankjes beschikbaar.</p>
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT: Selection -->
+        <aside class="panel cart">
+          <div class="panel-header">Jouw selectie</div>
+          <div class="panel-body">
+            <div id="cartItems" class="cart-items"></div>
+
+            <div class="cart-footer">
+              <div class="total">
+                <span>Totaal</span>
+                <span id="cartTotal">€ 0,00</span>
+              </div>
+              <div class="cta-row">
+                <a class="btn btn-pay" href="{{ url('tabs') }}">Afrekenen</a>
+              </div>
+              <p class="dmeta" style="margin: 6px 0 0">
+                Items worden direct toegevoegd aan je rekening. Beheer en betaal
+                op de
+                <a
+                  href="{{ url('tabs') }}"
+                  style="
+                    color: var(--soft-red);
+                    font-weight: 700;
+                    text-decoration: none;
+                  "
+                  >rekeningpagina</a
+                >.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <div
+      id="notice"
+      class="notice hidden"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+    {% include 'global/footer.twig' %} {% if currentUser %}
+    <script>
+      // CSRF + endpoints
+      const CSRF_NAME  = '{{ craft.app.config.general.csrfTokenName }}';
+      const CSRF_VALUE = '{{ craft.app.request.csrfToken|e('js') }}';
+      const ADD_TO_TAB_URL = '{{ actionUrl("tabs/add") }}';
+      const REMOVE_FROM_TAB_URL = '{{ actionUrl("tabs/remove") }}'; // optional, if implemented
+
+      const fmt = new Intl.NumberFormat('nl-BE', { style:'currency', currency:'EUR' });
+
+      const noticeEl = document.getElementById('notice');
+      function toast(msg){
+        noticeEl.textContent = msg;
+        noticeEl.classList.remove('hidden');
+        requestAnimationFrame(()=> noticeEl.style.opacity = 1);
+        setTimeout(()=>{ noticeEl.style.opacity = 0; noticeEl.classList.add('hidden'); }, 1800);
+      }
+
+      // Local cart view
+      const cart = new Map(); // id -> { id, title, price, qty }
+      const cartItemsEl = document.getElementById('cartItems');
+      const totalEl = document.getElementById('cartTotal');
+
+      function renderCart(){
+        cartItemsEl.innerHTML = '';
+        let total = 0;
+        for (const item of cart.values()){
+          total += item.price * item.qty;
+          const row = document.createElement('div');
+          row.className = 'cart-row';
+          row.innerHTML = `
+            <div class="line"><strong>${item.title}</strong><br><span>${fmt.format(item.price)} × ${item.qty}</span></div>
+            <div class="qty">
+              <button class="qbtn" data-action="dec" data-id="${item.id}">−</button>
+              <button class="qbtn" data-action="inc" data-id="${item.id}">＋</button>
+            </div>
+          `;
+          cartItemsEl.appendChild(row);
+        }
+        if (cart.size === 0){
+          cartItemsEl.innerHTML = '<p class="dmeta">Nog geen items. Voeg links drankjes toe.</p>';
+        }
+        totalEl.textContent = fmt.format(total);
+      }
+
+      async function addOne(id, title, price){
+        // local
+        const cur = cart.get(id) || { id, title, price, qty: 0 };
+        cur.qty += 1; cart.set(id, cur); renderCart();
+
+        // server
+        const body = new URLSearchParams();
+        body.append('drinkId', id);
+        body.append('qty', '1');
+        body.append(CSRF_NAME, CSRF_VALUE);
+        try{
+          const res = await fetch(ADD_TO_TAB_URL, {
+            method:'POST',
+            headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
+            body: body.toString()
+          });
+          if(!res.ok){ console.error('Add failed', res.status, await res.text()); toast('Kon niet toevoegen.'); return; }
+          const json = await res.json().catch(()=>({}));
+          if(json && json.success){
+            toast(json.merged ? 'Aantal verhoogd!' : 'Toegevoegd aan je rekening!');
+          } else {
+            toast('Onbekend antwoord van server.');
+          }
+        }catch(e){ console.error(e); toast('Netwerkfout bij toevoegen.'); }
+      }
+
+      // Add buttons
+      document.querySelectorAll('.add-btn').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const row = btn.closest('.drink-row');
+          const id = row.dataset.id;
+          const price = parseFloat(row.dataset.price||'0');
+          const title = row.dataset.title;
+          addOne(id, title, price);
+        });
+      });
+
+      // Qty inc/dec in cart
+      cartItemsEl.addEventListener('click', async (e)=>{
+        const b = e.target.closest('.qbtn'); if(!b) return;
+        const id = b.dataset.id; const action = b.dataset.action;
+        const item = cart.get(id); if(!item) return;
+
+        if(action === 'inc'){
+          await addOne(id, item.title, item.price);
+        } else {
+          // local dec
+          item.qty -= 1; if(item.qty <= 0) cart.delete(id); else cart.set(id, item);
+          renderCart();
+
+          // optional server dec (if you implement /tabs/remove)
+          if(REMOVE_FROM_TAB_URL){
+            const body = new URLSearchParams();
+            body.append('drinkId', id);
+            body.append('qty', '1');
+            body.append(CSRF_NAME, CSRF_VALUE);
+            try{
+              const res = await fetch(REMOVE_FROM_TAB_URL, {
+                method:'POST',
+                headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
+                body: body.toString()
+              });
+              if(!res.ok) console.warn('Remove endpoint not ready? HTTP', res.status);
+            }catch(e){ console.warn('Dec network error', e); }
+          }
+        }
+      });
+
+      // Search & filter
+      const searchEl = document.getElementById('search');
+      const filterCatEl = document.getElementById('filterCat');
+      function applyFilters(){
+        const term = (searchEl.value||'').trim().toLowerCase();
+        const cat = (filterCatEl.value||'').trim().toLowerCase();
+        document.querySelectorAll('.drink-row').forEach(row=>{
+          const matchName = row.dataset.name.includes(term);
+          const matchCat  = !cat || row.dataset.cat === cat;
+          const visible   = row.dataset.visible === '1';
+          row.style.display = (matchName && matchCat && visible) ? '' : 'none';
+        });
+      }
+      searchEl.addEventListener('input', applyFilters);
+      filterCatEl.addEventListener('change', applyFilters);
+      applyFilters();
+
+      // Initial render
+      renderCart();
+    </script>
+    {% endif %}
+  </body>
+</html>

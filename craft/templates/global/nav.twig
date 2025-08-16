@@ -1,24 +1,40 @@
 <style>
+  :root {
+    --cream: #fdfaf6; /* soft cream white */
+    --soft-red: #d9534f; /* muted red */
+    --soft-red-dark: #b52e2a;
+    --text: #333;
+  }
+
   nav {
     width: 200px;
-    background: white;
+    background: var(--cream);
     padding: 2rem 1rem;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.08);
     height: 100vh;
     position: fixed;
     top: 0;
     left: 0;
+    display: flex;
+    flex-direction: column;
   }
 
   nav h2 {
     font-size: 18px;
-    margin-bottom: 1rem;
-    color: #2f8f71;
+    margin-bottom: 1.5rem;
+    color: var(--soft-red-dark);
+  }
+
+  nav h2 a {
+    text-decoration: none;
+    color: var(--soft-red-dark);
   }
 
   nav ul {
     list-style: none;
     padding: 0;
+    margin: 0;
+    flex: 1;
   }
 
   nav ul li {
@@ -27,17 +43,38 @@
 
   nav ul li a {
     text-decoration: none;
-    color: #007bff;
-    font-weight: bold;
+    color: var(--soft-red);
+    font-weight: 600;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    display: block;
+    transition: background 0.2s, color 0.2s;
   }
 
   nav ul li a:hover {
-    text-decoration: underline;
+    background: var(--soft-red);
+    color: var(--cream);
+  }
+
+  /* Optional: highlight active link */
+  nav ul li a.active {
+    background: var(--soft-red-dark);
+    color: var(--cream);
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
   }
 </style>
 
 <nav>
-  <h2>HNO Menu</h2>
+  <h2>
+    <a href="{{ url('index') }}">
+      <img src="{{ siteUrl('uploads/favicon/favicon.ico') }}" alt="Favicon" />
+      HNO Menu
+    </a>
+  </h2>
   <ul>
     {% if currentUser %} {% if currentUser.admin %}
     <li><a href="{{ url('drinks/admin') }}">Beheer Drankjes</a></li>

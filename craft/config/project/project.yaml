@@ -1,8 +1,16 @@
-dateModified: 1755099447
+dateModified: 1755353665
 email:
-  fromEmail: charlotte.billiet25@gmail.com
-  fromName: 'Table Tennis Tool'
-  transportType: craft\mail\transportadapters\Sendmail
+  fromEmail: $MAILPIT_SYSTEM_EMAIL
+  fromName: $MAILPIT_SENDER_NAME
+  replyToEmail: null
+  template: ''
+  transportSettings:
+    host: $MAILPIT_SMTP_HOSTNAME
+    password: ''
+    port: $MAILPIT_SMTP_PORT
+    useAuthentication: '0'
+    username: ''
+  transportType: craft\mail\transportadapters\Smtp
 fs:
   uploads:
     hasUrls: true
@@ -15,6 +23,8 @@ meta:
   __names__:
     0a105f38-fbd5-4242-aba4-6c12d557259c: 'Table Tennis Tool' # Table Tennis Tool
     0b8acdb5-7c02-4309-b649-29c39414b8e5: 'Site Images' # Site Images
+    00cd61f2-4eb0-4473-8143-6e3d5cdea341: 'Selection Sent' # Selection Sent
+    0e16e37f-63a5-43df-979c-73f3f6efcaad: 'Confirmation Sent' # Confirmation Sent
     1a62614a-305e-4de4-a36a-f09f87efb96d: 'Status Admin' # Status Admin
     1cc42db4-c0f6-423d-9347-8e776bb43a58: Price # Price
     2d4738e3-1053-4790-9776-117e946e2f2f: Availability # Availability
@@ -49,6 +59,7 @@ meta:
     da57e7e9-7915-4119-aa7e-730ad58dd0ac: Date/Time # Date/Time
     db6989ab-36a4-4bc6-86cb-768cbfcc7f46: Tabs # Tabs
     dd79136e-3da1-41f1-b9cb-e9c36475201d: 'Ploeg B' # Ploeg B
+    fb45a8dd-2df4-4783-a116-233bf8f6749b: 'Email Notifications' # Email Notifications
     fcbc034f-08a7-4728-bcb0-b0178b95230c: Teams # Teams
 plugins:
   feed-me:

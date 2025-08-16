@@ -1,0 +1,53 @@
+<style>
+  :root {
+    --cream: #fdfaf6; /* soft cream white */
+    --soft-red: #d9534f; /* muted red */
+    --soft-red-dark: #b52e2a;
+    --text: #333;
+  }
+
+  header {
+    display: flex;
+    justify-content: flex-end; /* push everything to the right */
+    align-items: center;
+    background-color: var(--cream);
+    padding: 1rem 2rem;
+    border-bottom: 3px solid var(--soft-red);
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .header-right h1 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--soft-red-dark);
+  }
+
+  .header-links a {
+    text-decoration: none;
+    color: var(--soft-red);
+    font-weight: 600;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .header-links a:hover {
+    background: var(--soft-red);
+    color: var(--cream);
+  }
+</style>
+
+<header>
+  <div class="header-right">
+    <h1>Welkom, {{ currentUser.friendlyName ?? "Gast" }}</h1>
+    <div class="header-links">
+      <a href="/profile">Profiel</a>
+    </div>
+  </div>
+</header>

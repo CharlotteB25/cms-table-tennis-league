@@ -14,8 +14,9 @@ return [
   // pages
   'drinks'  => ['template' => 'drinks/index'],
   'teams'   => 'teams/index',
-  'account' => 'account/index',
+  'profile' => 'profile/index',
   'tabs'    => ['template' => 'tabs/index'],
+  
 
   // actions to your site controllers
   'tab/add'   => ['route' => 'tabs/add'],
@@ -24,7 +25,7 @@ return [
   // admin pages
   'drinks/admin'   => ['template' => 'drinks/admin'],
   'teams/admin'    => ['template' => 'teams/admin'],
-  'accounts/admin' => ['template' => 'accounts/admin'],
+  'profile'  => ['template' => 'profile/index'],
   'tabs/admin'     => ['template' => 'tabs/admin'],
 
   'login' => ['template' => 'auth/login'],

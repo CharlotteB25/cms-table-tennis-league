@@ -1,17 +1,615 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
   <head>
     <meta charset="UTF-8" />
-    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profiel Bewerken</title>
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}"
+    />
+
+    <style>
+      :root {
+        --cream: #fdfaf6;
+        --soft-red: #d9534f;
+        --soft-red-dark: #b52e2a;
+        --text: #333;
+        --muted: #6b6b6b;
+        --card: #ffffff;
+        --ring: #e9e9e9;
+        --ring-strong: #d8d8d8;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --tint: #fff7f5;
+      }
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: Arial, sans-serif;
+        color: var(--text);
+        background: var(--cream);
+      }
+
+      /* More space around page content */
+      main {
+        margin-left: 200px; /* fixed nav space */
+        padding: 3rem 2.5rem;
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+
+      /* Back link spacing */
+      .header-section {
+        margin-left: 200px;
+        padding: 14px 24px 0;
+      }
+      .terug-button {
+        appearance: none;
+        border: 2px solid var(--soft-red);
+        background: #fff;
+        color: var(--soft-red);
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-block;
+        transition: background 0.15s ease, color 0.15s ease,
+          border-color 0.15s ease, transform 0.1s ease;
+      }
+      .terug-button:hover {
+        background: var(--soft-red);
+        color: var(--cream);
+        transform: translateY(-1px);
+      }
+
+      /* Wider, more colorful panel */
+      .profile-form {
+        position: relative;
+        max-width: 960px; /* was 680/720 -> wider */
+        width: 100%;
+        background: linear-gradient(180deg, #fff 0%, var(--tint) 100%);
+        border: 1px solid var(--ring);
+        border-radius: 14px;
+        box-shadow: var(--shadow);
+        padding: 32px 32px 28px;
+        overflow: hidden;
+      }
+      /* Decorative top bar */
+      .profile-form::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 8px;
+        background: linear-gradient(90deg, var(--soft-red), #f07a76);
+      }
+
+      .profile-form h1 {
+        font-size: 28px;
+        margin: 0 0 10px;
+        text-align: center;
+        color: var(--soft-red-dark);
+      }
+      .help {
+        color: var(--muted);
+        text-align: center;
+        margin: 0 0 18px;
+      }
+
+      /* Spacing tweaks */
+      .row {
+        margin-bottom: 18px;
+      }
+      .row:last-of-type {
+        margin-bottom: 14px;
+      }
+
+      label {
+        display: block;
+        font-weight: 800;
+        margin-bottom: 7px;
+        letter-spacing: 0.2px;
+        color: #4a4a4a;
+      }
+
+      input[type="text"],
+      input[type="email"],
+      input[type="password"] {
+        width: 100%;
+        padding: 12px 14px; /* bigger touch target */
+        border: 1px solid var(--ring-strong);
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.02);
+        transition: border-color 0.15s ease, box-shadow 0.15s ease,
+          transform 0.04s ease;
+      }
+      input[type="text"]:focus,
+      input[type="email"]:focus,
+      input[type="password"]:focus {
+        outline: none;
+        border-color: var(--soft-red);
+        box-shadow: 0 0 0 4px rgba(217, 83, 79, 0.14),
+          inset 0 1px 0 rgba(0, 0, 0, 0.02);
+      }
+
+      .radio-row {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        margin: 8px 0 10px;
+      }
+      .radio-row input {
+        transform: translateY(1px);
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      .small {
+        font-size: 0.85rem;
+      }
+
+      /* Buttons: chunkier + colorful */
+      .btn {
+        appearance: none;
+        border: 2px solid var(--soft-red);
+        background: var(--soft-red);
+        color: var(--cream);
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease,
+          transform 0.1s ease, filter 0.15s ease;
+      }
+      .btn:hover {
+        background: var(--soft-red-dark);
+        border-color: var(--soft-red-dark);
+        transform: translateY(-1px);
+      }
+      .btn:active {
+        transform: translateY(0);
+        filter: brightness(0.98);
+      }
+      .btn-outline {
+        background: #fff;
+        color: var(--soft-red);
+        border-color: var(--soft-red);
+      }
+      .btn-danger {
+        background: #b91c1c;
+        border-color: #b91c1c;
+      }
+
+      .actions {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      /* Photo block: larger avatar + ring */
+      .photo-wrap {
+        display: flex;
+        gap: 18px;
+        align-items: center;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+      .avatar {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #fde3e2; /* soft red ring */
+        background: #f5f5f5;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        transition: transform 0.1s ease;
+      }
+      .avatar:hover {
+        transform: scale(1.01);
+      }
+      .photo-controls {
+        display: grid;
+        gap: 10px;
+      }
+      .inline-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .file-input {
+        display: block;
+      }
+
+      /* Feedback banners with spacing */
+      .success-message,
+      .error-message {
+        text-align: center;
+        margin-top: 14px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid;
+      }
+      .success-message {
+        color: #065f46;
+        background: #ecfdf5;
+        border-color: #10b981;
+      }
+      .error-message {
+        color: #991b1b;
+        background: #fef2f2;
+        border-color: #ef4444;
+      }
+
+      /* Responsive */
+      @media (max-width: 760px) {
+        main {
+          padding: 1.5rem;
+          margin-left: 0;
+        }
+        .header-section {
+          margin-left: 0;
+          padding: 12px 16px 0;
+        }
+        .profile-form {
+          padding: 24px 18px 20px;
+        }
+      }
+    </style>
   </head>
   <body>
     {% include 'global/nav.twig' %}
+    <div class="header-section">
+      <a href="javascript:history.back()" class="terug-button">Terug</a>
+    </div>
 
-    <main style="margin-left: 200px; padding: 2rem">
-      <h1>Page Title</h1>
-      <p>This is the [page purpose] page.</p>
+    <main>
+      {# Current notify + photo URL #} {% set notify =
+      (currentUser.emailNotifications ??
+      currentUser.getFieldValue('emailNotifications')) ? true : false %} {% set
+      photoUrl = currentUser.photo ? currentUser.photo.getUrl({ width:192,
+      height:192, mode:'crop' }) : null %}
+
+      <form
+        class="profile-form"
+        id="profile-form"
+        enctype="multipart/form-data"
+      >
+        <h1>Profiel Bewerken</h1>
+        <p class="help">
+          Werk je gegevens, e-mailnotificaties en profielfoto bij.
+        </p>
+
+        {{ csrfInput() }}
+        {{ actionInput("users/save-user") }}
+
+        {# --- Photo --- #}
+        <div class="row">
+          <label>Profielfoto</label>
+          <div class="photo-wrap">
+            <img
+              class="avatar"
+              id="avatarPreview"
+              src="{{
+                photoUrl ??
+                  'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2296%22 height=%2296%22><rect width=%2296%22 height=%2296%22 fill=%22%23e5e7eb%22 /><text x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23666%22 font-family=%22Arial%22 font-size=%2212%22>Geen foto</text></svg>'
+              }}"
+              alt="Profielfoto"
+            />
+            <div class="photo-controls">
+              <input
+                class="file-input"
+                type="file"
+                id="photo"
+                name="photo"
+                accept="image/*"
+              />
+              <div class="inline-actions">
+                <button
+                  type="button"
+                  class="btn btn-outline small"
+                  id="clearPhoto"
+                >
+                  Wijziging annuleren
+                </button>
+                {% if currentUser.photo %}
+                <button
+                  type="button"
+                  class="btn btn-danger small"
+                  id="removePhotoBtn"
+                  style="width: auto"
+                >
+                  Huidige foto verwijderen
+                </button>
+                {% endif %}
+              </div>
+              <span class="muted small"
+                >Ondersteunde afbeeldingen; max. grootte volgens
+                serverinstellingen.</span
+              >
+            </div>
+          </div>
+        </div>
+
+        {# --- User fields --- #}
+        <div class="row">
+          <label for="username">Gebruikersnaam</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            value="{{ currentUser.username }}"
+            required
+          />
+        </div>
+
+        <div class="row">
+          <label for="fullName">Volledige naam</label>
+          <input
+            type="text"
+            id="fullName"
+            name="fields[fullName]"
+            value="{{ currentUser.fullName }}"
+            required
+          />
+        </div>
+
+        <div class="row">
+          <label for="email">E-mail</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value="{{ currentUser.email }}"
+            required
+          />
+        </div>
+
+        <div class="row">
+          <label for="currentPassword"
+            >Huidig wachtwoord (alleen nodig voor wijzigen)</label
+          >
+          <input type="password" id="currentPassword" name="currentPassword" />
+        </div>
+
+        <div class="row">
+          <label for="newPassword">Nieuw wachtwoord</label>
+          <input type="password" id="newPassword" name="newPassword" />
+        </div>
+
+        {# --- Email notifications --- #}
+        <div class="row">
+          <label>E-mailnotificaties</label>
+          <div
+            class="radio-row"
+            role="radiogroup"
+            aria-label="E-mailnotificaties"
+          >
+            <label
+              ><input
+                type="radio"
+                name="fields[emailNotifications]"
+                value="1"
+                {%
+                if
+                notify
+                %}checked{%
+                endif
+                %}
+              />
+              Aan</label
+            >
+            <label
+              ><input
+                type="radio"
+                name="fields[emailNotifications]"
+                value="0"
+                {%
+                if
+                not
+                notify
+                %}checked{%
+                endif
+                %}
+              />
+              Uit</label
+            >
+          </div>
+          <p class="muted small">
+            Huidige status: <strong>{{ notify ? "Aan" : "Uit" }}</strong>
+          </p>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn">Opslaan</button>
+          <button type="button" class="btn btn-outline" id="resetForm">
+            Wijzigingen herstellen
+          </button>
+        </div>
+
+        <p id="form-message" class="success-message" style="display: none"></p>
+        <p id="form-error" class="error-message" style="display: none"></p>
+      </form>
     </main>
 
     {% include 'global/footer.twig' %}
+
+    <script>
+      (function () {
+        const form = document.getElementById("profile-form");
+        const formMessage = document.getElementById("form-message");
+        const formError = document.getElementById("form-error");
+
+        const avatarPreview = document.getElementById("avatarPreview");
+        const photoInput = document.getElementById("photo");
+        const clearPhotoBtn = document.getElementById("clearPhoto");
+        const resetBtn = document.getElementById("resetForm");
+        const removePhotoBtn = document.getElementById("removePhotoBtn");
+
+        // Initial values
+        const initialValues = {
+          username: "{{ currentUser.username|e('js') }}",
+          fullName: "{{ currentUser.fullName|e('js') }}",
+          email: "{{ currentUser.email|e('js') }}",
+          emailNotifications:
+            "{{ (currentUser.emailNotifications ?? currentUser.getFieldValue('emailNotifications')) ? '1' : '0' }}",
+        };
+        const initialPhotoUrl = avatarPreview.getAttribute("src");
+
+        function show(ok, html) {
+          formMessage.style.display = ok ? "block" : "none";
+          formError.style.display = ok ? "none" : "block";
+          (ok ? formMessage : formError).innerHTML = html || "";
+        }
+
+        // Live preview for chosen image
+        photoInput?.addEventListener("change", function () {
+          const file = this.files && this.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            avatarPreview.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+
+        // Cancel pending photo change (doesn't remove existing on server)
+        clearPhotoBtn?.addEventListener("click", function () {
+          if (photoInput) photoInput.value = "";
+          avatarPreview.src = initialPhotoUrl;
+        });
+
+        // Remove current server photo (no nested form)
+        removePhotoBtn?.addEventListener("click", async function () {
+          if (!confirm("Weet je zeker dat je je huidige foto wil verwijderen?"))
+            return;
+          try {
+            const resp = await fetch(
+              "/index.php?action=users/delete-user-photo",
+              {
+                method: "POST",
+                headers: {
+                  "X-CSRF-Token": "{{ craft.app.request.csrfToken }}",
+                },
+              }
+            );
+            if (resp.ok) {
+              show(true, "Foto verwijderd.");
+              setTimeout(() => window.location.reload(), 900);
+            } else {
+              show(false, "Kon foto niet verwijderen.");
+            }
+          } catch (e) {
+            console.error(e);
+            show(false, "Netwerkfout bij verwijderen.");
+          }
+        });
+
+        // Reset fields to initial
+        resetBtn?.addEventListener("click", function () {
+          document.getElementById("username").value = initialValues.username;
+          document.getElementById("fullName").value = initialValues.fullName;
+          document.getElementById("email").value = initialValues.email;
+          const radio = document.querySelector(
+            `input[name="fields[emailNotifications]"][value="${initialValues.emailNotifications}"]`
+          );
+          if (radio) radio.checked = true;
+          clearPhotoBtn?.click();
+          document.getElementById("newPassword").value = "";
+          document.getElementById("currentPassword").value = "";
+        });
+
+        // Submit (send only changed fields + photo if new)
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          show(true, "");
+          show(false, "");
+
+          const data = new FormData();
+          const current = {
+            username: document.getElementById("username").value,
+            fullName: document.getElementById("fullName").value,
+            email: document.getElementById("email").value,
+            newPassword: document.getElementById("newPassword").value,
+            currentPassword: document.getElementById("currentPassword").value,
+            emailNotifications:
+              document.querySelector(
+                'input[name="fields[emailNotifications]"]:checked'
+              )?.value || "0",
+          };
+
+          for (const [key, value] of Object.entries(current)) {
+            if (key === "newPassword" && !value) continue;
+            if (key === "currentPassword" && !current.newPassword) continue;
+
+            if (value !== initialValues[key]) {
+              if (key === "emailNotifications") {
+                data.append("fields[emailNotifications]", value);
+              } else if (key === "fullName") {
+                data.append("fields[fullName]", value);
+              } else {
+                data.append(key, value);
+              }
+            }
+          }
+
+          if (photoInput && photoInput.files && photoInput.files.length > 0) {
+            data.append("photo", photoInput.files[0]); // Craft user photo field
+          }
+
+          // Required Craft params
+          data.append(
+            "CRAFT_CSRF_TOKEN",
+            "{{ craft.app.request.getCsrfToken() }}"
+          );
+          data.append("action", "users/save-user");
+          data.append("userId", "{{ currentUser.id }}");
+
+          try {
+            const resp = await fetch("/index.php?action=users/save-user", {
+              method: "POST",
+              body: data,
+              headers: { Accept: "application/json" },
+            });
+
+            let json = {};
+            try {
+              json = await resp.json();
+            } catch (_) {}
+
+            if (
+              resp.ok &&
+              (json.success ||
+                json.message === "User saved." ||
+                !Object.keys(json).length)
+            ) {
+              show(true, "Profiel succesvol bijgewerkt!");
+              setTimeout(() => window.location.reload(), 1200);
+            } else {
+              const errors =
+                Object.values(json.errors || {})
+                  .flat()
+                  .join("<br>") ||
+                json.message ||
+                "Er is een fout opgetreden. Probeer het opnieuw.";
+              show(false, errors);
+            }
+          } catch (err) {
+            console.error(err);
+            show(false, "Er is een fout opgetreden. Probeer het opnieuw.");
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

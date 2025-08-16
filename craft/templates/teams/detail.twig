@@ -1,13 +1,13 @@
 {% set slug = craft.app.request.getSegment(2) %} {% set match =
-craft.entries().section(['ploegA', 'ploegB', 'ploegC']).slug(slug).one() %} {%
-if match %} {% set availabilityEntries = craft.entries()
-.section('availability') .relatedTo({ field: 'match', targetElement: match.id })
-.all() %} {% set existingEntry = craft.entries() .section('availability')
-.relatedTo({ and: [ { field: 'match', targetElement: match.id }, { field:
-'player', targetElement: currentUser.id } ] }) .one() %} {% endif %}
+craft.entries().section(['ploegA','ploegB','ploegC']).slug(slug).one() %} {% if
+match %} {% set availabilityEntries = craft.entries() .section('availability')
+.relatedTo({ field: 'match', targetElement: match.id }) .all() %} {% set
+existingEntry = craft.entries() .section('availability') .relatedTo({ and: [ {
+field: 'match', targetElement: match.id }, { field: 'player', targetElement:
+currentUser.id } ] }).one() %} {% endif %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,230 +19,305 @@ if match %} {% set availabilityEntries = craft.entries()
     />
 
     <style>
+      :root {
+        --cream: #fdfaf6;
+        --soft-red: #d9534f;
+        --soft-red-dark: #b52e2a;
+        --text: #333;
+        --muted: #6b6b6b;
+        --card: #ffffff;
+        --ring: #e9e9e9;
+        --shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+        --tint: #fff7f5;
+      }
+
+      /* Layout */
       body {
-        font-family: Arial, sans-serif;
-        background: linear-gradient(
-          to right,
-          rgb(169, 197, 185),
-          rgb(119, 188, 158)
-        );
         margin: 0;
-        padding: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: Arial, sans-serif;
+        color: var(--text);
+        background: var(--cream);
       }
-
       main {
-        padding: 20px;
-        margin-bottom: 4rem;
-        margin-left: 250px; /* Adjust based on your nav width */
+        margin-left: 200px;
+        padding: 2rem;
+        flex: 1;
       }
 
-      .header-section {
+      /* Header actions */
+      .top-actions {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 20px;
+        gap: 12px;
+        margin-bottom: 8px;
       }
-
-      .terug-button {
-        background-color: #28a745;
-        color: white;
+      .btn {
+        appearance: none;
+        border: 2px solid var(--soft-red);
+        margin: 1rem;
+        background: #fff;
+        color: var(--soft-red);
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 700;
         text-decoration: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        font-weight: bold;
+        display: inline-block;
+        transition: background 0.15s ease, color 0.15s ease,
+          border-color 0.15s ease, transform 0.1s ease;
+      }
+      .btn:hover {
+        background: var(--soft-red);
+        color: var(--cream);
+        transform: translateY(-1px);
+      }
+      .btn-primary {
+        background: var(--soft-red);
+        color: var(--cream);
+        border-color: var(--soft-red);
+      }
+      .btn-primary:hover {
+        background: var(--soft-red-dark);
+        border-color: var(--soft-red-dark);
       }
 
-      .terug-button:hover {
-        background-color: #218838;
+      /* Title + meta */
+      h1 {
+        margin: 6px 0 4px;
+        text-align: center;
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--soft-red-dark);
+      }
+      .meta-line {
+        text-align: center;
+        color: var(--muted);
+        margin: 0 0 16px;
       }
 
-      .availability-grid {
+      /* Two-column layout */
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(320px, 1fr) minmax(320px, 420px);
+        gap: 1.25rem;
+        align-items: start;
+        margin-left: 1rem;
+      }
+
+      /* Panels */
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--ring);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .panel-header {
+        padding: 12px 16px;
+        background: var(--tint);
+        border-bottom: 1px solid var(--ring);
+        color: var(--soft-red-dark);
+        font-weight: 800;
+      }
+      .panel-body {
+        padding: 14px 16px;
+      }
+
+      /* Forms inside partials (admin/player) */
+      .panel-body form {
+        max-width: 640px;
+      }
+      .panel-body label {
+        display: block;
+        margin: 10px 0 6px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .panel-body input[type="text"],
+      .panel-body input[type="number"],
+      .panel-body input[type="datetime-local"],
+      .panel-body select,
+      .panel-body textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--ring);
+        border-radius: 10px;
+        background: #fff;
+      }
+      .form-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 40px;
-        margin-top: 30px;
+        gap: 10px;
       }
-
-      .left-card,
-      .right-card {
-        background: white;
-        padding: 20px;
+      .form-actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .panel-body button,
+      .panel-body input[type="submit"] {
+        appearance: none;
+        border: 2px solid var(--soft-red);
+        background: var(--soft-red);
+        color: var(--cream);
+        padding: 10px 14px;
         border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-
-      .success-message,
-      .error-message {
-        text-align: center;
-        font-weight: bold;
-        margin-top: 15px;
-      }
-
-      .admin-form {
-        max-width: 600px;
-        margin: 20px auto;
-        padding: 20px;
-        background-color: #ffffff;
-        border-radius: 8px;
-      }
-
-      .admin-form label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: bold;
-      }
-
-      .admin-form select,
-      .admin-form input[type="text"],
-      .admin-form input[type="number"] {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 15px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-      }
-
-      .admin-form button {
-        background-color: #007bff;
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 5px;
-        font-size: 16px;
+        font-weight: 800;
         cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease,
+          transform 0.1s ease;
+      }
+      .panel-body button:hover,
+      .panel-body input[type="submit"]:hover {
+        background: var(--soft-red-dark);
+        border-color: var(--soft-red-dark);
+        transform: translateY(-1px);
       }
 
-      .admin-form button:hover {
-        background-color: #0056b3;
-      }
-      #availability-form {
-        max-width: 600px;
-        margin: 20px auto;
-        padding: 20px;
-        border-radius: 8px;
-      }
-
-      #availability-form label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: bold;
-      }
-
-      #availability-form select,
-      #availability-form input[type="text"],
-      #availability-form input[type="number"] {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 15px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-      }
-
-      #availability-form button {
-        background-color: #28a745;
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-      }
-
-      #availability-form button:hover {
-        background-color: #218838;
-      }
+      /* Availability list (right panel) */
       .availability-list {
         list-style: none;
+        margin-left: 1rem;
         padding: 0;
-        margin-top: 20px;
       }
-
       .availability-item {
-        padding: 12px;
-        border-bottom: 1px solid #ddd;
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
         align-items: center;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--ring);
+        background: #fff;
       }
-
       .availability-item:last-child {
         border-bottom: none;
       }
-
-      .availability-item .label {
-        font-weight: bold;
-        margin-right: 10px;
-        color: #007bff;
+      .player-name {
+        font-weight: 700;
+        color: var(--soft-red-dark);
+      }
+      .sub {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      .chip {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        border: 1px solid rgba(181, 46, 42, 0.25);
+        background: #fde3e2;
+        color: var(--soft-red-dark);
       }
 
-      .admin-status-form label {
-        font-weight: bold;
+      /* Messages */
+      #message-container {
+        margin-top: 12px;
+      }
+      .msg {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid;
+        margin: 8px 0;
+      }
+      .msg.success {
+        background: #ecfdf5;
+        border-color: #10b981;
+        color: #065f46;
+      }
+      .msg.error {
+        background: #fef2f2;
+        border-color: #ef4444;
+        color: #991b1b;
       }
 
-      .admin-status-form select {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-      }
-
-      .admin-status-form button {
-        align-self: flex-start;
-        background-color: #007bff;
-        color: white;
-        padding: 8px 12px;
-        border: none;
-        border-radius: 5px;
-        font-size: 14px;
-        cursor: pointer;
-      }
-
-      .admin-status-form button:hover {
-        background-color: #0056b3;
-      }
-
-      .success-message {
-        color: green;
-      }
-
-      .error-message {
-        color: red;
-      }
-
+      /* No data */
       .no-data {
         text-align: center;
         font-size: 16px;
-        color: #555;
+        color: var(--muted);
+      }
+
+      /* Responsive */
+      @media (max-width: 980px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 700px) {
+        main {
+          padding: 1.25rem;
+        }
       }
     </style>
   </head>
-
   <body>
     {% include 'global/nav.twig' %}
 
     <main>
-      <div class="header-section">
-        <a href="javascript:history.back()" class="terug-button">Terug</a>
+      {% include 'global/header.twig' %}
+
+      <div class="top-actions">
+        <a href="javascript:history.back()" class="btn">Terug</a>
+        {# Optional CP link: {% if match %}
+        <a
+          href="{{ url('admin/entries/' ~ match.section.handle ~ '/' ~ match.id ~ '-' ~ match.slug) }}"
+          class="btn"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Open in CP</a
+        >
+        {% endif %} #}
       </div>
 
       {% if match %}
       <h1>{{ match.title }}</h1>
-      <div class="availability-grid">
-        <div class="left-card">
-          {% if currentUser and currentUser.admin %} {% include
-          'partials/admin-form.twig' with { match: match } %} {% elseif
-          currentUser %} {% include 'partials/player-form.twig' with { match:
-          match, existingEntry: existingEntry } %} {% endif %}
-        </div>
+      <p class="meta-line">
+        {% set dt = (match.dateTime is defined and match.dateTime) ?
+        match.dateTime|date('d-m-Y H:i') : '—' %}
+        <span
+          >Datum & tijd: <strong>{{ dt }}</strong></span
+        >
+        {% set loc = match.address ?? match.location ?? '' %} {% if loc %}
+        &middot;
+        <span
+          >Locatie: <strong>{{ loc }}</strong></span
+        >{% endif %}
+      </p>
 
-        <div class="right-card">
-          {% include 'partials/player-list.twig' with { entries:
-          availabilityEntries } %}
-        </div>
+      <div class="grid">
+        <!-- LEFT: admin/player form -->
+        <section class="panel">
+          <div class="panel-header">
+            {% if currentUser and currentUser.admin %} Beheer wedstrijd {%
+            elseif currentUser %} Jouw beschikbaarheid {% else %} Informatie {%
+            endif %}
+          </div>
+          <div class="panel-body">
+            {% if currentUser and currentUser.admin %} {% include
+            'partials/admin-form.twig' with { match: match } %} {% elseif
+            currentUser %} {% include 'partials/player-form.twig' with { match:
+            match, existingEntry: existingEntry } %} {% else %}
+            <p class="no-data">Log in om je beschikbaarheid door te geven.</p>
+            {% endif %}
+          </div>
+        </section>
+
+        <!-- RIGHT: player list -->
+        <aside class="panel">
+          <div class="panel-header">Spelers & status</div>
+          <div class="panel-body">
+            {% include 'partials/player-list.twig' with { entries:
+            availabilityEntries } %}
+          </div>
+        </aside>
       </div>
+
       <div id="message-container"></div>
       {% else %}
       <p class="no-data">De wedstrijd is niet gevonden.</p>

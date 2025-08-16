@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,95 +11,172 @@
     />
 
     <style>
+      :root {
+        --cream: #fdfaf6;
+        --soft-red: #d9534f;
+        --soft-red-dark: #b52e2a;
+        --text: #333;
+        --muted: #6b6b6b;
+        --card: #ffffff;
+        --ring: #e9e9e9;
+        --shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+        --tint: #fff7f5;
+      }
+
+      /* Layout */
       body {
-        font-family: Arial, sans-serif;
-        background: linear-gradient(
-          to right,
-          rgb(169, 197, 185),
-          rgb(119, 188, 158)
-        );
         margin: 0;
-        padding: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: Arial, sans-serif;
+        color: var(--text);
+        background: var(--cream);
       }
-
       main {
-        padding: 20px;
-        margin-bottom: 4rem;
+        margin-left: 200px;
+        padding: 2rem;
+        flex: 1;
       }
 
-      .header-section {
+      /* Top actions & title */
+      .top-actions {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 20px;
+        gap: 12px;
+        margin-bottom: 8px;
       }
-
-      .header-section .terug-button {
-        background-color: #28a745;
-        color: white;
+      .btn {
+        appearance: none;
+        margin: 1rem;
+        border: 2px solid var(--soft-red);
+        background: #fff;
+        color: var(--soft-red);
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 700;
         text-decoration: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        font-weight: bold;
-      }
-
-      .header-section .terug-button:hover {
-        background-color: #218838;
-      }
-
-      h1 {
-        text-align: center;
-        color: rgb(15, 61, 25);
-        font-weight: bold;
-        margin-bottom: 20px;
-      }
-
-      .matches-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-
-      .match-card {
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        text-align: center;
-        transition: transform 0.2s, box-shadow 0.2s;
-      }
-
-      .match-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-      }
-
-      .match-card h3 {
-        font-size: 18px;
-        color: #007bff;
-        margin: 0 0 10px;
-      }
-
-      .match-card p {
-        font-size: 14px;
-        margin: 5px 0;
-      }
-
-      .match-card a {
         display: inline-block;
-        margin-top: 10px;
-        background-color: rgb(0, 95, 159);
-        color: white;
-        text-decoration: none;
-        padding: 10px 15px;
-        border-radius: 5px;
-        font-weight: bold;
+        transition: background 0.15s ease, color 0.15s ease,
+          border-color 0.15s ease, transform 0.1s ease;
+      }
+      .btn:hover {
+        background: var(--soft-red);
+        color: var(--cream);
+        transform: translateY(-1px);
+      }
+      h1 {
+        margin: 6px 0 10px;
+        text-align: center;
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--soft-red-dark);
       }
 
-      .match-card a:hover {
-        background-color: rgb(1, 62, 103);
+      /* Table wrapper */
+      .table-wrap {
+        background: var(--card);
+        border: 1px solid var(--ring);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        overflow: auto;
+        margin-left: 2rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        min-width: 640px;
+      }
+      thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--tint);
+        color: var(--soft-red-dark);
+        text-align: left;
+        font-weight: 800;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--ring);
+      }
+      tbody td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--ring);
+        vertical-align: middle;
+      }
+      tbody tr:nth-child(odd) {
+        background: #fff;
+      }
+      tbody tr:nth-child(even) {
+        background: #fefefe;
+      }
+      tbody tr:hover {
+        background: var(--tint);
+      }
+
+      .cell-title a {
+        color: var(--soft-red-dark);
+        text-decoration: none;
+        font-weight: 700;
+      }
+      .cell-title a:hover {
+        text-decoration: underline;
+      }
+      .meta {
+        color: var(--muted);
+      }
+
+      .btn-primary {
+        background: var(--soft-red);
+        color: var(--cream);
+        border-color: var(--soft-red);
+      }
+      .btn-primary:hover {
+        background: var(--soft-red-dark);
+        border-color: var(--soft-red-dark);
+      }
+
+      /* Responsive: stack rows */
+      @media (max-width: 760px) {
+        main {
+          padding: 1.25rem;
+        }
+        .table-wrap {
+          border: none;
+          box-shadow: none;
+        }
+        table {
+          min-width: 0;
+        }
+        thead {
+          display: none;
+        }
+        tbody tr {
+          display: block;
+          border: 1px solid var(--ring);
+          border-radius: 12px;
+          margin-bottom: 12px;
+          overflow: hidden;
+        }
+        tbody td {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          border-bottom: 1px dashed var(--ring);
+        }
+        tbody td:last-child {
+          border-bottom: none;
+        }
+        tbody td::before {
+          content: attr(data-label);
+          font-weight: 700;
+          color: var(--soft-red-dark);
+        }
+        .cell-actions {
+          justify-content: flex-start;
+        }
       }
     </style>
   </head>
@@ -107,25 +184,72 @@
     {% include 'global/nav.twig' %}
 
     <main>
-      <div class="header-section">
-        <a href="{{ url('matches/admin') }}" class="terug-button">Terug</a>
+      {% include 'global/header.twig' %}
+
+      <div class="top-actions">
+        <a href="{{ url('teams/admin') }}" class="btn">Terug</a>
+        {# Optional CP link
+        <a
+          href="{{ url('admin/entries/ploegC') }}"
+          class="btn"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Open Ploeg C in CP</a
+        >
+        #}
       </div>
 
       <h1>Ploeg C</h1>
 
-      <div class="matches-container">
-        {% for match in craft.entries.section('ploegC').all() %}
-        <div class="match-card">
-          <h3 class="match-title">{{ match.title }}</h3>
-          <p>Speeldag en Tijd: {{ match.dateTime|date('d-m-Y H:i') }}</p>
-          <p>Locatie: {{ match.location }}</p>
-          <a href="{{ match.url }}" class="button beschikbaarheid-button"
-            >Beschikbaarheid</a
-          >
-        </div>
-        {% else %}
-        <p>Geen wedstrijden beschikbaar voor Ploeg C.</p>
-        {% endfor %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 200px">Datum & tijd</th>
+              <th>Wedstrijd</th>
+              <th style="width: 260px">Locatie</th>
+              <th style="width: 160px; text-align: right">Actie</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set matches = craft.entries.section('ploegC').orderBy('dateTime
+            asc, postDate asc').all() %} {% for match in matches %} {% set dt =
+            (match.dateTime is defined and match.dateTime) ?
+            match.dateTime|date('d-m-Y H:i') : '—' %} {% set loc = match.address
+            ?? match.location ?? '—' %}
+            <tr>
+              <td data-label="Datum & tijd">
+                <span class="meta">{{ dt }}</span>
+              </td>
+              <td class="cell-title" data-label="Wedstrijd">
+                <a href="{{ match.url }}">{{ match.title }}</a>
+              </td>
+              <td data-label="Locatie">
+                <span class="meta">{{ loc }}</span>
+              </td>
+              <td
+                class="cell-actions"
+                data-label="Actie"
+                style="text-align: right"
+              >
+                <a href="{{ match.url }}" class="btn btn-primary"
+                  >Beschikbaarheid</a
+                >
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td
+                colspan="4"
+                class="meta"
+                style="text-align: center; padding: 20px"
+              >
+                Geen wedstrijden beschikbaar voor Ploeg C.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </main>
 

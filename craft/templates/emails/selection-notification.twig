@@ -1,0 +1,15 @@
+{# vars: user, match, siteName, siteUrl #}
+<h2>Je bent geselecteerd ✅</h2>
+<p>Goed nieuws: je bent geselecteerd voor de wedstrijd:</p>
+<ul>
+  <li><strong>Wedstrijd:</strong> {{ match.title }}</li>
+  {% if match.dateTime is defined and match.dateTime %}
+  <li><strong>Datum & tijd:</strong> {{ match.dateTime|date('d-m-Y H:i') }}</li>
+  {% endif %} {% set loc = match.address ?? match.location ?? null %} {% if loc
+  %}
+  <li><strong>Locatie:</strong> {{ loc }}</li>
+  {% endif %}
+</ul>
+<p>
+  Tot op de club! — <em>{{ siteName }}</em>
+</p>

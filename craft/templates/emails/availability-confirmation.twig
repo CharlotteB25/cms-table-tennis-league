@@ -1,0 +1,17 @@
+{# vars: user, match, availabilityLabel, siteName, siteUrl #}
+<h2>Bedankt voor je reactie, {{ user.friendlyName ?? user.username }}</h2>
+<p>We hebben je beschikbaarheid ontvangen voor:</p>
+<ul>
+  <li><strong>Wedstrijd:</strong> {{ match.title }}</li>
+  {% if match.dateTime is defined and match.dateTime %}
+  <li><strong>Datum & tijd:</strong> {{ match.dateTime|date('d-m-Y H:i') }}</li>
+  {% endif %} {% set loc = match.address ?? match.location ?? null %} {% if loc
+  %}
+  <li><strong>Locatie:</strong> {{ loc }}</li>
+  {% endif %}
+  <li><strong>Jouw status:</strong> {{ availabilityLabel }}</li>
+</ul>
+<p>
+  Je kan deze info steeds nakijken op <a href="{{ siteUrl }}">{{ siteName }}</a
+  >.
+</p>

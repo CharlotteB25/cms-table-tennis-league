@@ -1,0 +1,12 @@
+columnSuffix: null
+handle: emailNotifications
+instructions: null
+name: 'Email Notifications'
+searchable: false
+settings:
+  default: true
+  offLabel: 'No'
+  onLabel: 'Yes'
+translationKeyFormat: null
+translationMethod: none
+type: craft\fields\Lightswitch

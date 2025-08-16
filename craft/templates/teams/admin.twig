@@ -1,105 +1,184 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ploegen</title>
+    <title>Ploegen (Beheer)</title>
     <link
       rel="icon"
       type="image/x-icon"
       href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}"
     />
+
     <style>
+      :root {
+        --cream: #fdfaf6;
+        --soft-red: #d9534f;
+        --soft-red-dark: #b52e2a;
+        --text: #333;
+        --muted: #6b6b6b;
+        --card: #ffffff;
+        --ring: #e9e9e9;
+        --shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+        --tint: #fff7f5;
+      }
+
+      /* Page layout */
       body {
-        font-family: Arial, sans-serif;
-        background: linear-gradient(
-          to right,
-          rgb(169, 197, 185),
-          rgb(119, 188, 158)
-        );
         margin: 0;
-        padding: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: Arial, sans-serif;
+        color: var(--text);
+        background: var(--cream);
       }
       main {
-        padding: 20px;
+        margin-left: 200px; /* space for fixed side nav */
+        padding: 2rem;
+        flex: 1;
       }
-      .header-section {
+
+      /* Top bar */
+      .top-actions {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 20px;
+        gap: 12px;
+        margin: 10px;
       }
-      .header-section .terug-button {
-        background-color: #28a745;
-        color: white;
+      .btn {
+        appearance: none;
+        border: 2px solid var(--soft-red);
+        background: #fff;
+        color: var(--soft-red);
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 700;
         text-decoration: none;
-        padding: 10px 20px;
-        border-radius: 5px;
-        font-weight: bold;
+        display: inline-block;
+        transition: background 0.15s ease, color 0.15s ease,
+          border-color 0.15s ease, transform 0.1s ease;
       }
-      .header-section .terug-button:hover {
-        background-color: #218838;
+      .btn:hover {
+        background: var(--soft-red);
+        color: var(--cream);
+        transform: translateY(-1px);
       }
-      .cards-container {
+
+      /* Title */
+      .page-title {
+        text-align: center;
+        margin: 6px 0 18px;
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--soft-red-dark);
+      }
+
+      /* Team tiles */
+      .team-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        padding: 20px;
-        max-width: 1200px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        max-width: 1100px;
         margin: 0 auto;
       }
-      .card {
-        background: white;
+      .team-card {
+        background: var(--card);
+        border: 1px solid var(--ring);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        width: 300px;
+        height: auto;
+        padding: 16px;
+        text-decoration: none;
+        color: inherit;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 12px;
+        align-items: center;
+        transition: transform 0.15s ease, border-color 0.15s ease,
+          background 0.15s ease, box-shadow 0.15s ease;
+      }
+      .team-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--soft-red);
+        background: var(--tint);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+      }
+      .badge {
+        width: 40px;
+        height: 40px;
         border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        text-align: center;
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
+        background: #fde3e2;
+        color: var(--soft-red-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.1rem;
+        border: 1px solid rgba(181, 46, 42, 0.25);
       }
-      .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      .ttext {
+        display: flex;
+        flex-direction: column;
       }
-      .card h2 {
-        font-size: 18px;
+      .ttext h2 {
         margin: 0;
-        color: rgb(41, 136, 96);
+        font-size: 18px;
+        color: var(--soft-red-dark);
       }
-      .card .icon {
-        font-size: 24px;
-        margin-bottom: 10px;
-        display: inline-block;
-        color: #007bff;
+      .ttext p {
+        margin: 4px 0 0;
+        font-size: 0.92rem;
+        color: var(--muted);
       }
-      .title-section {
-        text-align: center;
-        margin-top: 20px;
-        font-size: 24px;
-        font-weight: bold;
-        color: rgb(15, 61, 25);
+      .chev {
+        color: var(--soft-red);
+        font-weight: 800;
+        font-size: 20px;
+      }
+
+      @media (max-width: 700px) {
+        main {
+          padding: 1.25rem;
+        }
       }
     </style>
   </head>
   <body>
     {% include 'global/nav.twig' %}
+
     <main>
-      <div class="header-section">
-        <a href="{{ url('index') }}" class="terug-button">Terug</a>
+      {% include 'global/header.twig' %}
+
+      <div class="top-actions">
+        <a href="{{ url('index') }}" class="btn">Terug</a>
       </div>
-      <div class="title-section">Selecteer je ploeg</div>
-      <div class="cards-container">
-        {% for team in ['ploegA', 'ploegB', 'ploegC'] %}
-        <div
-          class="card"
-          onclick="window.location.href='{{ url('teams/' ~ team) }}'"
+
+      <div class="page-title">Selecteer je ploeg</div>
+
+      <div class="team-grid">
+        {% for team in ['ploegA','ploegB','ploegC'] %} {% set letter =
+        team|slice(-1)|upper %}
+        <a
+          class="team-card"
+          href="{{ url('teams/' ~ team) }}"
+          aria-label="Beheer {{ team | capitalize }}"
         >
-          <span class="icon">⭐</span>
-          <h2>Beheer {{ team | capitalize }}</h2>
-        </div>
+          <span class="badge">{{ letter }}</span>
+          <div class="ttext">
+            <h2>Beheer {{ team | capitalize }}</h2>
+            <p>
+              Planning en opstelling aanpassen voor {{ team | capitalize }}.
+            </p>
+          </div>
+          <span class="chev">›</span>
+        </a>
         {% endfor %}
       </div>
     </main>
+
     {% include 'global/footer.twig' %}
   </body>
 </html>
