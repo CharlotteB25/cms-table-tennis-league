@@ -1,15 +1,148 @@
-{# vars: user, match, siteName, siteUrl #}
-<h2>Je bent geselecteerd ✅</h2>
-<p>Goed nieuws: je bent geselecteerd voor de wedstrijd:</p>
-<ul>
-  <li><strong>Wedstrijd:</strong> {{ match.title }}</li>
-  {% if match.dateTime is defined and match.dateTime %}
-  <li><strong>Datum & tijd:</strong> {{ match.dateTime|date('d-m-Y H:i') }}</li>
-  {% endif %} {% set loc = match.address ?? match.location ?? null %} {% if loc
-  %}
-  <li><strong>Locatie:</strong> {{ loc }}</li>
-  {% endif %}
-</ul>
-<p>
-  Tot op de club! — <em>{{ siteName }}</em>
-</p>
+{# vars expected: user, match, siteName, siteUrl #}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Je bent geselecteerd</title>
+    <meta name="x-apple-disable-message-reformatting" />
+    <style>
+      /* Container */
+      .email-body {
+        margin: 0;
+        padding: 0;
+        background: #f7f7f8;
+        color: #222;
+      }
+      .wrap {
+        max-width: 640px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #eee;
+      }
+      .inner {
+        padding: 20px 20px 24px;
+        font-family: Arial, sans-serif;
+        line-height: 1.5;
+      }
+
+      /* Header */
+      .brand {
+        padding: 16px 20px;
+        background: #fff7f5;
+        border-bottom: 1px solid #f0e6e5;
+        font-weight: 700;
+        color: #b52e2a;
+        font-family: Arial, sans-serif;
+      }
+      .brand small {
+        display: block;
+        color: #6b6b6b;
+        font-weight: 400;
+      }
+
+      /* Typography */
+      h2 {
+        margin: 16px 0 10px;
+        font-size: 20px;
+        line-height: 1.25;
+      }
+      p {
+        margin: 0 0 12px;
+      }
+      ul {
+        margin: 0 0 12px 18px;
+        padding: 0;
+      }
+      li {
+        margin: 4px 0;
+      }
+
+      /* Button */
+      .btn {
+        display: inline-block;
+        padding: 10px 14px;
+        border-radius: 6px;
+        background: #b52e2a;
+        color: #fff !important;
+        text-decoration: none;
+        font-weight: 700;
+      }
+      .btn:visited {
+        color: #fff !important;
+      }
+
+      /* Footer */
+      .foot {
+        padding: 14px 20px;
+        color: #666;
+        font-size: 12px;
+        border-top: 1px solid #f0f0f0;
+      }
+
+      /* Dark mode hint */
+      @media (prefers-color-scheme: dark) {
+        .email-body {
+          background: #0e0f11;
+          color: #eee;
+        }
+        .wrap {
+          background: #141518;
+          border-color: #2a2b30;
+        }
+        .brand {
+          background: #1b1c20;
+          border-bottom-color: #2a2b30;
+          color: #ff8a80;
+        }
+        .brand small {
+          color: #a9a9b0;
+        }
+        .foot {
+          color: #aaa;
+          border-top-color: #2a2b30;
+        }
+        a {
+          color: #ff8a80;
+        }
+      }
+    </style>
+  </head>
+  <body class="email-body">
+    <div class="wrap">
+      <div class="brand">
+        {{ siteName }}
+        <small>Wedstrijdselectie</small>
+      </div>
+      <div class="inner">
+        <h2>Je bent geselecteerd ✅</h2>
+        <p>Goed nieuws: je bent geselecteerd voor de wedstrijd:</p>
+
+        {% set loc = match.address ?? match.location ?? null %}
+        <ul>
+          <li><strong>Wedstrijd:</strong> {{ match.title }}</li>
+          {% if match.dateTime is defined and match.dateTime %}
+          <li>
+            <strong>Datum &amp; tijd:</strong>
+            {{ match.dateTime|date('d-m-Y H:i') }}
+          </li>
+          {% endif %} {% if loc %}
+          <li><strong>Locatie:</strong> {{ loc }}</li>
+          {% endif %}
+        </ul>
+
+        {% set matchUrl = match.url ?? siteUrl %}
+        <p style="margin-top: 16px">
+          <a href="{{ matchUrl }}" class="btn">Bekijk details</a>
+        </p>
+
+        <p style="margin-top: 16px">
+          Tot op de club! — <em>{{ siteName }}</em>
+        </p>
+      </div>
+      <div class="foot">
+        Verstuurd door {{ siteName }} •
+        <a href="{{ siteUrl }}">{{ siteUrl }}</a>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,5 +1,19 @@
 {% set actionTrigger = craft.app.config.general.actionTrigger ?? 'actions' %} {%
-set user = currentUser %}
+set user = currentUser %} {# ----- Guest tab resolution ----- #} {% set
+tabIdParam = craft.app.request.getParam('tabId') ??
+craft.app.request.getParam('guest') %} {% set tabUidParam =
+craft.app.request.getParam('t') %} {% set tab = null %} {% if not user %} {% set
+q = craft.entries.section('tabs').with(['items.drink']) %} {% if tabUidParam %}
+{% set tab = q.uid(tabUidParam).one() %} {% elseif tabIdParam %} {% set tab =
+q.id(tabIdParam).one() %} {% endif %} {% endif %} {# ----- Detect controller
+mount (module) and build action base ----- #} {% set moduleId =
+craft.app.modules['site'] is defined ? 'site' : (craft.app.modules['app'] is
+defined ? 'app' : null) %} {% set actionBase = moduleId ? (moduleId ~ '/tabs') :
+'tabs' %} {# ----- Action URLs + CSRF ----- #} {% set PAY_URL =
+actionUrl(actionBase ~ '/pay') %} {% set CLOSE_URL = actionUrl(actionBase ~
+'/close') %} {% set ADD_URL = actionUrl(actionBase ~ '/add') %} {% set CSRF_NAME
+= craft.app.config.general.csrfTokenName %} {% set CSRF_VALUE =
+craft.app.request.csrfToken %}
 
 <!DOCTYPE html>
 <html lang="nl">
@@ -20,12 +34,11 @@ set user = currentUser %}
         --soft-red-dark: #b52e2a;
         --text: #333;
         --muted: #6b6b6b;
-        --card: #ffffff;
+        --card: #fff;
         --ring: #e9e9e9;
         --shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
         --tint: #fff7f5;
       }
-
       body {
         margin: 0;
         min-height: 100vh;
@@ -40,7 +53,6 @@ set user = currentUser %}
         padding: 2rem;
         flex: 1;
       }
-
       .page-title {
         margin: 0 0 12px;
         font-size: 26px;
@@ -53,7 +65,6 @@ set user = currentUser %}
         text-align: center;
         margin: 0 0 18px;
       }
-
       .panel {
         background: var(--card);
         border: 1px solid var(--ring);
@@ -73,7 +84,6 @@ set user = currentUser %}
       .panel-body {
         padding: 12px 16px;
       }
-
       .table-wrap {
         overflow: auto;
         border-radius: 12px;
@@ -108,7 +118,6 @@ set user = currentUser %}
       tbody tr:hover {
         background: var(--tint);
       }
-
       .items-list {
         margin: 0;
         padding-left: 18px;
@@ -118,7 +127,6 @@ set user = currentUser %}
         white-space: nowrap;
         color: var(--soft-red-dark);
       }
-
       .chip {
         display: inline-flex;
         align-items: center;
@@ -139,7 +147,6 @@ set user = currentUser %}
         color: #374151;
         border-color: #e5e7eb;
       }
-
       .actions {
         display: flex;
         gap: 8px;
@@ -155,8 +162,8 @@ set user = currentUser %}
         border-radius: 10px;
         font-weight: 800;
         cursor: pointer;
-        transition: background 0.15s ease, color 0.15s ease,
-          border-color 0.15s ease, transform 0.1s ease;
+        transition: background 0.15s, color 0.15s, border-color 0.15s,
+          transform 0.1s;
         text-decoration: none;
       }
       .btn:hover {
@@ -173,7 +180,6 @@ set user = currentUser %}
         background: var(--soft-red-dark);
         border-color: var(--soft-red-dark);
       }
-
       .empty {
         text-align: center;
         color: var(--muted);
@@ -183,8 +189,6 @@ set user = currentUser %}
         max-width: 800px;
         margin: 0 auto;
       }
-
-      /* Responsive stack */
       @media (max-width: 760px) {
         main {
           padding: 1.25rem;
@@ -220,8 +224,6 @@ set user = currentUser %}
           justify-content: flex-start;
         }
       }
-
-      /* Pay modal */
       #pay-modal {
         display: none;
         position: fixed;
@@ -253,13 +255,8 @@ set user = currentUser %}
     {% include 'global/nav.twig' %}
 
     <main>
-      {% include 'global/header.twig' %} {% if not user %}
-      <div class="panel">
-        <div class="panel-body empty">
-          Je moet ingelogd zijn om je tabs te bekijken.
-        </div>
-      </div>
-      {% else %}
+      {% include 'global/header.twig' %} {# ===================== LOGGED-IN LIST
+      ===================== #} {% if user %}
       <h1 class="page-title">Mijn Tabs</h1>
       <p class="sub">Bekijk je openstaande en recente tabs.</p>
 
@@ -282,14 +279,14 @@ set user = currentUser %}
               {% for tab in myTabs %} {% set total = 0 %}
               <tr data-tab-id="{{ tab.id }}">
                 <td data-label="Status">
-                  {% set status = (tab.tabStatus ?? '—')|lower %} {% if status
-                  == 'open' %}
+                  {% set s = (tab.tabStatus ?? '—')|lower %} {% if s == 'open'
+                  %}
                   <span class="chip chip-open">Open</span>
-                  {% elseif status == 'paid' %}
+                  {% elseif s == 'paid' %}
                   <span class="chip chip-paid">Betaald</span>
                   {% else %}
                   <span class="chip">{{ tab.tabStatus ?? "—" }}</span>
-                  {% endif %} {# hidden marker for polling this tab’s status #}
+                  {% endif %}
                   <span
                     class="js-tab-status"
                     data-tab-id="{{ tab.id }}"
@@ -297,40 +294,36 @@ set user = currentUser %}
                     style="display: none"
                   ></span>
                 </td>
-
                 <td data-label="Items">
                   <ul class="items-list">
-                    {% for b in tab.items.all() %} {% set qty = b.qty ?? 0 %} {%
-                    set priceMoney = (b.price is defined and
-                    attribute(b.price,'getAmount') is defined) ? b.price :
-                    (b.drink.one() and b.drink.one().price is defined and
-                    attribute(b.drink.one().price,'getAmount') is defined ?
-                    b.drink.one().price : null) %} {% set priceNumber =
-                    priceMoney ? (priceMoney.getAmount() / 100) : (b.price ??
-                    0)|float %} {% set line = qty * priceNumber %} {% set total
-                    = total + line %}
+                    {% for b in tab.items.all() %} {% set drink = b.drink.one()
+                    %} {% set qty = b.qty ?? 0 %} {% set priceNumber = 0 %} {%
+                    if b.price is defined and b.price %} {% if
+                    attribute(b.price, 'getAmount') is defined %} {% set
+                    priceNumber = b.price.getAmount() / 100 %} {% else %} {% set
+                    priceNumber = b.price|float %} {% endif %} {% elseif drink
+                    and drink.price is defined and drink.price and
+                    attribute(drink.price, 'getAmount') is defined %} {% set
+                    priceNumber = drink.price.getAmount() / 100 %} {% endif %}
+                    {% set total = total + (qty * priceNumber) %}
                     <li>
-                      {{ b.title ?: (b.drink.one() ? b.drink.one().title : '—') }}
-                      × {{ qty }} —
+                      {{ b.title ?: (drink ? drink.title : '—') }} × {{ qty }} —
                       {{ craft.app.formatter.asCurrency(priceNumber, "EUR") }}
                     </li>
                     {% endfor %}
                   </ul>
                 </td>
-
                 <td data-label="Totaal" class="total">
                   {{ craft.app.formatter.asCurrency(total, "EUR") }}
                 </td>
-
                 <td data-label="Acties" style="text-align: right">
                   {% if (tab.tabStatus ?? null) == 'open' %}
                   <div class="actions">
-                    <form method="post" action="/tab/close">
+                    <form method="post" action="{{ CLOSE_URL }}">
                       {{ csrfInput() }}
                       <input type="hidden" name="tabId" value="{{ tab.id }}" />
                       <button type="submit" class="btn">Cash</button>
                     </form>
-
                     <button
                       type="button"
                       class="btn btn-primary"
@@ -351,10 +344,128 @@ set user = currentUser %}
       <div class="panel">
         <div class="panel-body empty">Je hebt nog geen tabs.</div>
       </div>
+      {% endif %} {# ===================== GUEST VIEW ===================== #}
+      {% else %} {% if tab %} {# remember last opened guest tab locally #}
+      <script>
+        try {
+          localStorage.setItem("guest_last_tab", "{{ tab.id }}");
+        } catch (_) {}
+      </script>
+
+      <h1 class="page-title">Gast-tab</h1>
+      <p class="sub">{{ tab.title }}</p>
+
+      <section class="panel">
+        <div class="panel-header">Overzicht</div>
+        <div class="panel-body table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 120px">Status</th>
+                <th>Items</th>
+                <th style="width: 140px">Totaal</th>
+                <th style="width: 220px; text-align: right">Acties</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% set total = 0 %}
+              <tr data-tab-id="{{ tab.id }}">
+                <td data-label="Status">
+                  {% set s = (tab.tabStatus ?? '—')|lower %} {% if s == 'open'
+                  %}
+                  <span class="chip chip-open">Open</span>
+                  {% elseif s == 'paid' %}
+                  <span class="chip chip-paid">Betaald</span>
+                  {% else %}
+                  <span class="chip">{{ tab.tabStatus ?? "—" }}</span>
+                  {% endif %}
+                  <span
+                    class="js-tab-status"
+                    data-tab-id="{{ tab.id }}"
+                    data-status="{{ tab.tabStatus ?? 'open' }}"
+                    style="display: none"
+                  ></span>
+                </td>
+                <td data-label="Items">
+                  <ul class="items-list">
+                    {% for b in tab.items.all() %} {% set drink = b.drink.one()
+                    %} {% set qty = b.qty ?? 0 %} {% set priceNumber = 0 %} {%
+                    if b.price is defined and b.price %} {% if
+                    attribute(b.price, 'getAmount') is defined %} {% set
+                    priceNumber = b.price.getAmount() / 100 %} {% else %} {% set
+                    priceNumber = b.price|float %} {% endif %} {% elseif drink
+                    and drink.price is defined and drink.price and
+                    attribute(drink.price,'getAmount') is defined %} {% set
+                    priceNumber = drink.price.getAmount() / 100 %} {% endif %}
+                    {% set total = total + (qty * priceNumber) %}
+                    <li>
+                      {{ b.title ?: (drink ? drink.title : '—') }} × {{ qty }} —
+                      {{ craft.app.formatter.asCurrency(priceNumber, "EUR") }}
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </td>
+                <td data-label="Totaal" class="total">
+                  {{ craft.app.formatter.asCurrency(total, "EUR") }}
+                </td>
+                <td data-label="Acties" style="text-align: right">
+                  {% if (tab.tabStatus ?? null) == 'open' %}
+                  <div class="actions">
+                    <button type="button" class="btn" data-guest-cash>
+                      Cash
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      data-online-pay="{{ tab.id }}"
+                    >
+                      Online betalen
+                    </button>
+                  </div>
+                  {% else %} — {% endif %}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {% elseif tabIdParam or tabUidParam %}
+      <div class="panel">
+        <div class="panel-body empty">Tab niet gevonden.</div>
+      </div>
+      {% else %}
+      <h1 class="page-title">Gast-tab</h1>
+      <p class="sub">
+        Voer je tab-code in om te betalen, of we proberen je tab automatisch te
+        vinden.
+      </p>
+      <div class="panel">
+        <div class="panel-body">
+          <form method="get" style="display: flex; gap: 10px; flex-wrap: wrap">
+            <input
+              class="btn"
+              style="
+                padding: 9px 12px;
+                border-radius: 10px;
+                border: 1px solid var(--ring);
+              "
+              type="number"
+              min="1"
+              name="tabId"
+              placeholder="Tab ID"
+            />
+            <button class="btn btn-primary" type="submit">Open tab</button>
+          </form>
+          <p class="sub" style="margin-top: 10px">
+            Tip: heb je net een tab aangemaakt? Je wordt zo doorgestuurd.
+          </p>
+        </div>
+      </div>
       {% endif %} {% endif %}
     </main>
 
-    {% include 'global/footer.twig' %} {# Pay modal (one-time) #}
+    {% include 'global/footer.twig' %} {# Pay modal (shared) #}
     <div id="pay-modal">
       <div class="modal">
         <h3>Scan & betaal</h3>
@@ -379,7 +490,7 @@ set user = currentUser %}
       </div>
     </div>
 
-    <!-- Cash success modal -->
+    {# Cash success modal (only used when logged in) #}
     <div
       id="cash-modal"
       style="
@@ -409,233 +520,190 @@ set user = currentUser %}
       </div>
     </div>
 
+    {# Guest Cash info modal #}
+    <div
+      id="guest-cash-modal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      "
+    >
+      <div
+        class="modal"
+        style="
+          max-width: 420px;
+          margin: 10vh auto;
+          background: #fff;
+          padding: 20px;
+          border-radius: 12px;
+          text-align: center;
+          border: 1px solid var(--ring);
+          box-shadow: var(--shadow);
+        "
+      >
+        <h3 style="margin: 0 0 8px; color: var(--soft-red-dark)">
+          Contant betalen
+        </h3>
+        <p style="color: var(--muted); margin: 0 0 14px">
+          Betaal contant aan de bar. Een medewerker zal je tab daarna als
+          <strong>Betaald</strong> markeren.
+        </p>
+        <button type="button" class="btn" id="guest-cash-close">Oké</button>
+      </div>
+    </div>
+
     <script
       src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"
       defer
     ></script>
     <script>
-                  document.addEventListener("DOMContentLoaded", () => {
-                    // Make sure any Cash forms post to current origin (ngrok/local)
-                    const CLOSE_URL = window.location.origin + "/tab/close";
-                    document.querySelectorAll('form[action="/tab/close"]').forEach((f) => {
-                      f.action = CLOSE_URL;
-                    });
+      // Expose addLine globally (optional helper if you want “quick add” buttons)
+      const ADD_URL   = "{{ ADD_URL }}";
+      const PAY_URL   = "{{ PAY_URL }}";
+      const CLOSE_URL = "{{ CLOSE_URL }}";
+      const CSRF_NAME = "{{ CSRF_NAME }}";
+      const CSRF_VALUE= "{{ CSRF_VALUE|e('js') }}";
 
-                    async function startOnlinePay(tabId) {
-                      // Use your existing relative route
-                      const PAY_URL = window.location.origin + "/tab/pay";
+      async function addLine(drinkId, qty = 1, tabId = null) {
+        const body = new URLSearchParams({ drinkId, qty });
+        if (tabId) body.append('tabId', tabId);
+        body.append(CSRF_NAME, CSRF_VALUE);
 
-                      const res = await fetch(PAY_URL, {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/x-www-form-urlencoded",
-                          "X-CSRF-Token": "{{ craft.app.request.csrfToken }}",
-                        },
-                        body: new URLSearchParams({ tabId }),
-                      });
+        const res = await fetch(ADD_URL, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-Token': CSRF_VALUE,
+          },
+          body,
+        });
+        let data; try { data = await res.json(); } catch(_){}
+        if (!res.ok || !data?.success) {
+          console.error('Add failed', res.status, data);
+          alert('Toevoegen mislukt.');
+          return;
+        }
+        location.reload();
+      }
 
-                      let data;
-                      try {
-                        data = await res.json();
-                      } catch (e) {}
-                      if (!data || !data.ok || !data.checkoutUrl) {
-                        alert("Kon betaling niet starten.");
-                        return;
-                      }
+      document.addEventListener("DOMContentLoaded", () => {
+        // If guest without a tabId in URL, try localStorage and redirect
+        {% if not user and (not tabIdParam and not tabUidParam) %}
+        try {
+          const last = localStorage.getItem('guest_last_tab');
+          if (last && !new URLSearchParams(location.search).get('tabId')) {
+            const u = new URL(location.href);
+            u.searchParams.set('tabId', last);
+            location.replace(u.toString());
+            return;
+          }
+        } catch (_) {}
+        {% endif %}
 
-                      // Show QR + link
-                      const modal = document.getElementById("pay-modal");
-                      const qrBox = document.getElementById("qr");
-                      qrBox.innerHTML = "";
-                      if (window.QRCode && window.QRCode.toCanvas) {
-                        window.QRCode.toCanvas(
-                          data.checkoutUrl,
-                          { width: 256 },
-                          (err, canvas) => {
-                            if (!err && canvas) qrBox.appendChild(canvas);
-                          }
-                        );
-                      }
-                      document.getElementById("open-checkout").href = data.checkoutUrl;
-                      modal.style.display = "block";
+        // Start online pay (works for guests & users)
+        async function startOnlinePay(tabId) {
+          const body = new URLSearchParams({ tabId });
+          body.append(CSRF_NAME, CSRF_VALUE);
 
-                      // Poll for status; reload when paid
-                      let tries = 0;
-                      const t = setInterval(async () => {
-                        tries++;
-                        const r = await fetch(window.location.href, { cache: "no-store" });
-                        const html = await r.text();
-                        const re = new RegExp(
-                          'class="js-tab-status"[^>]*data-tab-id="' +
-                            tabId +
-                            '"[^>]*data-status="([^"]+)"',
-                          "i"
-                        );
-                        const m = html.match(re);
-                        const status = m ? (m[1] || "").toLowerCase() : null;
-                        const stillListed =
-                          html.indexOf('data-tab-id="' + tabId + '"') !== -1;
+          const res = await fetch(PAY_URL, {
+            method: "POST",
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/x-www-form-urlencoded",
+              "X-CSRF-Token": CSRF_VALUE,
+            },
+            body
+          });
 
-                        if (
-                          status === "paid" ||
-                          (!stillListed && tries >= 2) ||
-                          tries > 200
-                        ) {
-                          clearInterval(t);
-                          modal.style.display = "none";
-                          location.reload();
-                        }
-                      }, 3000);
-                    }
+          let data; try { data = await res.json(); } catch (_) {}
+          if (!res.ok || !data || !data.ok || !data.checkoutUrl) {
+            alert("Kon betaling niet starten.");
+            return;
+          }
 
-                    document.querySelectorAll("[data-online-pay]").forEach((btn) => {
-                      btn.addEventListener("click", (e) => {
-                        e.preventDefault();
-                        startOnlinePay(btn.getAttribute("data-online-pay"));
-                      });
-                    });
-                  });
+          // Show QR + link
+          const modal = document.getElementById("pay-modal");
+          const qrBox = document.getElementById("qr");
+          qrBox.innerHTML = "";
+          if (window.QRCode && window.QRCode.toCanvas) {
+            window.QRCode.toCanvas(data.checkoutUrl, { width: 256 }, (err, canvas) => {
+              if (!err && canvas) qrBox.appendChild(canvas);
+            });
+          }
+          document.getElementById("open-checkout").href = data.checkoutUrl;
+          modal.style.display = "block";
 
-            (function(){
-              const USER_ID = '{{ currentUser ? currentUser.id : "" }}';
-              if (!USER_ID) return;
+          // Poll for status; reload when paid
+          let tries = 0;
+          const t = setInterval(async () => {
+            tries++;
+            const r = await fetch(window.location.href, { cache: "no-store" });
+            const html = await r.text();
+            const re = new RegExp('class="js-tab-status"[^>]*data-tab-id="' + tabId + '"[^>]*data-status="([^"]+)"', "i");
+            const m = html.match(re);
+            const status = m ? (m[1] || "").toLowerCase() : null;
+            const stillListed = html.indexOf('data-tab-id="' + tabId + '"') !== -1;
 
-              const CART_KEY = `pos_cart_user_${USER_ID}`;
-              const CSRF_NAME  = '{{ craft.app.config.general.csrfTokenName }}';
-              const CSRF_VALUE = '{{ craft.app.request.csrfToken|e('js') }}';
-              const ADD_TO_TAB_URL = '{{ actionUrl("tabs/add") }}';
+            if (status === "paid" || (!stillListed && tries >= 2) || tries > 200) {
+              clearInterval(t);
+              modal.style.display = "none";
+              location.reload();
+            }
+          }, 3000);
+        }
 
-              // avoid infinite reload
-              const SYNC_FLAG = 'pos_cart_synced_once';
-              if (sessionStorage.getItem(SYNC_FLAG)) return;
-
-              let state;
-              try { state = JSON.parse(localStorage.getItem(CART_KEY) || '{"items":{}}'); }
-              catch(_) { state = { items:{} }; }
-              state.items = state.items || {};
-
-              const pending = Object.values(state.items).filter(it => (Number(it.pending)||0) > 0);
-              if (!pending.length) return;
-
-              (async () => {
-                let didSync = false;
-
-                for (const it of pending) {
-                  let n = Number(it.pending)||0;
-                  if (!n) continue;
-
-                  // Try batch qty
-                  const body = new URLSearchParams();
-                  body.append('drinkId', it.id);
-                  body.append('qty', String(n));
-                  body.append(CSRF_NAME, CSRF_VALUE);
-
-                  let ok = false;
-                  try{
-                    const res = await fetch(ADD_TO_TAB_URL, {
-                      method:'POST',
-                      headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
-                      body: body.toString()
-                    });
-                    const json = await res.json().catch(()=>({success: res.ok}));
-                    ok = res.ok && (json.success !== false);
-                  }catch(_){}
-
-                  if (!ok){
-                    // fallback 1-by-1
-                    let left = n;
-                    while(left-- > 0){
-                      const one = new URLSearchParams();
-                      one.append('drinkId', it.id);
-                      one.append('qty', '1');
-                      one.append(CSRF_NAME, CSRF_VALUE);
-                      try{
-                        const res = await fetch(ADD_TO_TAB_URL, {
-                          method:'POST',
-                          headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
-                          body: one.toString()
-                        });
-                        if (!res.ok) break;
-                      }catch(_){ break; }
-                    }
-                  }
-
-                  // If we got here, assume we pushed as much as possible
-                  if (n > 0){
-                    it.pending = 0;
-                    didSync = true;
-                  }
-                }
-
-                localStorage.setItem(CART_KEY, JSON.stringify(state));
-                if (didSync){
-                  sessionStorage.setItem(SYNC_FLAG, '1');
-                  location.reload();
-                }
-              })();
-            })();
-
-            document.addEventListener("DOMContentLoaded", () => {
-        // ensure the form action points to current origin
-        const CLOSE_URL = window.location.origin + "/tab/close";
-        document.querySelectorAll('form[action="/tab/close"]').forEach((f) => {
-          f.action = CLOSE_URL;
+        // Bind online pay buttons
+        document.querySelectorAll("[data-online-pay]").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            startOnlinePay(btn.getAttribute("data-online-pay"));
+          });
         });
 
-        // Intercept Cash submits
-        document.querySelectorAll('form[action="'+CLOSE_URL+'"]').forEach((f) => {
+        // Intercept Cash submits (logged-in only)
+        document.querySelectorAll('form[action="{{ CLOSE_URL }}"]').forEach((f) => {
           f.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            const btn   = f.querySelector('button[type="submit"]');
+            const btn = f.querySelector('button[type="submit"]');
             const tabId = f.querySelector('input[name="tabId"]')?.value;
             if (!tabId) return;
 
-            // lock button
             if (btn) { btn.disabled = true; btn.textContent = 'Bezig…'; }
 
-            // send as x-www-form-urlencoded including CSRF (already in form)
-            const body = new URLSearchParams(new FormData(f));
-
+            const body = new URLSearchParams(new FormData(f)); // includes {{ csrfInput() }}
             let ok = false;
             try {
-              const res = await fetch(f.action, {
+              const res = await fetch(CLOSE_URL, {
                 method: 'POST',
-                headers: { 'Accept': 'application/json' }, // server may still return HTML; that's fine
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'X-CSRF-Token': CSRF_VALUE,
+                },
                 body
               });
               ok = res.ok;
-              // if server returns JSON { ok:false }, treat as failure
-              try {
-                const json = await res.json();
-                if (json && json.ok === false) ok = false;
-              } catch (_) { /* not JSON -> still okay if status was 2xx */ }
-            } catch (_) {}
+              try { const json = await res.json(); if (json && json.ok === false) ok = false; } catch(_){}
+            } catch(_){}
 
             if (ok) {
-              // Update UI for this row
               const row = document.querySelector(`tr[data-tab-id="${tabId}"]`);
               if (row) {
-                // status chip
                 const statusCell = row.querySelector('[data-label="Status"]');
                 if (statusCell) {
                   statusCell.querySelector('.chip')?.remove();
                   const span = document.createElement('span');
-                  span.className = 'chip chip-paid';
-                  span.textContent = 'Betaald';
+                  span.className = 'chip chip-paid'; span.textContent = 'Betaald';
                   statusCell.prepend(span);
-
-                  const marker = row.querySelector('.js-tab-status');
-                  if (marker) marker.dataset.status = 'paid';
+                  const marker = row.querySelector('.js-tab-status'); if (marker) marker.dataset.status = 'paid';
                 }
-                // remove action buttons
-                const actionsCell = row.querySelector('[data-label="Acties"]');
-                if (actionsCell) actionsCell.innerHTML = '—';
+                const actionsCell = row.querySelector('[data-label="Acties"]'); if (actionsCell) actionsCell.innerHTML = '—';
               }
-
-              // Show success modal
-              const cm = document.getElementById('cash-modal');
-              if (cm) cm.style.display = 'block';
+              document.getElementById('cash-modal')?.style?.setProperty('display','block');
             } else {
               alert('Kon tab niet sluiten. Probeer opnieuw.');
               if (btn) { btn.disabled = false; btn.textContent = 'Cash'; }
@@ -643,10 +711,20 @@ set user = currentUser %}
           });
         });
 
-        // Close the success modal
+        // Guest cash info modal
+        document.querySelectorAll('[data-guest-cash]').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('guest-cash-modal')?.style?.setProperty('display','block');
+          });
+        });
+        document.getElementById('guest-cash-close')?.addEventListener('click', () => {
+          document.getElementById('guest-cash-modal')?.style?.setProperty('display','none');
+        });
+
+        // Close logged-in cash success modal
         document.getElementById('cash-close')?.addEventListener('click', () => {
-          const cm = document.getElementById('cash-modal');
-          if (cm) cm.style.display = 'none';
+          document.getElementById('cash-modal')?.style?.setProperty('display','none');
         });
       });
     </script>

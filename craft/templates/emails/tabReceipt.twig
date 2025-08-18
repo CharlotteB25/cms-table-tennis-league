@@ -1,0 +1,143 @@
+{% set total = data.total %} {% set items = data.items %} {% set title = "Bon –
+Tab #" ~ tab.id %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>{{ title }}</title>
+    <style>
+      /* Container */
+      .email-body {
+        font-family: Arial, sans-serif;
+        color: #222;
+        line-height: 1.5;
+        margin: 0;
+        padding: 0;
+      }
+      .wrap {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+
+      /* Headings & text */
+      h2 {
+        margin: 0 0 10px;
+        font-size: 20px;
+        line-height: 1.2;
+      }
+      p.meta {
+        margin: 0 0 16px;
+        color: #444;
+      }
+      p.footer {
+        color: #666;
+        font-size: 12px;
+        margin-top: 16px;
+      }
+
+      /* Table */
+      table.receipt {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .receipt thead th {
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+        padding: 6px;
+      }
+      .receipt tbody td {
+        border-bottom: 1px solid #f0f0f0;
+        padding: 6px;
+      }
+      .receipt tfoot td {
+        border-top: 0;
+        padding: 10px 6px 0;
+      }
+      .num {
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      /* Links */
+      a {
+        color: #b52e2a;
+        text-decoration: underline;
+      }
+
+      /* Light dark-mode support */
+      @media (prefers-color-scheme: dark) {
+        .email-body {
+          background: #0f0f10;
+          color: #eee;
+        }
+        p.meta,
+        p.footer {
+          color: #bbb;
+        }
+        .receipt thead th {
+          border-color: #444;
+        }
+        .receipt tbody td {
+          border-color: #333;
+        }
+        a {
+          color: #ff8a80;
+        }
+      }
+    </style>
+  </head>
+  <body class="email-body">
+    <div class="wrap">
+      <h2>{{ title }}</h2>
+      <p class="meta">
+        Betaalwijze: {% if context == 'cash' %}Contant{% else %}Online{% endif
+        %}<br />
+        Tab titel: {{ tab.title }}
+      </p>
+
+      <table
+        class="receipt"
+        cellpadding="0"
+        cellspacing="0"
+        role="presentation"
+        aria-hidden="true"
+      >
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th class="num">Aantal</th>
+            <th class="num">Prijs</th>
+            <th class="num">Totaal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in items %}
+          <tr>
+            <td>{{ i.title }}</td>
+            <td class="num">{{ i.qty|number_format(0,',','.') }}</td>
+            <td class="num">€ {{ i.unit|number_format(2,',','.') }}</td>
+            <td class="num">€ {{ i.line|number_format(2,',','.') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" class="num"><strong>Totaal</strong></td>
+            <td class="num">
+              <strong>€ {{ total|number_format(2,',','.') }}</strong>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <p class="meta" style="margin-top: 16px">
+        Je kunt je tab hier bekijken:
+        <a href="{{ siteUrl('tabs', { tabId: tab.id }) }}">Tab #{{ tab.id }}</a>
+      </p>
+
+      <p class="footer">Bedankt!</p>
+    </div>
+  </body>
+</html>

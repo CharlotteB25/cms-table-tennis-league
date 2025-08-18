@@ -1,6 +1,12 @@
-{% set isAdmin = currentUser and currentUser.admin %} {% set actionTrigger =
-craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
-%}
+{% set isAdmin = currentUser and currentUser.admin %} {% set user = currentUser
+%} {# Detect controller mount (module) and build action base, like on tabs/index
+#} {% set moduleId = craft.app.modules['site'] is defined ? 'site' :
+(craft.app.modules['app'] is defined ? 'app' : null) %} {% set actionBase =
+moduleId ? (moduleId ~ '/tabs') : 'tabs' %} {# Action URLs + CSRF #} {% set
+PAY_URL = actionUrl(actionBase ~ '/pay') %} {% set CLOSE_URL =
+actionUrl(actionBase ~ '/close') %} {% set ADD_URL = actionUrl(actionBase ~
+'/add') %} {% set CSRF_NAME = craft.app.config.general.csrfTokenName %} {% set
+CSRF_VALUE = craft.app.request.csrfToken %}
 
 <!DOCTYPE html>
 <html lang="nl">
@@ -13,7 +19,6 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
       type="image/x-icon"
       href="{{ siteUrl('uploads/favicon_io/favicon.ico') }}"
     />
-
     <style>
       :root {
         --cream: #fdfaf6;
@@ -21,12 +26,11 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
         --soft-red-dark: #b52e2a;
         --text: #333;
         --muted: #6b6b6b;
-        --card: #ffffff;
+        --card: #fff;
         --ring: #e9e9e9;
         --shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
         --tint: #fff7f5;
       }
-
       body {
         margin: 0;
         min-height: 100vh;
@@ -41,7 +45,6 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
         padding: 2rem;
         flex: 1;
       }
-
       .page-title {
         margin: 0 0 12px;
         font-size: 26px;
@@ -54,7 +57,11 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
         text-align: center;
         margin: 0 0 18px;
       }
-
+      .toolbar {
+        text-align: center;
+        margin: 0 auto 18px;
+        max-width: 1100px;
+      }
       .panel {
         background: var(--card);
         border: 1px solid var(--ring);
@@ -74,7 +81,6 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
       .panel-body {
         padding: 12px 16px;
       }
-
       .table-wrap {
         overflow: auto;
         border-radius: 12px;
@@ -109,7 +115,6 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
       tbody tr:hover {
         background: var(--tint);
       }
-
       .items-list {
         margin: 0;
         padding-left: 18px;
@@ -119,7 +124,6 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
         white-space: nowrap;
         color: var(--soft-red-dark);
       }
-
       .chip {
         display: inline-flex;
         align-items: center;
@@ -140,7 +144,6 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
         color: #374151;
         border-color: #e5e7eb;
       }
-
       .actions {
         display: flex;
         gap: 8px;
@@ -156,8 +159,9 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
         border-radius: 10px;
         font-weight: 800;
         cursor: pointer;
-        transition: background 0.15s ease, color 0.15s ease,
-          border-color 0.15s ease, transform 0.1s ease;
+        transition: background 0.15s, color 0.15s, border-color 0.15s,
+          transform 0.1s;
+        text-decoration: none;
       }
       .btn:hover {
         background: var(--soft-red);
@@ -173,7 +177,6 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
         background: var(--soft-red-dark);
         border-color: var(--soft-red-dark);
       }
-
       .empty {
         text-align: center;
         color: var(--muted);
@@ -181,8 +184,6 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
         padding: 20px;
         border-radius: 12px;
       }
-
-      /* Responsive stack */
       @media (max-width: 760px) {
         main {
           padding: 1.25rem;
@@ -218,8 +219,6 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
           justify-content: flex-start;
         }
       }
-
-      /* Pay modal */
       #pay-modal {
         display: none;
         position: fixed;
@@ -251,6 +250,7 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
 
     <main>
       {% include 'global/header.twig' %}
+
       <h1 class="page-title">Tabs</h1>
       <p class="sub">
         {{
@@ -260,8 +260,179 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
         }}
       </p>
 
-      {% if isAdmin %} {# ----------------------- ADMIN: ALL OPEN TABS
-      ----------------------- #} {% set openTabs =
+      {# ADMIN EXTRAS — show admin’s own tabs too #} {% if isAdmin and user %}
+      {# Admin’s current open tab #} {% set adminTab =
+      craft.entries.section('tabs').tabOwner(user).tabStatus('open').with(['items.drink']).one()
+      %}
+      <section class="panel">
+        <div class="panel-header">Mijn huidige tab (admin)</div>
+        <div class="panel-body table-wrap">
+          {% if adminTab %} {% set total = 0 %}
+          <table>
+            <thead>
+              <tr>
+                <th>Drank</th>
+                <th style="width: 100px">Aantal</th>
+                <th style="width: 140px">Prijs</th>
+                <th style="width: 140px">Totaal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for b in adminTab.items.all() %} {% set qty = b.qty ?? 0 %} {%
+              set priceMoney = (b.price is defined and attribute(b.price,
+              'getAmount') is defined) ? b.price : (b.drink.one() and
+              b.drink.one().price is defined and attribute(b.drink.one().price,
+              'getAmount') is defined ? b.drink.one().price : null) %} {% set
+              priceNumber = priceMoney ? (priceMoney.getAmount() / 100) :
+              (b.price ?? 0)|float %} {% set line = qty * priceNumber %} {% set
+              total = total + line %}
+              <tr>
+                <td data-label="Drank">
+                  {{ b.title ?: (b.drink.one() ? b.drink.one().title : '—') }}
+                </td>
+                <td data-label="Aantal">{{ qty }}</td>
+                <td data-label="Prijs">
+                  {{ craft.app.formatter.asCurrency(priceNumber, "EUR") }}
+                </td>
+                <td data-label="Totaal">
+                  {{ craft.app.formatter.asCurrency(line, "EUR") }}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td
+                  colspan="3"
+                  style="
+                    text-align: right;
+                    font-weight: 800;
+                    color: var(--soft-red-dark);
+                  "
+                >
+                  Totaal
+                </td>
+                <td class="total">
+                  {{ craft.app.formatter.asCurrency(total, "EUR") }}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <span
+            class="js-tab-status"
+            data-tab-id="{{ adminTab.id }}"
+            data-status="{{ adminTab.tabStatus ?? 'open' }}"
+            style="display: none"
+          ></span>
+          <div
+            class="actions"
+            style="margin-top: 12px; justify-content: center"
+          >
+            <form method="post" action="{{ CLOSE_URL }}">
+              {{ csrfInput() }}
+              <input type="hidden" name="tabId" value="{{ adminTab.id }}" />
+              <button type="submit" class="btn">Cash</button>
+            </form>
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-online-pay="{{ adminTab.id }}"
+            >
+              Online betalen
+            </button>
+          </div>
+          {% else %}
+          <div class="empty">Je hebt momenteel geen open tab.</div>
+          {% endif %}
+        </div>
+      </section>
+
+      {# Admin’s complete tab history #} {% set myTabs =
+      craft.entries.section('tabs').tabOwner(user).with(['items.drink']).orderBy('postDate
+      desc').all() %}
+      <section class="panel">
+        <div class="panel-header">Mijn tabs (admin)</div>
+        <div class="panel-body table-wrap">
+          {% if myTabs|length %}
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 120px">Status</th>
+                <th>Items</th>
+                <th style="width: 140px">Totaal</th>
+                <th style="width: 220px; text-align: right">Acties</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for tab in myTabs %} {% set total = 0 %}
+              <tr data-tab-id="{{ tab.id }}">
+                <td data-label="Status">
+                  {% set status = (tab.tabStatus ?? '—')|lower %} {% if status
+                  == 'open' %}
+                  <span class="chip chip-open">Open</span>
+                  {% elseif status == 'paid' %}
+                  <span class="chip chip-paid">Betaald</span>
+                  {% else %}
+                  <span class="chip">{{ tab.tabStatus ?? "—" }}</span>
+                  {% endif %}
+                  <span
+                    class="js-tab-status"
+                    data-tab-id="{{ tab.id }}"
+                    data-status="{{ tab.tabStatus ?? 'open' }}"
+                    style="display: none"
+                  ></span>
+                </td>
+                <td data-label="Items">
+                  <ul class="items-list">
+                    {% for b in tab.items.all() %} {% set qty = b.qty ?? 0 %} {%
+                    set priceMoney = (b.price is defined and
+                    attribute(b.price,'getAmount') is defined) ? b.price :
+                    (b.drink.one() and b.drink.one().price is defined and
+                    attribute(b.drink.one().price,'getAmount') is defined ?
+                    b.drink.one().price : null) %} {% set priceNumber =
+                    priceMoney ? (priceMoney.getAmount() / 100) : (b.price ??
+                    0)|float %} {% set total = total + (qty * priceNumber) %}
+                    <li>
+                      {{ b.title ?: (b.drink.one() ? b.drink.one().title : '—') }}
+                      × {{ qty }} —
+                      {{ craft.app.formatter.asCurrency(priceNumber, "EUR") }}
+                    </li>
+                    {% endfor %}
+                  </ul>
+                </td>
+                <td data-label="Totaal" class="total">
+                  {{ craft.app.formatter.asCurrency(total, "EUR") }}
+                </td>
+                <td data-label="Acties" style="text-align: right">
+                  {% if (tab.tabStatus ?? null) == 'open' %}
+                  <div class="actions">
+                    <form method="post" action="{{ CLOSE_URL }}">
+                      {{ csrfInput() }}
+                      <input type="hidden" name="tabId" value="{{ tab.id }}" />
+                      <button type="submit" class="btn">Cash</button>
+                    </form>
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      data-online-pay="{{ tab.id }}"
+                    >
+                      Online betalen
+                    </button>
+                  </div>
+                  {% else %} — {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div class="empty">Je hebt nog geen tabs.</div>
+          {% endif %}
+        </div>
+      </section>
+      {% endif %} {# ADMIN overview of all open tabs (unchanged) OR user view if
+      not admin #} {% if isAdmin %} {% set openTabs =
       craft.entries.section('tabs').tabStatus('open').with(['tabOwner','items.drink']).all()
       %}
       <section class="panel">
@@ -292,8 +463,7 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
                     attribute(b.drink.one().price,'getAmount') is defined ?
                     b.drink.one().price : null) %} {% set priceNumber =
                     priceMoney ? (priceMoney.getAmount() / 100) : (b.price ??
-                    0)|float %} {% set line = qty * priceNumber %} {% set total
-                    = total + line %}
+                    0)|float %} {% set total = total + (qty * priceNumber) %}
                     <li>
                       {{ b.title ?: (b.drink.one() ? b.drink.one().title : '—') }}
                       × {{ qty }} —
@@ -313,13 +483,11 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
                       data-status="{{ tab.tabStatus ?? 'open' }}"
                       style="display: none"
                     ></span>
-
-                    <form method="post" action="/tab/close">
+                    <form method="post" action="{{ CLOSE_URL }}">
                       {{ csrfInput() }}
                       <input type="hidden" name="tabId" value="{{ tab.id }}" />
                       <button type="submit" class="btn">Cash</button>
                     </form>
-
                     <button
                       type="button"
                       class="btn btn-primary"
@@ -339,9 +507,8 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
           </table>
         </div>
       </section>
-
-      {% else %} {# ----------------------- USER: CURRENT OPEN TAB
-      ---------------------- #} {% set myTab =
+      {% else %} {# Non-admin user view (your original sections) #} {% set myTab
+      =
       craft.entries.section('tabs').tabOwner(user).tabStatus('open').with(['items.drink']).one()
       %}
       <section class="panel">
@@ -405,12 +572,11 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
             data-status="{{ myTab.tabStatus ?? 'open' }}"
             style="display: none"
           ></span>
-
           <div
             class="actions"
             style="margin-top: 12px; justify-content: center"
           >
-            <form method="post" action="/tab/close">
+            <form method="post" action="{{ CLOSE_URL }}">
               {{ csrfInput() }}
               <input type="hidden" name="tabId" value="{{ myTab.id }}" />
               <button type="submit" class="btn">Cash</button>
@@ -429,8 +595,7 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
         </div>
       </section>
 
-      {# ----------------------- USER: ALL MY TABS ---------------------------
-      #} {% if user %} {% set myTabs =
+      {% set myTabs =
       craft.entries.section('tabs').tabOwner(user).with(['items.drink']).orderBy('postDate
       desc').all() %}
       <section class="panel">
@@ -450,14 +615,11 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
               {% for tab in myTabs %} {% set total = 0 %}
               <tr data-tab-id="{{ tab.id }}">
                 <td data-label="Status">
-                  {% set status = (tab.tabStatus ?? '—')|lower %} {% if status
-                  == 'open' %}
-                  <span class="chip chip-open">Open</span>
-                  {% elseif status == 'paid' %}
-                  <span class="chip chip-paid">Betaald</span>
-                  {% else %}
-                  <span class="chip">{{ tab.tabStatus ?? "—" }}</span>
-                  {% endif %}
+                  {% set s = (tab.tabStatus ?? '—')|lower %} {% if s == 'open'
+                  %}<span class="chip chip-open">Open</span> {% elseif s ==
+                  'paid' %}<span class="chip chip-paid">Betaald</span> {% else
+                  %}<span class="chip">{{ tab.tabStatus ?? "—" }}</span
+                  >{% endif %}
                   <span
                     class="js-tab-status"
                     data-tab-id="{{ tab.id }}"
@@ -474,8 +636,7 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
                     attribute(b.drink.one().price,'getAmount') is defined ?
                     b.drink.one().price : null) %} {% set priceNumber =
                     priceMoney ? (priceMoney.getAmount() / 100) : (b.price ??
-                    0)|float %} {% set line = qty * priceNumber %} {% set total
-                    = total + line %}
+                    0)|float %} {% set total = total + (qty * priceNumber) %}
                     <li>
                       {{ b.title ?: (b.drink.one() ? b.drink.one().title : '—') }}
                       × {{ qty }} —
@@ -490,10 +651,13 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
                 <td data-label="Acties" style="text-align: right">
                   {% if (tab.tabStatus ?? null) == 'open' %}
                   <div class="actions">
-                    <form method="post" action="/tab/close">
-                      {{ csrfInput() }}
-                      <input type="hidden" name="tabId" value="{{ tab.id }}" />
-                      <button type="submit" class="btn">Cash</button>
+                    <form method="post" action="{{ CLOSE_URL }}">
+                      {{ csrfInput()
+                      }}<input
+                        type="hidden"
+                        name="tabId"
+                        value="{{ tab.id }}"
+                      /><button type="submit" class="btn">Cash</button>
                     </form>
                     <button
                       type="button"
@@ -514,13 +678,7 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
           {% endif %}
         </div>
       </section>
-      {% else %}
-      <div class="panel">
-        <div class="panel-body empty">
-          Je moet ingelogd zijn om je tabs te bekijken.
-        </div>
-      </div>
-      {% endif %} {% endif %}
+      {% endif %}
     </main>
 
     {% include 'global/footer.twig' %} {# Pay modal #}
@@ -554,35 +712,34 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
     ></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const ORIGIN = window.location.origin;
-        const PAY_URL = `${ORIGIN}/{{ actionTrigger }}/pay/create`;
-        const CLOSE_URL = ORIGIN + "/tab/close";
-
-        // Ensure Cash forms always post to the current origin
-        document.querySelectorAll('form[action="/tab/close"]').forEach((f) => {
-          f.action = CLOSE_URL;
-        });
+        const PAY_URL = "{{ PAY_URL }}";
+        const CLOSE_URL = "{{ CLOSE_URL }}";
+        const CSRF_NAME = "{{ CSRF_NAME }}";
+        const CSRF_VALUE = "{{ CSRF_VALUE|e('js') }}";
 
         async function startOnlinePay(tabId) {
+          const body = new URLSearchParams({ tabId });
+          body.append(CSRF_NAME, CSRF_VALUE);
+
           const res = await fetch(PAY_URL, {
             method: "POST",
             headers: {
+              Accept: "application/json",
               "Content-Type": "application/x-www-form-urlencoded",
-              "X-CSRF-Token": "{{ craft.app.request.csrfToken }}",
+              "X-CSRF-Token": CSRF_VALUE,
             },
-            body: new URLSearchParams({ tabId }),
+            body,
           });
 
           let data;
           try {
             data = await res.json();
-          } catch (e) {}
-          if (!data || !data.ok || !data.checkoutUrl) {
+          } catch (_) {}
+          if (!res.ok || !data || !data.ok || !data.checkoutUrl) {
             alert("Kon betaling niet starten.");
             return;
           }
 
-          // Show modal with QR + link
           const modal = document.getElementById("pay-modal");
           const qrBox = document.getElementById("qr");
           qrBox.innerHTML = "";
@@ -598,7 +755,7 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
           document.getElementById("open-checkout").href = data.checkoutUrl;
           modal.style.display = "block";
 
-          // Poll for status flip to "paid"
+          // poll
           let tries = 0;
           const t = setInterval(async () => {
             tries++;
@@ -612,12 +769,12 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
             );
             const m = html.match(re);
             const status = m ? (m[1] || "").toLowerCase() : null;
-            const markerStillThere =
+            const stillListed =
               html.indexOf('data-tab-id="' + tabId + '"') !== -1;
 
             if (
               status === "paid" ||
-              (!markerStillThere && tries >= 2) ||
+              (!stillListed && tries >= 2) ||
               tries > 200
             ) {
               clearInterval(t);
@@ -630,8 +787,14 @@ craft.app.config.general.actionTrigger ?? 'actions' %} {% set user = currentUser
         document.querySelectorAll("[data-online-pay]").forEach((btn) => {
           btn.addEventListener("click", (e) => {
             e.preventDefault();
-            startOnlinePay(btn.getAttribute("data-online-pay"));
+            const id = btn.getAttribute("data-online-pay");
+            if (id) startOnlinePay(id);
           });
+        });
+
+        // Normalize any legacy close form actions
+        document.querySelectorAll('form[action="/tab/close"]').forEach((f) => {
+          f.action = CLOSE_URL;
         });
       });
     </script>

@@ -40,7 +40,6 @@
         flex: 1;
       }
 
-      /* Layout: left menu | right cart */
       .pos-grid {
         display: grid;
         grid-template-columns: minmax(340px, 1.4fr) minmax(280px, 1fr);
@@ -71,7 +70,6 @@
         padding: 12px 16px;
       }
 
-      /* Left: drinks list */
       .tools {
         display: flex;
         gap: 10px;
@@ -139,8 +137,8 @@
         padding: 9px 12px;
         font-weight: 700;
         cursor: pointer;
-        transition: background 0.15s ease, color 0.15s ease,
-          border-color 0.15s ease, transform 0.1s ease;
+        transition: background 0.15s, color 0.15s, border-color 0.15s,
+          transform 0.1s;
       }
       .btn-add {
         background: var(--soft-red);
@@ -152,7 +150,6 @@
         border-color: var(--soft-red-dark);
         transform: translateY(-1px);
       }
-
       .btn-outline {
         background: #fff;
         color: var(--soft-red);
@@ -163,7 +160,6 @@
         color: var(--cream);
       }
 
-      /* Right: selection/cart */
       .cart {
         position: sticky;
         top: 1rem;
@@ -232,13 +228,12 @@
         display: grid;
         grid-template-columns: 1fr;
         gap: 10px;
-      } /* single button for users */
-
+      }
       .btn-pay {
         background: var(--soft-red);
         color: var(--cream);
         border: 2px solid var(--soft-red);
-        justify-self: start; /* pay button aligned left */
+        justify-self: start;
       }
       .btn-pay:hover {
         background: var(--soft-red-dark);
@@ -258,7 +253,7 @@
         transform: translateX(-50%);
         z-index: 1000;
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.3s;
         font-weight: 600;
       }
       .notice.hidden {
@@ -280,16 +275,15 @@
       }
     </style>
   </head>
+
   <body>
     <main>
       {% include 'global/header.twig' %}
 
       <div class="pos-grid">
-        <!-- LEFT: Drinks -->
         <section class="panel">
           <div class="panel-header">
             <span>Drankjes</span>
-            {# No +Nieuw button on the user page #}
           </div>
           <div class="panel-body">
             <div class="tools">
@@ -308,8 +302,9 @@
             </div>
 
             <div id="drinksList" class="drinks-list">
-              {% for drink in craft.entries.section('drinks').all() %} {% set
-              img = drink.image.one() %} {% set catLabel = drink.category ?
+              {% set drinks = craft.entries.section('drinks').all() %} {% if
+              drinks|length %} {% for drink in drinks %} {% set img =
+              drink.image.one() %} {% set catLabel = drink.category ?
               (drink.category.label ?? drink.category.value) : '—' %} {% set
               priceMoney = drink.price ?? null %} {% set priceNumber =
               priceMoney ? (priceMoney.getAmount() / 100) : 0 %} {% set
@@ -337,27 +332,30 @@
                   <h3 class="dname">{{ drink.title }}</h3>
                   <p class="dmeta">Categorie: {{ catLabel }}</p>
                 </div>
+
                 <div style="display: flex; align-items: center; gap: 10px">
                   <span class="price">{{ priceDisplay }}</span>
-                  {% if currentUser and drink.drinkVisibility %}
-                  <button class="btn btn-add add-btn">Toevoegen</button>
-                  {% elseif currentUser %}
+                  {% if drink.drinkVisibility %}
+                  <button
+                    class="btn btn-add add-btn"
+                    data-mode="{{ currentUser ? 'user' : 'guest' }}"
+                  >
+                    Toevoegen
+                  </button>
+                  {% else %}
                   <button class="btn btn-outline" disabled>
                     Niet beschikbaar
                   </button>
-                  {% else %}
-                  <a class="btn btn-outline" href="{{ url('login') }}">Login</a>
                   {% endif %}
                 </div>
               </article>
-              {% else %}
+              {% endfor %} {% else %}
               <p class="dmeta">Geen drankjes beschikbaar.</p>
-              {% endfor %}
+              {% endif %}
             </div>
           </div>
         </section>
 
-        <!-- RIGHT: Selection -->
         <aside class="panel cart">
           <div class="panel-header">Jouw selectie</div>
           <div class="panel-body">
@@ -388,6 +386,61 @@
           </div>
         </aside>
       </div>
+
+      <!-- Guest Checkout Modal -->
+      <div
+        id="guestModal"
+        style="
+          display: none;
+          position: fixed;
+          inset: 0;
+          z-index: 1000;
+          background: rgba(0, 0, 0, 0.35);
+        "
+      >
+        <div
+          style="
+            max-width: 420px;
+            margin: 10vh auto;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid var(--ring);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+          "
+        >
+          <div class="panel-header">Afrekenen als gast</div>
+          <div class="panel-body" style="display: grid; gap: 10px">
+            <label class="dmeta" style="display: grid; gap: 6px">
+              Naam of team
+              <input
+                id="guestName"
+                class="input"
+                placeholder="bv. Supporter 12"
+              />
+            </label>
+            <label class="dmeta" style="display: grid; gap: 6px">
+              Tafel / veld (optioneel)
+              <input id="guestTable" class="input" placeholder="bv. Tafel 7" />
+            </label>
+            <div style="display: flex; gap: 10px; justify-content: flex-end">
+              <button id="guestCancel" class="btn btn-outline">
+                Annuleren
+              </button>
+              <button id="guestConfirm" class="btn btn-add">
+                Bevestigen & afrekenen
+              </button>
+            </div>
+            <p
+              class="dmeta"
+              id="guestError"
+              style="color: var(--soft-red-dark); display: none"
+            >
+              Vul minstens een naam in.
+            </p>
+          </div>
+        </div>
+      </div>
     </main>
 
     <div
@@ -397,248 +450,270 @@
       aria-live="polite"
     ></div>
 
-    {% include 'global/footer.twig' %} {% if currentUser %} {% if currentUser %}
+    {% include 'global/footer.twig' %}
+
     <script>
-            // --- config / endpoints ---
-            const CSRF_NAME  = '{{ craft.app.config.general.csrfTokenName }}';
-            const CSRF_VALUE = '{{ craft.app.request.csrfToken|e('js') }}';
-            const ADD_TO_TAB_URL    = '{{ actionUrl("tabs/add") }}';
-            const REMOVE_FROM_TAB_URL = '{{ actionUrl("tabs/remove") }}'; // optional
-            const USER_ID = '{{ currentUser.id }}';
-            const CART_KEY = `pos_cart_user_${USER_ID}`;
+                  document.addEventListener('DOMContentLoaded', () => {
+                    // --- config / endpoints ---
+                    const IS_LOGGED_IN = {{ currentUser ? 'true' : 'false' }};
+                    const CSRF_NAME  = '{{ craft.app.config.general.csrfTokenName }}';
+                    const CSRF_VALUE = '{{ craft.app.request.csrfToken|e('js') }}';
+                    const ADD_TO_TAB_URL = '{{ actionUrl("tabs/add") }}';
+                    const REMOVE_FROM_TAB_URL = '{{ actionUrl("tabs/remove") }}';
+                    const START_GUEST_URL = '{{ actionUrl("tabs/start-guest") }}';
+                    const CART_KEY = IS_LOGGED_IN ? 'pos_cart_user_{{ currentUser ? currentUser.id : 0 }}' : 'pos_cart_guest';
+                    const fmt = new Intl.NumberFormat('nl-BE', { style:'currency', currency:'EUR' });
 
-            // --- utils ---
-            const fmt = new Intl.NumberFormat('nl-BE', { style:'currency', currency:'EUR' });
-            const noticeEl = document.getElementById('notice');
-            function toast(msg){
-              noticeEl.textContent = msg;
-              noticeEl.classList.remove('hidden');
-              requestAnimationFrame(()=> noticeEl.style.opacity = 1);
-              setTimeout(()=>{ noticeEl.style.opacity = 0; noticeEl.classList.add('hidden'); }, 1800);
-            }
+                    // toast
+                    const noticeEl = document.getElementById('notice');
+                    function toast(msg){
+                      if (!noticeEl) return;
+                      noticeEl.textContent = msg;
+                      noticeEl.classList.remove('hidden');
+                      requestAnimationFrame(()=> noticeEl.style.opacity = 1);
+                      setTimeout(()=>{ noticeEl.style.opacity = 0; noticeEl.classList.add('hidden'); }, 1800);
+                    }
 
-            // --- local cart state (with pending sync) ---
-            // Structure in localStorage:
-            // { items: { [id]: { id, title, price, qty, pending } } }
-            let state = loadState();
-            function loadState(){
-              try{
-                const raw = localStorage.getItem(CART_KEY);
-                const obj = raw ? JSON.parse(raw) : { items:{} };
-                obj.items ||= {};
-                // coerce numbers
-                for (const it of Object.values(obj.items)){
-                  it.price = Number(it.price)||0;
-                  it.qty = Number(it.qty)||0;
-                  it.pending = Number(it.pending)||0;
-                }
-                return obj;
-              }catch(_){ return { items:{} }; }
-            }
-            function saveState(){
-              localStorage.setItem(CART_KEY, JSON.stringify(state));
-            }
+                    // state
+                    let state = loadState();
+                    function loadState(){
+                      try{
+                        const o = JSON.parse(localStorage.getItem(CART_KEY) || '{"items":{}}');
+                        for(const it of Object.values(o.items||{})){
+                          it.price = +it.price || 0;
+                          it.qty = +it.qty || 0;
+                          it.pending = +it.pending || 0;
+                        }
+                        return { items: o.items || {} };
+                      }catch(_){ return { items:{} }; }
+                    }
+                    function saveState(){ localStorage.setItem(CART_KEY, JSON.stringify(state)); }
 
-            // --- DOM refs ---
-            const cartItemsEl = document.getElementById('cartItems');
-            const totalEl = document.getElementById('cartTotal');
+                    // DOM
+                    const drinksListEl = document.getElementById('drinksList');
+                    const cartItemsEl = document.getElementById('cartItems');
+                    const totalEl = document.getElementById('cartTotal');
 
-            // --- render ---
-            function renderCart(){
-              cartItemsEl.innerHTML = '';
-              const items = Object.values(state.items);
-              if (!items.length){
-                cartItemsEl.innerHTML = '<p class="dmeta">Nog geen items. Voeg links drankjes toe.</p>';
-                totalEl.textContent = fmt.format(0);
-                return;
-              }
-              let total = 0;
-              for (const it of items){
-                total += it.price * it.qty;
-                const row = document.createElement('div');
-                row.className = 'cart-row';
-                row.innerHTML = `
-                  <div class="line">
-                    <strong>${it.title}</strong><br>
-                    <span>${fmt.format(it.price)} × ${it.qty}${it.pending>0 ? ` <em style="opacity:.7">(+${it.pending} in wachtrij)</em>`:''}</span>
-                  </div>
-                  <div class="qty">
-                    <button class="qbtn" data-action="dec" data-id="${it.id}">−</button>
-                    <button class="qbtn" data-action="inc" data-id="${it.id}">＋</button>
-                  </div>
-                `;
-                cartItemsEl.appendChild(row);
-              }
-              totalEl.textContent = fmt.format(total);
-            }
+                    function renderCart(){
+                      if (!cartItemsEl || !totalEl) return;
+                      cartItemsEl.innerHTML = '';
+                      const items = Object.values(state.items);
+                      if (!items.length){
+                        cartItemsEl.innerHTML = '<p class="dmeta">Nog geen items. Voeg links drankjes toe.</p>';
+                        totalEl.textContent = fmt.format(0);
+                        return;
+                      }
+                      let total = 0;
+                      for (const it of items){
+                        total += it.price * it.qty;
+                        const row = document.createElement('div');
+                        row.className = 'cart-row';
+                        row.innerHTML = `
+                          <div class="line"><strong>${it.title}</strong><br>
+                            <span>${fmt.format(it.price)} × ${it.qty}${IS_LOGGED_IN && it.pending>0 ? ` <em style="opacity:.7">(+${it.pending} in wachtrij)</em>`:''}</span>
+                          </div>
+                          <div class="qty">
+                            <button class="qbtn" data-action="dec" data-id="${it.id}">−</button>
+                            <button class="qbtn" data-action="inc" data-id="${it.id}">＋</button>
+                          </div>`;
+                        cartItemsEl.appendChild(row);
+                      }
+                      totalEl.textContent = fmt.format(total);
+                    }
 
-            // --- server calls ---
-            async function addOneServer(id){
+                    // server (only when logged in)
+                    async function addOneServer(id){
+                      const body = new URLSearchParams();
+                      body.append('drinkId', id);
+                      body.append('qty', '1');
+                      body.append(CSRF_NAME, CSRF_VALUE);
+                      const res = await fetch(ADD_TO_TAB_URL, {
+                        method:'POST',
+                        headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
+                        body: body.toString()
+                      });
+                      const j = await res.json().catch(()=>({}));
+                      if(!res.ok || !j.success) throw new Error('server add failed');
+                      return j.merged ? 'Aantal verhoogd!' : 'Toegevoegd aan je rekening!';
+                    }
+                    async function removeOneServer(id){
+                      if(!REMOVE_FROM_TAB_URL) return;
+                      const body = new URLSearchParams();
+                      body.append('drinkId', id);
+                      body.append('qty', '1');
+                      body.append(CSRF_NAME, CSRF_VALUE);
+                      await fetch(REMOVE_FROM_TAB_URL, {
+                        method:'POST',
+                        headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
+                        body: body.toString()
+                      });
+                    }
+
+                    // add / inc / dec
+                    async function addOne(id, title, price){
+                      const it = state.items[id] || { id, title, price:+price||0, qty:0, pending:0 };
+                      it.qty += 1;
+                      if (IS_LOGGED_IN) it.pending += 1;
+                      state.items[id] = it; saveState(); renderCart();
+
+                      if (IS_LOGGED_IN){
+                        try{
+                          const msg = await addOneServer(id);
+                          const now = state.items[id];
+                          if (now){ now.pending = Math.max(0, now.pending-1); saveState(); renderCart(); }
+                          toast(msg);
+                        }catch(_){ toast('Wachten op verbinding… item blijft in de wachtrij.'); }
+                      }
+                    }
+                    async function inc(id){
+                      const it = state.items[id]; if(!it) return;
+                      await addOne(it.id, it.title, it.price);
+                    }
+                    async function dec(id){
+                      const it = state.items[id]; if (!it) return;
+                      if (IS_LOGGED_IN && it.pending>0){
+                        it.pending--; it.qty--;
+                        if (it.qty<=0) delete state.items[id];
+                        saveState(); renderCart();
+                        return;
+                      }
+                      it.qty--;
+                      if (it.qty<=0) delete state.items[id];
+                      saveState(); renderCart();
+                      if (IS_LOGGED_IN) { try{ await removeOneServer(id); }catch(_){} }
+                    }
+
+                    async function flushPending(){
+                      if (!IS_LOGGED_IN) return;
+                      const items = Object.values(state.items);
+                      for (const it of items){
+                        let n = Math.min(20, it.pending||0);
+                        while(n-- > 0){
+                          try{
+                            const msg = await addOneServer(it.id);
+                            it.pending = Math.max(0, it.pending-1); saveState(); renderCart();
+                            if (n === it.pending) toast(`${it.title}: ${msg}`);
+                          }catch(_){ break; }
+                        }
+                      }
+                    }
+
+                    // ---- Event delegation for add buttons (robust for guests) ----
+                    if (drinksListEl){
+                      drinksListEl.addEventListener('click', (e)=>{
+                        const btn = e.target.closest('.add-btn');
+                        if (!btn) return;
+                        const row = btn.closest('.drink-row');
+                        if (!row) return;
+                        const id = row.dataset.id;
+                        const title = row.dataset.title;
+                        const price = parseFloat(row.dataset.price || '0');
+                        if (!id || !title) return;
+                        addOne(id, title, price);
+                      });
+                    }
+
+                    // qty buttons (delegated)
+                    if (cartItemsEl){
+                      cartItemsEl.addEventListener('click', (e)=>{
+                        const b = e.target.closest('.qbtn'); if(!b) return;
+                        const id = b.dataset.id; const a = b.dataset.action;
+                        if (a === 'inc') inc(id); else dec(id);
+                      });
+                    }
+
+                    // search/filter
+                    const searchEl = document.getElementById('search');
+                    const filterCatEl = document.getElementById('filterCat');
+                    function applyFilters(){
+                      const term = (searchEl?.value||'').trim().toLowerCase();
+                      const cat = (filterCatEl?.value||'').trim().toLowerCase();
+                      document.querySelectorAll('.drink-row').forEach(row=>{
+                        const matchName = row.dataset.name.includes(term);
+                        const matchCat  = !cat || row.dataset.cat === cat;
+                        const visible   = row.dataset.visible === '1';
+                        row.style.display = (matchName && matchCat && visible) ? '' : 'none';
+                      });
+                    }
+                    searchEl?.addEventListener('input', applyFilters);
+                    filterCatEl?.addEventListener('change', applyFilters);
+
+                    // guest checkout modal
+                    const payBtn = document.querySelector('.btn-pay');
+                    const modal = document.getElementById('guestModal');
+                    const guestName = document.getElementById('guestName');
+                    const guestTable = document.getElementById('guestTable');
+                    const guestCancel = document.getElementById('guestCancel');
+                    const guestConfirm = document.getElementById('guestConfirm');
+                    const guestError = document.getElementById('guestError');
+
+                    if (payBtn){
+                      payBtn.addEventListener('click', async (e)=>{
+                        if (IS_LOGGED_IN){
+                          e.preventDefault();
+                          const original = payBtn.textContent;
+                          payBtn.textContent = 'Synchroniseren…';
+                          payBtn.style.pointerEvents = 'none';
+                          payBtn.setAttribute('disabled', 'disabled');
+                          try{ await flushPending(); }catch(_){}
+                          setTimeout(()=>{ window.location.href = payBtn.href; }, 150);
+                        } else {
+                          e.preventDefault();
+                          if (modal){ modal.style.display = 'block'; }
+                          if (guestError){ guestError.style.display = 'none'; }
+                          guestName?.focus();
+                        }
+                      });
+                    }
+                    guestCancel?.addEventListener('click', ()=> modal && (modal.style.display='none'));
+
+                   guestConfirm?.addEventListener('click', async ()=>{
+              const name = (guestName?.value||'').trim();
+              const table = (guestTable?.value||'').trim();
+              if (!name){ guestError.style.display='block'; return; }
+
+              const items = Object.values(state.items).filter(it=>it.qty>0).map(it=>({ id: it.id, qty: it.qty }));
+              if (!items.length){ toast('Je mandje is leeg.'); if (modal) modal.style.display='none'; return; }
+
               const body = new URLSearchParams();
-              body.append('drinkId', id);
-              body.append('qty', '1');
+              body.append('name', name);
+              body.append('table', table);
+              body.append('cart', JSON.stringify(items));
               body.append(CSRF_NAME, CSRF_VALUE);
-              const res = await fetch(ADD_TO_TAB_URL, {
-                method:'POST',
-                headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
-                body: body.toString()
-              });
-              let ok = res.ok;
-              let msg = '';
+
+              guestConfirm.setAttribute('disabled','disabled');
+              guestConfirm.textContent='Aanmaken…';
+
               try{
-                const json = await res.json();
-                ok = ok && !!json.success;
-                msg = json && json.merged ? 'Aantal verhoogd!' : 'Toegevoegd aan je rekening!';
-              }catch(_){}
-              if (!ok) throw new Error('server add failed');
-              return msg || 'Toegevoegd aan je rekening!';
-            }
-
-            async function removeOneServer(id){
-              if (!REMOVE_FROM_TAB_URL) return; // optional
-              const body = new URLSearchParams();
-              body.append('drinkId', id);
-              body.append('qty', '1');
-              body.append(CSRF_NAME, CSRF_VALUE);
-              await fetch(REMOVE_FROM_TAB_URL, {
-                method:'POST',
-                headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
-                body: body.toString()
-              });
-            }
-
-            // --- high-level ops (local-first; server best-effort) ---
-            async function addOne(id, title, price){
-              // local
-              const it = state.items[id] || { id, title, price:Number(price)||0, qty:0, pending:0 };
-              it.qty += 1;
-              it.pending += 1; // mark one to sync
-              state.items[id] = it;
-              saveState(); renderCart();
-
-              // server (fulfil one pending)
-              try{
-                const msg = await addOneServer(id);
-                // success: clear one pending
-                const now = state.items[id];
-                if (now){ now.pending = Math.max(0, (now.pending||0) - 1); saveState(); renderCart(); }
-                toast(msg);
-              }catch(e){
-                // keep pending; will retry on next load
-                console.warn(e);
-                toast('Wachten op verbinding… item blijft in de wachtrij.');
-              }
-            }
-
-            async function inc(id){
-              const it = state.items[id];
-              if (!it) return;
-              await addOne(it.id, it.title, it.price);
-            }
-
-            async function dec(id){
-              const it = state.items[id];
-              if (!it) return;
-              // If we still have unsent "pending" increments, consume one of those first
-              if (it.pending > 0){
-                it.pending -= 1;
-                it.qty -= 1;
-                if (it.qty <= 0) delete state.items[id];
-                saveState(); renderCart();
-                return;
-              }
-              // Otherwise we try to sync a server decrement (optional endpoint)
-              it.qty -= 1;
-              if (it.qty <= 0) delete state.items[id];
-              saveState(); renderCart();
-              try{
-                await removeOneServer(id);
-              }catch(_){}
-            }
-
-            // --- retry any pending adds on load (e.g., previous failures) ---
-            async function flushPending(){
-              const items = Object.values(state.items);
-              for (const it of items){
-                let tries = Math.min(20, it.pending||0); // hard cap
-                while (tries-- > 0){
-                  try{
-                    const msg = await addOneServer(it.id);
-                    it.pending = Math.max(0, it.pending - 1);
-                    saveState(); renderCart();
-                    // only toast the first successful retry for this item to avoid spam
-                    if (tries === it.pending) toast(`${it.title}: ${msg}`);
-                  }catch(e){
-                    console.warn('pending retry failed for', it.id, e);
-                    // stop retry loop for this item for now
-                    break;
-                  }
-                }
-              }
-            }
-
-            // --- wire UI ---
-            // Add buttons
-            document.querySelectorAll('.add-btn').forEach(btn=>{
-              btn.addEventListener('click', ()=>{
-                const row = btn.closest('.drink-row');
-                const id = row.dataset.id;
-                const price = parseFloat(row.dataset.price||'0');
-                const title = row.dataset.title;
-                addOne(id, title, price);
-              });
-            });
-
-            // Qty inc/dec
-            cartItemsEl.addEventListener('click', (e)=>{
-              const b = e.target.closest('.qbtn'); if(!b) return;
-              const id = b.dataset.id;
-              const action = b.dataset.action;
-              if (action === 'inc') inc(id); else dec(id);
-            });
-
-            // Search & filter
-            const searchEl = document.getElementById('search');
-            const filterCatEl = document.getElementById('filterCat');
-            function applyFilters(){
-              const term = (searchEl.value||'').trim().toLowerCase();
-              const cat = (filterCatEl.value||'').trim().toLowerCase();
-              document.querySelectorAll('.drink-row').forEach(row=>{
-                const matchName = row.dataset.name.includes(term);
-                const matchCat  = !cat || row.dataset.cat === cat;
-                const visible   = row.dataset.visible === '1';
-                row.style.display = (matchName && matchCat && visible) ? '' : 'none';
-              });
-            }
-            searchEl.addEventListener('input', applyFilters);
-            filterCatEl.addEventListener('change', applyFilters);
-
-            // --- init ---
-            applyFilters();
-            renderCart();
-            flushPending(); // push any queued adds to the server
-
-            // Ensure all pending adds are flushed before navigating to tabs
-      const payBtn = document.querySelector('.btn-pay');
-      if (payBtn) {
-        payBtn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          // simple UX lock
-          const original = payBtn.textContent;
-          payBtn.textContent = 'Synchroniseren…';
-          payBtn.style.pointerEvents = 'none';
-          payBtn.setAttribute('disabled', 'disabled');
-
-          // wait for all pending increments to finish
-          try {
-            await flushPending();
-          } catch (_) {}
-
-          // tiny delay to let the server persist, then go
-          setTimeout(() => { window.location.href = payBtn.href; }, 150);
-        });
+                const res = await fetch(START_GUEST_URL, {
+                  method:'POST',
+                  headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
+                  body: body.toString()
+                });
+                const text = await res.text();
+                let j = {};
+                try { j = JSON.parse(text); } catch(_) {}
+               // after a successful start-guest response
+      if (j.tabId) {
+        localStorage.setItem('guest_last_tab', String(j.tabId));
       }
+      state = { items:{} };
+      saveState();
+      window.location.href = j.redirect || '{{ url('tabs') }}';
+
+              }catch(e){
+                guestConfirm.removeAttribute('disabled');
+                guestConfirm.textContent='Bevestigen & afrekenen';
+                toast(e.message || 'Kon geen gastrekening aanmaken.');
+              }
+            });
+
+
+                    // init
+                    applyFilters();
+                    renderCart();
+                    flushPending();
+                  });
     </script>
-    {% endif %} {% endif %}
   </body>
 </html>
