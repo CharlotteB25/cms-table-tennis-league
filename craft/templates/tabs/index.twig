@@ -44,10 +44,22 @@ craft.app.request.csrfToken %}
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        font-family: Arial, sans-serif;
+        font-family: "Inter", system-ui, Arial, sans-serif;
         color: var(--text);
-        background: var(--cream);
+        background: radial-gradient(
+            1200px 700px at 110% -10%,
+            color-mix(in oklab, var(--purple-700) 14%, transparent),
+            transparent 60%
+          ),
+          linear-gradient(
+            160deg,
+            var(--bg-gradient-start),
+            var(--bg-gradient-end)
+          );
+        position: relative;
+        overflow-x: hidden;
       }
+
       main {
         margin-left: 200px;
         padding: 2rem;

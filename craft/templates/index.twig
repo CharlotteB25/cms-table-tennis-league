@@ -11,31 +11,87 @@
     />
 
     <style>
+      /* ===============================
+      HNO Dashboard — 60/30/10 Theme
+      60 base (cream/white), 30 purple, 10 red accent
+      =============================== */
+
       :root {
+        /* Base (60%) */
         --cream: #fdfaf6;
-        --soft-red: #d9534f;
-        --soft-red-dark: #b52e2a;
-        --text: #333;
-        --muted: #6b6b6b;
         --card: #ffffff;
         --ring: #e9e9e9;
-        --shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-        --tint: #fff7f5;
+        --text: #222; /* slightly darker for contrast */
+        --muted: #6b6b6b;
+        --shadow: 0 8px 20px rgba(17, 12, 38, 0.06);
+
+        /* Reds (10% accent) */
+        --soft-red: #d9534f;
+        --soft-red-dark: #b52e2a;
+
+        /* Purples (30% secondary) */
+        --purple-700: #5e548e; /* default secondary */
+        --purple-900: #231942; /* deeper option */
+        --purple-50: #f3effa;
+        --purple-100: #ebe6f5;
+
+        /* Background tones */
+        --bg-gradient-start: #fffaf6;
+        --bg-gradient-end: #f4e7e3;
       }
 
+      /* Switch to deeper purple (optional): <body class="purple-deep"> */
+      body.purple-deep {
+        --purple-700: var(--purple-900);
+        --purple-50: #e9e7f2;
+        --purple-100: #e2dff0;
+      }
+
+      /* ========= Base / Layout ========= */
       body {
-        margin: 5;
+        margin-left: 0;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        font-family: Arial, sans-serif;
+        font-family: "Inter", system-ui, Arial, sans-serif;
         color: var(--text);
-        background: var(--cream);
+        background: radial-gradient(
+            1200px 700px at 110% -10%,
+            color-mix(in oklab, var(--purple-700) 14%, transparent),
+            transparent 60%
+          ),
+          linear-gradient(
+            160deg,
+            var(--bg-gradient-start),
+            var(--bg-gradient-end)
+          );
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      /* Subtle animated band à la reference (soft, purple-tinted) */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: -10% -5% auto -5%;
+        height: 140%;
+        z-index: 0;
+        background: url("data:image/svg+xml,%3Csvg width='800' height='600' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 100 Q400 200 800 100 T1600 100 V600 H0 Z' fill='%235e548e' opacity='0.06'/%3E%3C/svg%3E");
+        background-repeat: repeat-x;
+        background-size: cover;
+        animation: floatBg 24s linear infinite;
+        pointer-events: none;
+      }
+
+      .shell {
+        max-width: 1280px;
+        margin-inline: auto;
       }
 
       main {
-        margin-left: 225px; /* space for fixed side nav */
-        padding: 2rem;
+        position: relative;
+        z-index: 1;
+        margin-left: 250px; /* space for fixed side nav */
         flex: 1;
       }
 
@@ -45,29 +101,98 @@
         font-size: 0.95rem;
       }
 
-      /* Left smaller, right bigger (and resilient) */
+      /* Left smaller, right bigger */
       .grid {
-        margin-top: 50px;
+        margin-top: 40px; /* slightly tighter start */
         display: grid;
-        grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
-        gap: 1.5rem;
+        grid-template-columns: 400px minmax(0, 1fr); /* left card a bit wider */
+        gap: 1.75rem; /* slightly larger gap */
         align-items: start;
+        justify-content: center; /* centers the 2-col block inside the shell */
       }
 
+      .grid > aside.panel {
+        max-width: 1040px;
+        justify-self: stretch; /* stretch in its track but obey max-width */
+      }
+
+      .announce {
+        gap: 12px;
+      }
+
+      /* Elevated panels with gradient border + glow */
       .panel {
+        position: relative;
         background: var(--card);
         border: 1px solid var(--ring);
-        border-radius: 12px;
-        box-shadow: var(--shadow);
-        overflow: hidden;
+        border-radius: 16px; /* a touch rounder */
+        box-shadow: 0 10px 24px rgba(17, 12, 38, 0.08),
+          0 2px 10px rgba(0, 0, 0, 0.05);
+        overflow: clip; /* hide pseudo glow bleed */
+        isolation: isolate; /* keeps glow self-contained */
       }
+
+      /* faint gradient edge */
+      .panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1px; /* border thickness */
+        background: linear-gradient(
+          180deg,
+          color-mix(in oklab, var(--purple-700) 35%, #fff),
+          color-mix(in oklab, var(--purple-700) 8%, #fff)
+        );
+        -webkit-mask: linear-gradient(#000 0 0) content-box,
+          linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
+
+      /* subtle ambient glow */
+      .panel::after {
+        content: "";
+        position: absolute;
+        inset: -10px -14px -16px;
+        border-radius: 22px;
+        background: radial-gradient(
+          60% 60% at 50% 0%,
+          color-mix(in oklab, var(--purple-700) 16%, transparent),
+          transparent 70%
+        );
+        filter: blur(14px);
+        opacity: 0.55;
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      /* crisper hover */
+      .panel:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 34px rgba(17, 12, 38, 0.12),
+          0 6px 16px rgba(0, 0, 0, 0.06);
+        border-color: color-mix(in oklab, var(--purple-700) 22%, var(--ring));
+      }
+
+      /* optional: header gets a tiny glass effect */
+
+      /* Panel header → purple family (30%) */
       .panel-header {
         padding: 12px 16px;
-        background: var(--tint);
+        background: linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0.55)
+          ),
+          var(--purple-50);
         border-bottom: 1px solid var(--ring);
-        color: var(--soft-red-dark);
+        color: var(--purple-700);
         font-weight: 700;
+        backdrop-filter: saturate(115%) blur(2px);
       }
+
       .panel-body {
         padding: 12px 16px;
       }
@@ -77,7 +202,11 @@
         margin-top: 12px;
       }
 
-      /* Quick actions */
+      .dash-intro {
+        margin: 0.5rem 0 1.5rem;
+      }
+
+      /* ========= Quick actions ========= */
       .action-list {
         display: flex;
         flex-direction: column;
@@ -87,30 +216,33 @@
         align-items: center;
         gap: 12px;
         padding: 12px 10px;
-        border-radius: 8px;
+        border-radius: 10px;
         text-decoration: none;
         color: inherit;
-        transition: background 0.15s ease, transform 0.15s ease;
+        transition: background 0.2s ease, transform 0.2s ease,
+          box-shadow 0.2s ease;
       }
       .action-item:hover {
-        background: var(--tint);
-        transform: translateX(2px);
+        background: var(--purple-50);
+        transform: translateX(4px);
+        box-shadow: 0 8px 16px rgba(17, 12, 38, 0.06) inset;
       }
       .action-icon {
         min-width: 34px;
         height: 34px;
-        border-radius: 8px;
-        background: #fde3e2;
-        color: var(--soft-red-dark);
+        border-radius: 10px;
+        background: color-mix(in oklab, var(--purple-700) 18%, white);
+        color: var(--purple-700);
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
+        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
       }
       .action-text h3 {
         margin: 0;
         font-size: 1.02rem;
-        color: var(--soft-red-dark);
+        color: var(--purple-700);
       }
       .action-text p {
         margin: 0.25rem 0 0;
@@ -118,22 +250,22 @@
         font-size: 0.9rem;
       }
 
-      /* Announcements */
-      .announce {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
       .announce-item {
         padding: 10px 12px;
         border: 1px solid var(--ring);
-        border-radius: 10px;
-        background: #fff;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #fff, #fff),
+          radial-gradient(
+            300px 200px at 100% -20%,
+            color-mix(in oklab, var(--purple-700) 6%, transparent),
+            transparent 60%
+          );
+        background-blend-mode: normal, multiply;
       }
       .announce-item h4 {
         margin: 0 0 4px;
         font-size: 1rem;
-        color: var(--soft-red-dark);
+        color: var(--purple-700);
       }
       .announce-item .meta {
         font-size: 0.85rem;
@@ -146,7 +278,7 @@
         color: var(--text);
       }
 
-      /* Activity */
+      /* ========= Activity key-values ========= */
       .kv {
         display: grid;
         grid-template-columns: 1fr auto;
@@ -160,23 +292,327 @@
         font-weight: 600;
       }
 
+      /* ========= Section title ========= */
       .section-title {
         margin: 0 0 0.5rem;
         font-size: 1rem;
-        color: var(--soft-red-dark);
-        border-left: 4px solid var(--soft-red);
+        color: var(--purple-700); /* secondary */
+        border-left: 4px solid var(--purple-700);
         padding-left: 0.6rem;
+        letter-spacing: 0.2px;
       }
 
-      /* Responsive */
+      /* ========= Accent (10%) helpers ========= */
+      .btn-accent,
+      .link-accent {
+        color: var(--soft-red-dark);
+      }
+      .btn-accent {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--soft-red);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 0.5rem 0.8rem;
+        font-weight: 600;
+        box-shadow: 0 6px 14px rgba(185, 46, 42, 0.25);
+        transition: transform 0.15s ease, box-shadow 0.15s ease,
+          filter 0.15s ease;
+      }
+      .btn-accent:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.02);
+      }
+      .updates-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr; /* left = content, right = image */
+  gap: 18px;
+  align-items: start;
+}
+
+.updates-media {
+  justify-self: end;
+  width: 100%;
+  max-width: 460px;
+}
+      .illustration-card {
+  margin: 0;
+  padding: 5px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff, var(--purple-50));
+  box-shadow: var(--shadow);
+}
+.illustration-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  object-fit: cover;
+}
+.updates-left .panel-section + .panel-section {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ring);
+}
+      .action-icon {
+        position: relative;
+        box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.05),
+          0 4px 10px rgba(17, 12, 38, 0.08);
+        border: 1px solid color-mix(in oklab, var(--purple-700) 20%, #fff);
+      }
+      .action-item:hover .action-icon::after {
+        content: "";
+        position: absolute;
+        inset: -8px;
+        border-radius: 14px;
+        background: radial-gradient(
+          40% 40% at 50% 50%,
+          color-mix(in oklab, var(--purple-700) 18%, transparent),
+          transparent 70%
+        );
+        opacity: 0.6;
+        filter: blur(8px);
+      }
+
+      /* ========= Responsive ========= */
+
       @media (max-width: 980px) {
-        .grid {
-          grid-template-columns: 1fr;
+  .updates-grid {
+    grid-template-columns: 1fr;
+  }
+  .updates-media {
+    justify-self: stretch;
+    max-width: none;
+  }
+}
+    
+      @media (max-width: 1200px) {
+        .shell {
+          max-width: 1000px;
         }
       }
+
+      @media (max-width: 980px) {
+        main {
+          margin-left: 0;
+        } /* nav collapses in your existing CSS */
+        .shell {
+          max-width: 760px;
+        }
+        .grid {
+          grid-template-columns: 1fr; /* stack */
+          gap: 1.25rem;
+        }
+      }
+
       @media (max-width: 700px) {
+        .shell {
+          max-width: none;
+          padding-inline: 0;
+        }
         main {
           padding: 1.25rem;
+        }
+      }
+
+      /* =======================
+      Existing ball animation (kept)
+      ======================= */
+      .tt-ball {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--soft-red);
+        background-image: radial-gradient(circle at 30% 30%, #fff8, #fff0 40%);
+        box-shadow: inset -2px -3px 0 rgba(0, 0, 0, 0.08),
+          0 10px 18px rgba(0, 0, 0, 0.18);
+        z-index: 2;
+        pointer-events: none;
+        will-change: transform;
+      }
+      .tt-ball::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: -7px;
+        width: 28px;
+        height: 8px;
+        transform: translateX(-50%);
+        background: radial-gradient(
+          ellipse at center,
+          rgba(0, 0, 0, 0.28) 0%,
+          rgba(0, 0, 0, 0.18) 35%,
+          rgba(0, 0, 0, 0) 70%
+        );
+        filter: blur(1px);
+        opacity: 0.35;
+        will-change: transform, opacity;
+      }
+      .tt-ball:nth-of-type(1) {
+        animation: ttBallFlow 5s linear infinite;
+      }
+      .tt-ball:nth-of-type(1)::after {
+        animation: ttShadowFlow 5s linear infinite;
+      }
+      .tt-ball:nth-of-type(2) {
+        opacity: 0.95;
+        animation: ttBallFlowAlt 5s linear infinite 0.6s;
+      }
+      .tt-ball:nth-of-type(2)::after {
+        animation: ttShadowFlowAlt 5s linear infinite 0.6s;
+      }
+
+      /* ---------- Ball 1: two bounces across the viewport ---------- */
+      @keyframes ttBallFlow {
+        0% {
+          transform: translate(5vw, 50vh) scale(1);
+        }
+        18% {
+          transform: translate(20vw, 60vh) scale(1.02, 0.98);
+        }
+
+        37% {
+          transform: translate(38vw, 90vh) scale(1.1, 0.9); /* IMPACT 1 */
+          animation-timing-function: cubic-bezier(
+            0.2,
+            1,
+            0.35,
+            1
+          ); /* spring up */
+        }
+
+        56% {
+          transform: translate(60vw, 58vh) scale(1); /* apex between bounces */
+        }
+
+        72% {
+          transform: translate(78vw, 90vh) scale(1.08, 0.92); /* IMPACT 2 */
+          animation-timing-function: cubic-bezier(0.2, 1, 0.35, 1);
+        }
+
+        100% {
+          transform: translate(112vw, 52vh) scale(1);
+        }
+      }
+
+      @keyframes ttShadowFlow {
+        0% {
+          transform: translateX(-50%) scaleX(0.6);
+          opacity: 0.14;
+        }
+        32% {
+          transform: translateX(-50%) scaleX(0.9);
+          opacity: 0.26;
+        }
+        37% {
+          transform: translateX(-50%) scaleX(1.22);
+          opacity: 0.52;
+        } /* IMPACT 1 */
+        44% {
+          transform: translateX(-50%) scaleX(0.9);
+          opacity: 0.34;
+        }
+        56% {
+          transform: translateX(-50%) scaleX(0.75);
+          opacity: 0.24;
+        }
+        68% {
+          transform: translateX(-50%) scaleX(0.96);
+          opacity: 0.32;
+        }
+        72% {
+          transform: translateX(-50%) scaleX(1.18);
+          opacity: 0.5;
+        } /* IMPACT 2 */
+        78% {
+          transform: translateX(-50%) scaleX(0.86);
+          opacity: 0.3;
+        }
+        100% {
+          transform: translateX(-50%) scaleX(0.6);
+          opacity: 0.18;
+        }
+      }
+
+      /* ---------- Ball 2: staggered, slightly different path ---------- */
+      @keyframes ttBallFlowAlt {
+        0% {
+          transform: translate(0vw, 46vh) scale(1);
+        }
+        20% {
+          transform: translate(16vw, 58vh) scale(1.02, 0.98);
+        }
+
+        40% {
+          transform: translate(44vw, 88vh) scale(1.09, 0.91); /* IMPACT 1 */
+          animation-timing-function: cubic-bezier(0.2, 1, 0.35, 1);
+        }
+
+        60% {
+          transform: translate(66vw, 56vh) scale(1);
+        }
+
+        75% {
+          transform: translate(84vw, 88vh) scale(1.07, 0.93); /* IMPACT 2 */
+          animation-timing-function: cubic-bezier(0.2, 1, 0.35, 1);
+        }
+
+        100% {
+          transform: translate(110vw, 46vh) scale(1);
+        }
+      }
+
+      @keyframes ttShadowFlowAlt {
+        0% {
+          transform: translateX(-50%) scaleX(0.6);
+          opacity: 0.14;
+        }
+        36% {
+          transform: translateX(-50%) scaleX(0.92);
+          opacity: 0.28;
+        }
+        40% {
+          transform: translateX(-50%) scaleX(1.2);
+          opacity: 0.5;
+        } /* IMPACT 1 */
+        48% {
+          transform: translateX(-50%) scaleX(0.9);
+          opacity: 0.34;
+        }
+        60% {
+          transform: translateX(-50%) scaleX(0.76);
+          opacity: 0.24;
+        }
+        71% {
+          transform: translateX(-50%) scaleX(0.96);
+          opacity: 0.32;
+        }
+        75% {
+          transform: translateX(-50%) scaleX(1.16);
+          opacity: 0.48;
+        } /* IMPACT 2 */
+        82% {
+          transform: translateX(-50%) scaleX(0.86);
+          opacity: 0.3;
+        }
+        100% {
+          transform: translateX(-50%) scaleX(0.6);
+          opacity: 0.18;
+        }
+      }
+
+      /* Reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        .panel:hover .panel-header {
+          animation: none !important;
+        }
+        .tt-ball {
+          display: none;
         }
       }
     </style>
@@ -186,178 +622,186 @@
 
     <main>
       {% include 'global/header.twig' %}
-      <p class="dash-intro">
-        Welkom terug! Kies een actie of bekijk het laatste nieuws.
-      </p>
 
-      <div class="grid">
-        <!-- LEFT: Quick actions -->
-        <section class="panel">
-          <div class="panel-header">Snelle acties</div>
-          <div class="panel-body">
-            {% if currentUser %} {% if currentUser.admin %}
-            <div class="action-list">
-              <a class="action-item" href="{{ url('drinks/admin') }}">
-                <span class="action-icon">D</span>
-                <div class="action-text">
-                  <h3>Beheer Drankjes</h3>
-                  <p>Voorraad, prijzen en zichtbaarheid.</p>
-                </div>
-              </a>
-              <a class="action-item" href="{{ url('teams/admin') }}">
-                <span class="action-icon">P</span>
-                <div class="action-text">
-                  <h3>Beheer Planning</h3>
-                  <p>Wedstrijddagen toevoegen en aanpassen.</p>
-                </div>
-              </a>
-              <a class="action-item" href="{{ url('tabs/admin') }}">
-                <span class="action-icon">R</span>
-                <div class="action-text">
-                  <h3>Beheer Rekeningen</h3>
-                  <p>Openstaande rekeningen beheren.</p>
-                </div>
-              </a>
-              <a class="action-item" href="{{ url('profile') }}">
-                <span class="action-icon">⟐</span>
-                <div class="action-text">
-                  <h3>Beheer Profiel</h3>
-                  <p>Naam, notificaties en profielfoto.</p>
-                </div>
-              </a>
-            </div>
-            {% else %}
-            <div class="action-list">
-              <a class="action-item" href="{{ url('drinks') }}">
-                <span class="action-icon">D</span>
-                <div class="action-text">
-                  <h3>Bestel Drankjes</h3>
-                  <p>Snel een drankje bestellen.</p>
-                </div>
-              </a>
+      <div class="shell">
+        <p class="dash-intro">
+          Welkom terug! Kies een actie of bekijk het laatste nieuws.
+        </p>
 
-              <a class="action-item" href="{{ url('teams/admin') }}">
-                <span class="action-icon">S</span>
-                <div class="action-text">
-                  <h3>Speeldata</h3>
-                  <p>Aankomende wedstrijden en tijden.</p>
-                </div>
-              </a>
-              <a class="action-item" href="{{ url('tabs') }}">
-                <span class="action-icon">R</span>
-                <div class="action-text">
-                  <h3>Rekeningen</h3>
-                  <p>Je lopende rekening en betalingen.</p>
-                </div>
-              </a>
-              <a class="action-item" href="{{ url('profile') }}">
-                <span class="action-icon">⟐</span>
-                <div class="action-text">
-                  <h3>Profiel</h3>
-                  <p>Gegevens en notificaties beheren.</p>
-                </div>
-              </a>
-            </div>
-            {% endif %} {% else %}
-            <div class="action-list">
-              <a class="action-item" href="{{ url('drinks') }}">
-                <span class="action-icon">D</span>
-                <div class="action-text">
-                  <h3>Bestel Drankjes</h3>
-                  <p>Snel een drankje bestellen.</p>
-                </div>
-              </a>
-
-              <a class="action-item" href="{{ url('login') }}">
-                <span class="action-icon">⟶</span>
-                <div class="action-text">
-                  <h3>Login</h3>
-                  <p>Meld je aan om verder te gaan.</p>
-                </div>
-              </a>
-            </div>
-            {% endif %}
-          </div>
-        </section>
-
-        <!-- RIGHT: Announcements & Activity -->
-        <aside class="panel">
-          <div class="panel-header">Updates & Activiteit</div>
-          <div class="panel-body">
-            <div class="panel-section">
-              <h3 class="section-title">Mededelingen</h3>
-              {% set announcements =
-              craft.entries.section('announcements').orderBy('postDate
-              desc').limit(5).all() ?? [] %} {% if announcements|length %}
-              <div class="announce">
-                {% for entry in announcements %}
-                <article class="announce-item">
-                  <h4>{{ entry.title }}</h4>
-                  <div class="meta">{{ entry.postDate|date('d-m-Y') }}</div>
-                  <p>
-                    {% if entry.summary is defined and entry.summary|length %}
-                    {{ entry.summary|striptags|slice(0,180) ~ (entry.summary|length > 180 ? '…' : '') }}
-                    {% else %}
-                    {{ entry.plainText ?? '' | slice(0,180) }}{% if
-                    (entry.plainText ?? '')|length > 180 %}…{% endif %} {% endif
-                    %}
-                  </p>
-                </article>
-                {% endfor %}
+        <div class="grid">
+          <!-- LEFT: Quick actions -->
+          <section class="panel">
+            <div class="panel-header">Snelle acties</div>
+            <div class="panel-body">
+              {% if currentUser %} {% if currentUser.admin %}
+              <div class="action-list">
+                <a class="action-item" href="{{ url('drinks/admin') }}">
+                  <span class="action-icon">D</span>
+                  <div class="action-text">
+                    <h3>Beheer Drankjes</h3>
+                    <p>Voorraad, prijzen en zichtbaarheid.</p>
+                  </div>
+                </a>
+                <a class="action-item" href="{{ url('teams/admin') }}">
+                  <span class="action-icon">P</span>
+                  <div class="action-text">
+                    <h3>Beheer Planning</h3>
+                    <p>Wedstrijddagen toevoegen en aanpassen.</p>
+                  </div>
+                </a>
+                <a class="action-item" href="{{ url('tabs/admin') }}">
+                  <span class="action-icon">R</span>
+                  <div class="action-text">
+                    <h3>Beheer Rekeningen</h3>
+                    <p>Openstaande rekeningen beheren.</p>
+                  </div>
+                </a>
+                <a class="action-item" href="{{ url('profile') }}">
+                  <span class="action-icon">⟐</span>
+                  <div class="action-text">
+                    <h3>Beheer Profiel</h3>
+                    <p>Naam, notificaties en profielfoto.</p>
+                  </div>
+                </a>
               </div>
               {% else %}
-              <p class="muted">Geen recente mededelingen.</p>
+              <div class="action-list">
+                <a class="action-item" href="{{ url('drinks') }}">
+                  <span class="action-icon">D</span>
+                  <div class="action-text">
+                    <h3>Bestel Drankjes</h3>
+                    <p>Snel een drankje bestellen.</p>
+                  </div>
+                </a>
+
+                <a class="action-item" href="{{ url('teams/admin') }}">
+                  <span class="action-icon">S</span>
+                  <div class="action-text">
+                    <h3>Speeldata</h3>
+                    <p>Aankomende wedstrijden en tijden.</p>
+                  </div>
+                </a>
+                <a class="action-item" href="{{ url('tabs') }}">
+                  <span class="action-icon">R</span>
+                  <div class="action-text">
+                    <h3>Rekeningen</h3>
+                    <p>Je lopende rekening en betalingen.</p>
+                  </div>
+                </a>
+                <a class="action-item" href="{{ url('profile') }}">
+                  <span class="action-icon">⟐</span>
+                  <div class="action-text">
+                    <h3>Profiel</h3>
+                    <p>Gegevens en notificaties beheren.</p>
+                  </div>
+                </a>
+              </div>
+              {% endif %} {% else %}
+              <div class="action-list">
+                <a class="action-item" href="{{ url('drinks') }}">
+                  <span class="action-icon">D</span>
+                  <div class="action-text">
+                    <h3>Bestel Drankjes</h3>
+                    <p>Snel een drankje bestellen.</p>
+                  </div>
+                </a>
+
+                <a class="action-item" href="{{ url('login') }}">
+                  <span class="action-icon">⟶</span>
+                  <div class="action-text">
+                    <h3>Login</h3>
+                    <p>Meld je aan om verder te gaan.</p>
+                  </div>
+                </a>
+              </div>
               {% endif %}
             </div>
+          </section>
 
-            <div class="panel-section">
-              <h3 class="section-title">Jouw activiteit</h3>
-              <div class="kv">
-                <div class="k">Volgende wedstrijd</div>
-                <div class="v">
-                  {% set nextGame = craft.entries()
-                  .section(['ploegA','ploegB','ploegC']) .relatedTo(currentUser)
-                  .orderBy('postDate asc') .after(now|date('Y-m-d H:i:s'))
-                  .one() %} {% if nextGame %}
-                  {{ nextGame.title }} <br />
-                  <small>{{ nextGame.postDate|date('d-m-Y H:i') }}</small>
-                  {% else %} Je hebt momenteel geen wedstrijden. {% endif %}
-                </div>
-
-                <div class="k">E-mailnotificaties</div>
-                <div class="v">
-                  {% set notify = currentUser ? (currentUser.emailNotifications
-                  ?? currentUser.getFieldValue('emailNotifications')) : null %}
-                  {% if notify is not null %}
-                  {{ notify ? "Aan" : "Uit" }}
-                  {% else %} — {% endif %}
-                </div>
-
-                <div class="k">Profielfoto</div>
-                <div class="v">
-                  {% if currentUser and currentUser.photo %} ✔ {% else %} ✖ {%
-                  endif %}
-                </div>
-              </div>
-              <p class="muted" style="margin-top: 8px">
-                Tip: ga naar
-                <a
-                  href="{{ url('profile') }}"
-                  style="
-                    color: var(--soft-red);
-                    font-weight: 600;
-                    text-decoration: none;
-                  "
-                  >Profiel</a
-                >
-                om je instellingen bij te werken.
-              </p>
-            </div>
+          <!-- RIGHT: Announcements & Activity -->
+          <aside class="panel">
+            <div class="panel-header">Updates & Activiteit</div>
+          <div class="panel-body">
+  <div class="updates-grid">
+    <!-- LEFT: notifications/sections -->
+    <div class="updates-left">
+      <div class="panel-section">
+        <h3 class="section-title">Mededelingen</h3>
+        {% set announcements = craft.entries.section('announcements').orderBy('postDate desc').limit(5).all() ?? [] %}
+        {% if announcements|length %}
+          <div class="announce">
+            {% for entry in announcements %}
+              <article class="announce-item">
+                <h4>{{ entry.title }}</h4>
+                <div class="meta">{{ entry.postDate|date('d-m-Y') }}</div>
+                <p>
+                  {% if entry.summary is defined and entry.summary|length %}
+                    {{ entry.summary|striptags|slice(0,180) ~ (entry.summary|length > 180 ? '…' : '') }}
+                  {% else %}
+                    {{ entry.plainText ?? '' | slice(0,180) }}{% if (entry.plainText ?? '')|length > 180 %}…{% endif %}
+                  {% endif %}
+                </p>
+              </article>
+            {% endfor %}
           </div>
-        </aside>
+        {% else %}
+          <p class="muted">Geen recente mededelingen.</p>
+        {% endif %}
+      </div>
+
+      <div class="panel-section">
+        <h3 class="section-title">Jouw activiteit</h3>
+        <div class="kv">
+          <div class="k">Volgende wedstrijd</div>
+          <div class="v">
+            {% set nextGame = craft.entries().section(['ploegA','ploegB','ploegC']).relatedTo(currentUser).orderBy('postDate asc').after(now|date('Y-m-d H:i:s')).one() %}
+            {% if nextGame %}
+              {{ nextGame.title }} <br />
+              <small>{{ nextGame.postDate|date('d-m-Y H:i') }}</small>
+            {% else %}
+              Je hebt momenteel geen wedstrijden.
+            {% endif %}
+          </div>
+
+          <div class="k">E-mailnotificaties</div>
+          <div class="v">
+            {% set notify = currentUser ? (currentUser.emailNotifications ?? currentUser.getFieldValue('emailNotifications')) : null %}
+            {% if notify is not null %} {{ notify ? "Aan" : "Uit" }} {% else %} — {% endif %}
+          </div>
+
+          <div class="k">Profielfoto</div>
+          <div class="v">
+            {% if currentUser and currentUser.photo %} ✔ {% else %} ✖ {% endif %}
+          </div>
+        </div>
+        <p class="muted" style="margin-top: 8px">
+          Tip: ga naar
+          <a href="{{ url('profile') }}" style="color: var(--soft-red); font-weight: 600; text-decoration: none;">Profiel</a>
+          om je instellingen bij te werken.
+        </p>
+      </div>
+    </div>
+
+    <!-- RIGHT: illustration -->
+    <aside class="updates-media">
+      <figure class="illustration-card">
+        <img
+          src="{{ siteUrl('uploads/images/4291796.jpg') }}"
+          alt="Illustratie van HNO activiteiten"
+          decoding="async"
+          loading="lazy"
+        />
+      </figure>
+    </aside>
+  </div>
+</div>
+            </div>
+          </aside>
+        </div>
       </div>
     </main>
-
+    <div class="tt-ball" aria-hidden="true"></div>
+    <div class="tt-ball" aria-hidden="true"></div>
     {% include 'global/footer.twig' %}
   </body>
 </html>

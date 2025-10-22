@@ -22,61 +22,122 @@
         --ring-strong: #d8d8d8;
         --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
         --tint: #fff7f5;
+        --bg-gradient-start: #fdfaf6;
+        --bg-gradient-end: #fff4f2;
+        --purple-700: #5e548e;
+        --soft-red-light: #f7c8c6;
       }
 
-      /* Page layout */
-      html,
-      body {
-        height: 100%;
+      /* base reset */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
       }
+
+      /* gradient + static wave (behind content) */
       body {
         margin: 0;
         font-family: Arial, sans-serif;
         color: var(--text);
-        background: var(--cream);
         display: flex;
         flex-direction: column;
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+
+        /* BACKGROUND LAYERS (now active) */
+        background-image: radial-gradient(
+            1200px 700px at 110% -10%,
+            color-mix(in oklab, var(--purple-700) 14%, transparent),
+            transparent 60%
+          ),
+          linear-gradient(
+            to bottom,
+            var(--cream) 0%,
+            var(--cream) 46%,
+            var(--soft-red-light) 58%,
+            var(--soft-red) 100%
+          );
+        background-repeat: no-repeat, no-repeat;
+        background-attachment: fixed, fixed;
       }
+
+      /* wave overlay, centered-ish, behind everything */
+      body::before {
+        content: "";
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 30%;
+        height: 1000px; /* band height */
+        background: url("data:image/svg+xml,%3Csvg width='1200' height='240' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%23fdfaf6' stop-opacity='0.6'/%3E%3Cstop offset='100%25' stop-color='%23d9534f' stop-opacity='0.4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 120 Q300 30 600 120 T1200 120 V240 H0 Z' fill='url(%23g)'/%3E%3C/svg%3E")
+          repeat-x center / 1300px 500px;
+        pointer-events: none;
+        z-index: 0; /* IMPORTANT: put wave behind content */
+      }
+
+      /* content above wave */
       main {
-        margin-left: 200px; /* keeps space for your fixed nav */
-        padding: 3rem 2.5rem;
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: 2rem;
+        position: relative;
+        z-index: 1;
       }
 
       /* Card */
       .login-card {
         position: relative;
         width: 100%;
-        max-width: 480px;
+        max-width: 440px;
         background: linear-gradient(180deg, #fff 0%, var(--tint) 100%);
-        border: 1px solid var(--ring);
-        border-radius: 14px;
-        box-shadow: var(--shadow);
-        padding: 28px 28px 24px;
+        border: 1.5px solid rgba(217, 83, 79, 0.25);
+        border-radius: 18px;
+        box-shadow: 0 8px 28px rgba(217, 83, 79, 0.12),
+          0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 36px 32px 32px 32px;
+        margin: 0 auto;
+        z-index: 2;
+        backdrop-filter: blur(4px);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
       }
+      .login-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 36px rgba(217, 83, 79, 0.16),
+          0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Soft red accent bar */
       .login-card::before {
         content: "";
         position: absolute;
-        inset: 0 0 auto 0;
-        height: 8px;
-        background: linear-gradient(90deg, var(--soft-red), #f07a76);
-        border-top-left-radius: 14px;
-        border-top-right-radius: 14px;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 10px;
+        border-top-left-radius: 18px;
+        border-top-right-radius: 18px;
+        background: linear-gradient(90deg, var(--soft-red), #e9716e);
       }
+
+      /* Title & subtitle */
       .login-title {
-        margin: 6px 0 2px;
+        margin: 10px 0 6px;
         text-align: center;
-        font-size: 28px;
+        font-size: 30px;
         font-weight: 800;
+        letter-spacing: -0.5px;
         color: var(--soft-red-dark);
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
       }
       .login-sub {
-        margin: 0 0 18px;
+        margin: 0 0 20px;
         text-align: center;
         color: var(--muted);
+        font-size: 1.05rem;
       }
 
       /* Form */
@@ -92,24 +153,21 @@
       .input {
         width: 100%;
         padding: 12px 14px;
-        border: 1px solid var(--ring-strong);
+        border: 1.5px solid var(--ring-strong);
         border-radius: 12px;
         background: #fff;
-        box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.02);
-        transition: border-color 0.15s ease, box-shadow 0.15s ease,
-          transform 0.04s ease;
-        font-size: 16px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
       }
       .input:focus {
         outline: none;
         border-color: var(--soft-red);
-        box-shadow: 0 0 0 4px rgba(217, 83, 79, 0.14),
-          inset 0 1px 0 rgba(0, 0, 0, 0.02);
+        box-shadow: 0 0 0 4px rgba(217, 83, 79, 0.14);
       }
 
+      /* Button */
       .btn {
         width: 100%;
-        appearance: none;
         border: 2px solid var(--soft-red);
         background: var(--soft-red);
         color: var(--cream);
@@ -118,26 +176,23 @@
         font-weight: 800;
         font-size: 16px;
         cursor: pointer;
-        transition: background 0.15s ease, border-color 0.15s ease,
-          transform 0.1s ease, filter 0.15s ease;
+        transition: background 0.2s ease, transform 0.15s ease;
       }
       .btn:hover {
         background: var(--soft-red-dark);
-        border-color: var(--soft-red-dark);
-        transform: translateY(-1px);
+        transform: translateY(-2px);
       }
       .btn:active {
         transform: translateY(0);
-        filter: brightness(0.98);
       }
 
-      /* Links */
+      /* Helper link */
       .helper {
-        margin-top: 10px;
+        margin-top: 14px;
         text-align: center;
       }
       .link {
-        color: var(--soft-red);
+        color: var(--soft-red-dark);
         text-decoration: none;
         font-weight: 800;
       }
@@ -145,10 +200,10 @@
         text-decoration: underline;
       }
 
-      /* Error */
+      /* Error (aria-live for SRs) */
       #error-message {
         display: none;
-        margin: 0 0 12px;
+        margin: 0 0 14px;
         padding: 10px 12px;
         border-radius: 12px;
         border: 1px solid #ef4444;
@@ -158,10 +213,18 @@
         font-weight: 700;
       }
 
+      /* motion preferences */
+      @media (prefers-reduced-motion: reduce) {
+        .login-card,
+        .login-card:hover {
+          transition: none;
+          transform: none;
+        }
+      }
+
       /* Responsive */
       @media (max-width: 760px) {
         main {
-          margin-left: 0;
           padding: 1.5rem;
         }
         .login-card {
@@ -170,13 +233,14 @@
       }
     </style>
   </head>
+
   <body>
     <main>
-      <section class="login-card">
-        <h1 class="login-title">Login</h1>
+      <section class="login-card" role="form" aria-labelledby="login-title">
+        <h1 class="login-title" id="login-title">Login</h1>
         <p class="login-sub">Welkom terug! Log in om verder te gaan.</p>
 
-        <p id="error-message">
+        <p id="error-message" role="alert" aria-live="assertive">
           Er is een fout opgetreden. Probeer het later opnieuw.
         </p>
 
@@ -184,6 +248,7 @@
           id="login-form"
           method="post"
           action="{{ url('actions/users/login') }}"
+          novalidate
         >
           {{ csrfInput() }}
 
@@ -195,6 +260,7 @@
               type="text"
               name="loginName"
               required
+              autocomplete="username"
             />
           </div>
 
@@ -206,6 +272,7 @@
               type="password"
               name="password"
               required
+              autocomplete="current-password"
             />
           </div>
 
@@ -223,13 +290,14 @@
     <script>
       document
         .getElementById("login-form")
-        .addEventListener("submit", async function (event) {
+        ?.addEventListener("submit", async (event) => {
           event.preventDefault();
 
+          const form = event.currentTarget;
           const errorEl = document.getElementById("error-message");
-          errorEl.style.display = "none";
+          if (errorEl) errorEl.style.display = "none";
 
-          const formData = new FormData(event.target);
+          const formData = new FormData(form);
 
           try {
             const response = await fetch('{{ url("actions/users/login") }}', {
@@ -239,18 +307,15 @@
             });
 
             if (response.ok) {
-              // Craft may respond with 200 + redirect headers or set-cookie; just send them home
               window.location.href = "{{ url('index') }}";
             } else {
-              errorEl.style.display = "block";
+              if (errorEl) errorEl.style.display = "block";
             }
           } catch (e) {
             console.error(e);
-            errorEl.style.display = "block";
+            if (errorEl) errorEl.style.display = "block";
           }
         });
     </script>
-
-    {% include 'global/footer.twig' %}
   </body>
 </html>

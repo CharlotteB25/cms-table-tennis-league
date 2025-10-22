@@ -1,5 +1,3 @@
-{% include 'global/nav.twig' %}
-
 <!DOCTYPE html>
 <html lang="nl">
   <head>
@@ -23,8 +21,18 @@
         --ring: #e9e9e9;
         --shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
         --tint: #fff7f5;
+        --bg-gradient-start: #fdfaf6;
+        --bg-gradient-end: #fff4f2;
+        --purple-700: #5e548e;
+
+        /* height reserved for header/nav + panel header + padding.
+           tweak this (220–280px) to fit your layout precisely */
+        --drinks-offset: 260px; /* FIXED: use a variable for easier tuning */
       }
 
+      html {
+        background-color: var(--bg-gradient-start);
+      }
       body {
         margin: 0;
         min-height: 100vh;
@@ -32,51 +40,89 @@
         flex-direction: column;
         font-family: Arial, sans-serif;
         color: var(--text);
-        background: var(--cream);
-      }
-      main {
-        margin-left: 200px;
-        padding: 2rem;
-        flex: 1;
+
+        /* 3 background layers: wave, radial tint, base gradient */
+        background-image: url("data:image/svg+xml,%3Csvg width='800' height='600' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 100 Q400 200 800 100 T1600 100 V600 H0 Z' fill='%235e548e' opacity='0.06'/%3E%3C/svg%3E"),
+          radial-gradient(
+            1200px 700px at 110% -10%,
+            color-mix(in oklab, var(--purple-700) 14%, transparent),
+            transparent 60%
+          ),
+          linear-gradient(
+            160deg,
+            var(--bg-gradient-start),
+            var(--bg-gradient-end)
+          );
+
+        /* wave repeats horizontally at the top; the other layers don’t repeat */
+        background-repeat: repeat-x, no-repeat, no-repeat;
+
+        /* position wave at the top center; keep your existing positions for others */
+        background-position: top center, center, center;
+
+        /* give the wave extra height; others use default */
+        background-size: auto 140%, auto, auto;
+
+        /* fixed for all three layers so the wave feels anchored */
+        background-attachment: fixed, fixed, fixed;
+
+        position: relative;
+        isolation: isolate; /* harmless to keep */
+        overflow-x: hidden;
       }
 
-      /* Layout: left menu | right cart */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: -10% -5% auto -5%;
+        height: 140%;
+        background: url("data:image/svg+xml,%3Csvg width='800' height='600' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 100 Q400 200 800 100 T1600 100 V600 H0 Z' fill='%235e548e' opacity='0.06'/%3E%3C/svg%3E")
+          repeat-x center/cover;
+        pointer-events: none;
+
+        z-index: -1;
+      }
+
+      main {
+        position: relative;
+        z-index: 0; /* content sits above -1 wave */
+        padding-inline: 20px;
+      }
+
       .pos-grid {
         display: grid;
         grid-template-columns: minmax(340px, 1.4fr) minmax(280px, 1fr);
         gap: 1.5rem;
         align-items: start;
-        margin-top: 1rem;
-        margin-left: 1rem;
+        margin: 1rem;
       }
 
       .panel {
-        background: var(--card);
+        border-radius: 16px;
         border: 1px solid var(--ring);
-        border-radius: 12px;
-        box-shadow: var(--shadow);
-        overflow: hidden;
+        box-shadow: 0 10px 24px rgba(17, 12, 38, 0.08),
+          0 2px 10px rgba(0, 0, 0, 0.05);
       }
       .panel-header {
-        padding: 12px 16px;
-        background: var(--tint);
-        border-bottom: 1px solid var(--ring);
         color: var(--soft-red-dark);
-        font-weight: 700;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        font-weight: 800;
+        padding: 12px 16px;
+        background: linear-gradient(0deg, #fff0, #ffffff88), var(--tint);
+        backdrop-filter: saturate(110%) blur(2px);
+        border-bottom: 1px solid var(--ring);
       }
       .panel-body {
         padding: 12px 16px;
       }
 
-      /* Left: drinks list */
+      /* toolbar stays at top of the INNER scroller */
       .tools {
-        display: flex;
-        gap: 10px;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: linear-gradient(180deg, #fff, #fff0);
+        padding-block: 8px 6px;
         margin-bottom: 10px;
-        flex-wrap: wrap;
       }
       .input {
         border: 1px solid var(--ring);
@@ -84,37 +130,76 @@
         padding: 10px 12px;
         background: #fff;
       }
+
+      /* The ONLY scrollable area for drinks (wrapper around tools + grid) */
+      .drinks-scroll {
+        /* FIXED: this is the scroller */
+        max-height: calc(100vh - var(--drinks-offset));
+        overflow: auto;
+        padding-right: 6px;
+        scrollbar-gutter: stable both-edges;
+      }
+
       .drinks-list {
         display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-        max-height: calc(100vh - 240px);
-        overflow: auto;
-        padding-right: 4px;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 14px;
+        overflow: visible; /* grid itself doesn’t scroll; wrapper does */
       }
-      .drink-row {
+
+      .drink-card {
+        position: relative;
         display: grid;
-        grid-template-columns: 48px 1fr auto;
-        gap: 12px;
-        align-items: center;
-        padding: 10px;
+        grid-template-rows: auto auto 1fr auto;
+        gap: 8px;
+        padding: 12px;
+        border-radius: 14px;
+        background: var(--card);
         border: 1px solid var(--ring);
-        border-radius: 10px;
-        background: #fff;
-        transition: background 0.15s ease, border-color 0.15s ease;
+        box-shadow: 0 8px 18px rgba(17, 12, 38, 0.06),
+          0 2px 6px rgba(0, 0, 0, 0.04);
+        isolation: isolate;
+        transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
       }
-      .drink-row:hover {
-        background: var(--tint);
-        border-color: var(--soft-red);
+      .drink-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 14px;
+        padding: 1px;
+        background: linear-gradient(
+          180deg,
+          color-mix(in oklab, var(--purple-700) 26%, #fff),
+          color-mix(in oklab, var(--purple-700) 8%, #fff)
+        );
+        -webkit-mask: linear-gradient(#000 0 0) content-box,
+          linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
+      .drink-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 28px rgba(17, 12, 38, 0.11),
+          0 8px 16px rgba(0, 0, 0, 0.06);
+        border-color: color-mix(in oklab, var(--purple-700) 18%, var(--ring));
+      }
+
+      .thumb-wrap {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        aspect-ratio: 4/3;
+        background: #f6f6f6;
+        border: 1px solid #eee;
       }
       .thumb {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
+        width: 100%;
+        height: 100%;
         object-fit: cover;
-        border: 1px solid #eee;
-        background: #f4f4f4;
+        display: block;
       }
+
       .dname {
         margin: 0;
         font-weight: 700;
@@ -126,21 +211,45 @@
         color: var(--muted);
         font-size: 0.9rem;
       }
+      .meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 4px;
+      }
       .price {
         color: var(--soft-red-dark);
-        font-weight: 700;
+        font-weight: 800;
+        font-size: 1rem;
         white-space: nowrap;
+      }
+      .badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        background: #fff;
+        border: 1px solid var(--ring);
+        color: var(--muted);
+      }
+      .badge.unavailable {
+        background: color-mix(in oklab, var(--soft-red) 15%, #fff);
+        color: var(--soft-red-dark);
+        border-color: color-mix(in oklab, var(--soft-red) 30%, var(--ring));
       }
 
       .btn {
         appearance: none;
-        border: none;
-        border-radius: 8px;
-        padding: 9px 12px;
-        font-weight: 700;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-weight: 800;
         cursor: pointer;
-        transition: background 0.15s ease, color 0.15s ease,
-          border-color 0.15s ease, transform 0.1s ease;
+        transition: background 0.15s, color 0.15s, border-color 0.15s,
+          transform 0.1s;
       }
       .btn-add {
         background: var(--soft-red);
@@ -152,7 +261,6 @@
         border-color: var(--soft-red-dark);
         transform: translateY(-1px);
       }
-
       .btn-outline {
         background: #fff;
         color: var(--soft-red);
@@ -163,10 +271,9 @@
         color: var(--cream);
       }
 
-      /* Right: selection/cart */
       .cart {
         position: sticky;
-        top: 1rem;
+        top: 0.75rem;
       }
       .cart-items {
         display: flex;
@@ -232,13 +339,12 @@
         display: grid;
         grid-template-columns: 1fr;
         gap: 10px;
-      } /* single button for users */
-
+      }
       .btn-pay {
         background: var(--soft-red);
         color: var(--cream);
         border: 2px solid var(--soft-red);
-        justify-self: start; /* pay button aligned left */
+        justify-self: start;
       }
       .btn-pay:hover {
         background: var(--soft-red-dark);
@@ -258,7 +364,7 @@
         transform: translateX(-50%);
         z-index: 1000;
         opacity: 0;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.3s;
         font-weight: 600;
       }
       .notice.hidden {
@@ -272,6 +378,10 @@
         .cart {
           position: static;
         }
+        .drinks-scroll {
+          max-height: none;
+          overflow: visible;
+        } /* let page scroll on small screens */
       }
       @media (max-width: 700px) {
         main {
@@ -282,87 +392,108 @@
   </head>
   <body>
     <main>
-      {% include 'global/header.twig' %}
+      {% include 'global/nav.twig' %} {% include 'global/header.twig' %}
 
       <div class="pos-grid">
         <!-- LEFT: Drinks -->
         <section class="panel">
           <div class="panel-header">
             <span>Drankjes</span>
-            {# No +Nieuw button on the user page #}
           </div>
+
           <div class="panel-body">
-            <div class="tools">
-              <input
-                id="search"
-                class="input"
-                type="text"
-                placeholder="Zoek drankjes…"
-              />
-              <select id="filterCat" class="input">
-                <option value="">Alle categorieën</option>
-                <option value="bier">Bier</option>
-                <option value="wijn">Wijn</option>
-                <option value="fris">Fris</option>
-              </select>
-
-              <a
-                class="btn btn-outline"
-                href="{{ cpUrl('entries/drinks/new') }}"
-                target="_blank"
-                rel="noopener"
-                title="Nieuw drankje in het CMS toevoegen"
-              >
-                + Nieuw drankje
-              </a>
-            </div>
-
-            <div id="drinksList" class="drinks-list">
-              {% for drink in craft.entries.section('drinks').all() %} {% set
-              img = drink.image.one() %} {% set catLabel = drink.category ?
-              (drink.category.label ?? drink.category.value) : '—' %} {% set
-              priceMoney = drink.price ?? null %} {% set priceNumber =
-              priceMoney ? (priceMoney.getAmount() / 100) : 0 %} {% set
-              priceDisplay = priceMoney ?
-              craft.app.formatter.asCurrency(priceNumber,
-              priceMoney.getCurrency().getCode()) : '—' %}
-
-              <article
-                class="drink-row"
-                data-name="{{ drink.title | lower }}"
-                data-cat="{{ catLabel | lower }}"
-                data-visible="{{ drink.drinkVisibility ? '1' : '0' }}"
-                data-id="{{ drink.id }}"
-                data-price="{{ priceNumber }}"
-                data-title="{{ drink.title }}"
-              >
-                <img
-                  class="thumb"
-                  src="{{
-                    img ? img.getUrl() : 'https://via.placeholder.com/64'
-                  }}"
-                  alt="{{ drink.title }}"
+            <!-- FIXED: proper wrapper + closed tag -->
+            <div class="drinks-scroll">
+              <div class="tools">
+                <input
+                  id="search"
+                  class="input"
+                  type="text"
+                  placeholder="Zoek drankjes…"
                 />
-                <div>
-                  <h3 class="dname">{{ drink.title }}</h3>
-                  <p class="dmeta">Categorie: {{ catLabel }}</p>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px">
-                  <span class="price">{{ priceDisplay }}</span>
-                  {% if currentUser and drink.drinkVisibility %}
-                  <button class="btn btn-add add-btn">Toevoegen</button>
-                  {% elseif currentUser %}
-                  <button class="btn btn-outline" disabled>
-                    Niet beschikbaar
-                  </button>
-                  {% else %}
-                  <a class="btn btn-outline" href="{{ url('login') }}">Login</a>
-                  {% endif %}
-                </div>
-              </article>
-              {% else %}
-              <p class="dmeta">Geen drankjes beschikbaar.</p>
-              {% endfor %}
+                <select id="filterCat" class="input">
+                  <option value="">Alle categorieën</option>
+                  <option value="bier">Bier</option>
+                  <option value="wijn">Wijn</option>
+                  <option value="fris">Fris</option>
+                </select>
+
+                {% if currentUser and currentUser.admin %}
+                <a
+                  class="btn btn-outline"
+                  href="{{ cpUrl('entries/drinks/new') }}"
+                  target="_blank"
+                  rel="noopener"
+                  title="Nieuw drankje in het CMS toevoegen"
+                  >+ Nieuw drankje</a
+                >
+                {% endif %}
+              </div>
+
+              <!-- FIXED: drinks grid lives inside the scroll container -->
+              <div id="drinksList" class="drinks-list">
+                {% for drink in craft.entries.section('drinks').all() %} {% set
+                img = drink.image.one() %} {% set catLabel = drink.category ?
+                (drink.category.label ?? drink.category.value) : '—' %} {% set
+                priceMoney = drink.price ?? null %} {% set priceNumber =
+                priceMoney ? (priceMoney.getAmount() / 100) : 0 %} {% set
+                priceDisplay = priceMoney ?
+                craft.app.formatter.asCurrency(priceNumber,
+                priceMoney.getCurrency().getCode()) : '—' %}
+
+                <article
+                  class="drink-card"
+                  data-name="{{ drink.title | lower }}"
+                  data-cat="{{ catLabel | lower }}"
+                  data-visible="{{ drink.drinkVisibility ? '1' : '0' }}"
+                  data-id="{{ drink.id }}"
+                  data-price="{{ priceNumber }}"
+                  data-title="{{ drink.title }}"
+                >
+                  <div class="thumb-wrap">
+                    <img
+                      class="thumb"
+                      src="{{
+                        img
+                          ? img.getUrl()
+                          : 'https://via.placeholder.com/400x300?text=Drink'
+                      }}"
+                      alt="{{ drink.title }}"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    {% if not drink.drinkVisibility %}
+                    <span class="badge unavailable">Niet beschikbaar</span>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <h3 class="dname">{{ drink.title }}</h3>
+                    <p class="dmeta">Categorie: {{ catLabel }}</p>
+                  </div>
+                  <div class="meta-row">
+                    <span class="price">{{ priceDisplay }}</span>
+                    {% if currentUser and drink.drinkVisibility %}
+                    <button
+                      class="btn btn-add add-btn"
+                      aria-label="Toevoegen {{ drink.title }}"
+                    >
+                      Toevoegen
+                    </button>
+                    {% elseif currentUser %}
+                    <button class="btn btn-outline" disabled>
+                      Niet beschikbaar
+                    </button>
+                    {% else %}
+                    <a class="btn btn-outline" href="{{ url('login') }}"
+                      >Login</a
+                    >
+                    {% endif %}
+                  </div>
+                </article>
+                {% else %}
+                <p class="dmeta">Geen drankjes beschikbaar.</p>
+                {% endfor %}
+              </div>
             </div>
           </div>
         </section>
@@ -413,7 +544,7 @@
       const CSRF_NAME  = '{{ craft.app.config.general.csrfTokenName }}';
       const CSRF_VALUE = '{{ craft.app.request.csrfToken|e('js') }}';
       const ADD_TO_TAB_URL = '{{ actionUrl("tabs/add") }}';
-      const REMOVE_FROM_TAB_URL = '{{ actionUrl("tabs/remove") }}'; // optional, if implemented
+      const REMOVE_FROM_TAB_URL = '{{ actionUrl("tabs/remove") }}'; // optional
 
       const fmt = new Intl.NumberFormat('nl-BE', { style:'currency', currency:'EUR' });
 
@@ -427,6 +558,16 @@
 
       // Local cart view
       const cart = new Map(); // id -> { id, title, price, qty }
+      const CART_KEY = 'pos_cart_local_v1';
+      try {
+        const saved = JSON.parse(localStorage.getItem(CART_KEY)||'[]');
+        saved.forEach(it => cart.set(String(it.id), it));
+      } catch(_) {}
+
+      function saveCart(){
+        localStorage.setItem(CART_KEY, JSON.stringify([...cart.values()]));
+      }
+
       const cartItemsEl = document.getElementById('cartItems');
       const totalEl = document.getElementById('cartTotal');
 
@@ -450,6 +591,7 @@
           cartItemsEl.innerHTML = '<p class="dmeta">Nog geen items. Voeg links drankjes toe.</p>';
         }
         totalEl.textContent = fmt.format(total);
+        saveCart();
       }
 
       async function addOne(id, title, price){
@@ -481,10 +623,10 @@
       // Add buttons
       document.querySelectorAll('.add-btn').forEach(btn=>{
         btn.addEventListener('click', ()=>{
-          const row = btn.closest('.drink-row');
-          const id = row.dataset.id;
-          const price = parseFloat(row.dataset.price||'0');
-          const title = row.dataset.title;
+          const card = btn.closest('.drink-card');
+          const id = card.dataset.id;
+          const price = parseFloat(card.dataset.price||'0');
+          const title = card.dataset.title;
           addOne(id, title, price);
         });
       });
@@ -498,11 +640,10 @@
         if(action === 'inc'){
           await addOne(id, item.title, item.price);
         } else {
-          // local dec
-          item.qty -= 1; if(item.qty <= 0) cart.delete(id); else cart.set(id, item);
+          item.qty -= 1;
+          if(item.qty <= 0) cart.delete(id); else cart.set(id, item);
           renderCart();
 
-          // optional server dec (if you implement /tabs/remove)
           if(REMOVE_FROM_TAB_URL){
             const body = new URLSearchParams();
             body.append('drinkId', id);
@@ -526,18 +667,17 @@
       function applyFilters(){
         const term = (searchEl.value||'').trim().toLowerCase();
         const cat = (filterCatEl.value||'').trim().toLowerCase();
-        document.querySelectorAll('.drink-row').forEach(row=>{
-          const matchName = row.dataset.name.includes(term);
-          const matchCat  = !cat || row.dataset.cat === cat;
-          const visible   = row.dataset.visible === '1';
-          row.style.display = (matchName && matchCat && visible) ? '' : 'none';
+        document.querySelectorAll('.drink-card').forEach(card=>{
+          const matchName = card.dataset.name.includes(term);
+          const matchCat  = !cat || card.dataset.cat === cat;
+          const visible   = card.dataset.visible === '1';
+          card.style.display = (matchName && matchCat && visible) ? '' : 'none';
         });
       }
       searchEl.addEventListener('input', applyFilters);
       filterCatEl.addEventListener('change', applyFilters);
       applyFilters();
 
-      // Initial render
       renderCart();
     </script>
     {% endif %}

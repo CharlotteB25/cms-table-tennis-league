@@ -1,24 +1,34 @@
-<body
-  style="min-height: 100vh; display: flex; flex-direction: column; margin: 0"
->
-  {% include 'global/nav.twig' %}
+<style>
+  .site-footer {
+  color: #333;
+  padding: 1.25rem 2rem;
+  text-align: center;
+  font-size: 0.95rem;
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+}
 
-  <main style="flex: 1; padding: 2rem">
-    <!-- page content -->
-  </main>
+.site-footer strong {
+  color: #b52e2a;
+}
 
-  <footer
-    style="
-      background-color: #fdfaf6; /* cream */
-      color: #333; /* dark text */
-      padding: 1rem 2rem;
-      text-align: center;
-      font-size: 14px;
-      border-top: 3px solid #d9534f; /* soft red accent */
-    "
-  >
-    <p>
-      &copy; {{ now|date('Y') }} HNO Tafeltennisclub. Alle rechten voorbehouden.
-    </p>
-  </footer>
+.footer-subtext {
+  margin-top: 0.25rem;
+  color: #6b6b6b;
+  font-size: 0.85rem;
+}
+
+</style>
+
+<footer class="site-footer">
+  <p style="margin: 0;">
+    &copy; {{ now|date('Y') }} 
+    <strong>HNO Tafeltennisclub</strong>. 
+    Alle rechten voorbehouden.
+  </p>
+
+  <p class="footer-subtext">
+    Ontworpen met ❤️ door het HNO Team
+  </p>
+
+</footer>
 </body>

@@ -1,22 +1,47 @@
-<form id="availability-form" method="post">
+{% if existingEntry %}
+<div class="msg success">
+  Je hebt je al ingeschreven voor deze wedstrijd. {% if existingEntry.url is
+  defined %}
+  <a
+    href="{{ existingEntry.url }}"
+    class="btn btn-primary"
+    style="margin-left: 8px"
+    >Bekijken</a
+  >
+  {% endif %}
+</div>
+{% else %}
+<form method="post" accept-charset="UTF-8">
   {{ csrfInput() }}
   {{ actionInput("entries/save-entry") }}
+  {{
+    hiddenInput(
+      "sectionId",
+      craft.app.sections.getSectionByHandle("availability").id
+    )
+  }}
+  {{
+    hiddenInput(
+      "typeId",
+      craft.app.sections.getSectionByHandle("availability").getEntryTypes()[0]
+        .id
+    )
+  }}
 
-  <input type="hidden" name="sectionId" value="5" />
-  <input type="hidden" name="typeId" value="3" />
-  <input type="hidden" name="fields[match][]" value="{{ match.id }}" />
-  <input type="hidden" name="fields[player][]" value="{{ currentUser.id }}" />
-  <input type="hidden" name="title" value="{{ match.title }}" />
-  <input type="hidden" name="slug" value="{{ match.id }}" />
-  <input type="hidden" name="fields[statusAdmin]" value="nogTeBepalen" />
-  <input type="hidden" name="enabled" value="1" />
+  {# Relate to match + player #}
+  {{ hiddenInput("fields[match][]", match.id) }}
+  {{ hiddenInput("fields[player][]", currentUser.id) }}
 
-  <label for="availability">Beschikbaarheid:</label>
-  <select name="fields[availability]" id="availability">
-    <option value="ja">Ja</option>
-    <option value="nee">Nee</option>
-    <option value="reserve">Reserve</option>
+  {# Example extra fields (status/rank/note) — adapt to your handles #}
+  <label for="status">Status</label>
+  <select id="status" name="fields[status]">
+    <option value="aanwezig">Aanwezig</option>
+    <option value="afwezig">Afwezig</option>
+    <option value="twijfel">Twijfel</option>
   </select>
 
-  <button type="submit">Indienen</button>
+  <div class="form-actions">
+    <button type="submit">Inschrijven</button>
+  </div>
 </form>
+{% endif %}

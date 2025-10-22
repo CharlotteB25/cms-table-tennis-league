@@ -59,10 +59,10 @@ fieldLayouts:
             editCondition: null
             elementCondition: null
             fieldUid: 4f857955-4d50-4741-a011-849f264bcfa1 # Address
-            handle: null
+            handle: location
             includeInCards: false
             instructions: null
-            label: null
+            label: Location
             providesThumbs: false
             required: false
             tip: null

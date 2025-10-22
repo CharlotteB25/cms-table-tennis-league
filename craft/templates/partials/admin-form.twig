@@ -1,20 +1,60 @@
+{% set existingAvail = craft.entries() .section('availability') .relatedTo({
+field: 'match', targetElement: match.id }) .with(['player']) .all() %} {% set
+usedPlayerIds = [] %} {% for e in existingAvail %} {% set u = e.player.one() %}
+{% if u %} {% set usedPlayerIds = usedPlayerIds|merge([u.id]) %} {% endif %} {%
+endfor %} {% set allPlayers = craft.users() .group('players') %} {% set
+availablePlayers = allPlayers|filter(p => p.id not in usedPlayerIds) %}
+
 <form id="add-player-form" method="post" class="admin-form">
   {{ csrfInput() }}
   {{ actionInput("entries/save-entry") }}
 
+  {# TIP: prefer dynamic IDs to magic numbers
+  {{
+    hiddenInput(
+      "sectionId",
+      craft.app.sections.getSectionByHandle("availability").id
+    )
+  }}
+  {{
+    hiddenInput(
+      "typeId",
+      craft.app.sections.getSectionByHandle("availability").getEntryTypes()[0]
+        .id
+    )
+  }}
+  #}
   <input type="hidden" name="sectionId" value="5" />
   <input type="hidden" name="typeId" value="3" />
+
+  {# Title/slug are optional for availability entries; keep if you need them #}
   <input type="hidden" name="title" value="{{ match.title }}" />
   <input type="hidden" name="slug" value="{{ match.id }}" />
+
+  {# Relations #}
   <input type="hidden" name="fields[match][]" value="{{ match.id }}" />
   <input type="hidden" name="enabled" value="1" />
 
-  <label for="admin-player">Player:</label>
-  <select name="fields[player][]" id="admin-player">
-    {% for user in craft.users.group('players').all() %}
-    <option value="{{ user.id }}">{{ user.username }}</option>
+  <label for="admin-player">Speler:</label>
+  <select name="fields[player][]" id="admin-player" required>
+    <option value="" disabled selected>Kies speler…</option>
+    {% for user in availablePlayers %}
+    <option value="{{ user.id }}">
+      {{ user.friendlyName ?? user.username }}
+    </option>
     {% endfor %}
   </select>
+
+  {% if usedPlayerIds|length %}
+  <p class="sub" style="margin: 6px 0 10px">
+    Reeds ingeschreven: {% for e in existingAvail %} {% set pu = e.player.one()
+    %} {% if pu %}
+    <span class="chip" style="margin-right: 6px">{{
+      pu.friendlyName ?? pu.username
+    }}</span>
+    {% endif %} {% endfor %}
+  </p>
+  {% endif %}
 
   <label for="admin-availability">Beschikbaarheid:</label>
   <select name="fields[availability]" id="admin-availability">
@@ -30,5 +70,34 @@
     <option value="nietGeselecteerd">Niet geselecteerd</option>
   </select>
 
-  <button type="submit">Toevoegen</button>
+  <div class="form-actions" style="margin-top: 12px">
+    <button
+      id="admin-submit"
+      type="submit"
+      {%
+      if
+      availablePlayers
+      is
+      empty
+      %}disabled{%
+      endif
+      %}
+    >
+      Toevoegen
+    </button>
+  </div>
 </form>
+
+{# Small safety: disable button if no choices left (works even without JS
+fallback) #}
+<script>
+  (function () {
+    const sel = document.getElementById("admin-player");
+    const btn = document.getElementById("admin-submit");
+    if (sel && btn) {
+      const hasChoices =
+        sel.querySelectorAll('option[value]:not([value=""])').length > 0;
+      btn.disabled = !hasChoices;
+    }
+  })();
+</script>

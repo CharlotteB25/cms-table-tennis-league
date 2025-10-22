@@ -1,74 +1,183 @@
 <style>
+  /* ================================
+   Curved Mid-Viewport Sidebar Nav
+   ================================ */
+
+  /* palette hook (uses your existing variables) */
   :root {
-    --cream: #fdfaf6; /* soft cream white */
-    --soft-red: #d9534f; /* muted red */
-    --soft-red-dark: #b52e2a;
-    --text: #333;
+    --nav-w: 220px;
   }
 
-  nav {
-    width: 200px;
-    background: var(--cream);
-    padding: 2rem 1rem;
-    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.08);
-    height: 100vh;
+  /* the new sidebar */
+  nav.app-nav {
     position: fixed;
-    top: 0;
-    left: 0;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: var(--nav-w);
+    min-height: 900px;
+
+    padding: 1rem 0.75rem;
+    color: #fff;
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--soft-red) 92%, #fff 8%),
+      var(--soft-red-dark)
+    );
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+    border-radius: 16px;
     display: flex;
     flex-direction: column;
+    z-index: 3;
+  }
+  /* subtle edge sheen + inner shadow for depth */
+  nav.app-nav::before,
+  nav.app-nav::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 16px;
+  }
+  nav.app-nav::before {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.14),
+      rgba(255, 255, 255, 0)
+    );
+    mix-blend-mode: soft-light;
+    clip-path: inherit;
+  }
+  nav.app-nav::after {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+      inset 0 -20px 40px rgba(0, 0, 0, 0.08);
+    clip-path: inherit;
   }
 
-  nav h2 {
-    font-size: 18px;
-    margin-bottom: 1.5rem;
-    color: var(--soft-red-dark);
+  nav.app-nav h2 {
+    display: flex; /* was display:none */
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0.25rem 0.25rem 1rem;
+    font-size: 1rem;
+    line-height: 1;
+    font-weight: 700;
+    color: #fff;
   }
-
-  nav h2 a {
+  nav.app-nav h2 a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: inherit;
     text-decoration: none;
-    color: var(--soft-red-dark);
   }
-
-  nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    flex: 1;
-  }
-
-  nav ul li {
-    margin-bottom: 1rem;
-  }
-
-  nav ul li a {
-    text-decoration: none;
-    color: var(--soft-red);
-    font-weight: 600;
-    padding: 0.4rem 0.6rem;
-    border-radius: 6px;
+  nav.app-nav h2 img {
+    width: 28px;
+    height: 28px;
     display: block;
-    transition: background 0.2s, color 0.2s;
+    border-radius: 6px; /* looks neat with your rounded nav */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
   }
 
-  nav ul li a:hover {
-    background: var(--soft-red);
-    color: var(--cream);
+  /* list layout */
+  nav.app-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    overflow: auto;
+  }
+  nav.app-nav li {
   }
 
-  /* Optional: highlight active link */
-  nav ul li a.active {
-    background: var(--soft-red-dark);
-    color: var(--cream);
+  nav.app-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: #fff;
+    opacity: 0.92;
+    font-weight: 600;
+    padding: 0.55rem 0.7rem;
+    border-radius: 12px;
+    transition: background 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
   }
 
-  img {
-    max-width: 100%;
-    height: auto;
+  /* icon placeholders if you add SVGs later */
+  nav.app-nav a .ico {
+    inline-size: 1.15rem;
+    block-size: 1.15rem;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  nav.app-nav a:hover {
+    background: rgba(255, 255, 255, 0.14);
+    opacity: 1;
+    transform: translateX(2px);
+  }
+
+  /* active/current */
+  nav.app-nav a.active,
+  nav.app-nav a[aria-current="page"] {
+    background: var(--cream); /* persistent dark red */
+    color: var(--soft-red-dark); /* keep text white for contrast */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    opacity: 1;
+  }
+
+  /* ensure page content doesn’t sit underneath the nav */
+  main {
+    margin-left: calc(var(--nav-w) + 25px);
+  }
+
+  /* mobile: flatten to full-height bar (no clip-path) */
+  @media (max-width: 960px) {
+    nav.app-nav {
+      top: 0;
+      transform: none;
+      height: 100vh;
+      min-height: auto;
+      border-radius: 0;
+      clip-path: none;
+      width: var(--nav-w);
+    }
+    main {
+      margin-left: var(--nav-w);
+    }
+  }
+  @media (max-width: 700px) {
+    nav.app-nav {
+      position: fixed;
+      width: 100vw;
+      height: auto;
+      padding: 0.5rem;
+      clip-path: none;
+      border-radius: 0;
+      display: block;
+    }
+    nav.app-nav ul {
+      display: flex;
+      flex-direction: row;
+      overflow: auto;
+      gap: 0.35rem;
+    }
+    nav.app-nav a {
+      border-radius: 10px;
+    }
+    main {
+      margin-left: 0;
+      margin-top: 64px;
+    } /* push content below bar */
   }
 </style>
 
-<nav>
+<nav class="app-nav">
   <h2>
     <a href="{{ url('index') }}">
       <img src="{{ siteUrl('uploads/favicon/favicon.ico') }}" alt="Favicon" />
@@ -77,17 +186,66 @@
   </h2>
   <ul>
     {% if currentUser %} {% if currentUser.admin %}
-    <li><a href="{{ url('drinks/admin') }}">Beheer Drankjes</a></li>
-    <li><a href="{{ url('teams/admin') }}">Beheer Planning</a></li>
-    <li><a href="{{ url('tabs/admin') }}">Beheer Rekeningen</a></li>
+    <li>
+      <a
+        href="{{ url('drinks/admin') }}"
+        class="{{ craft.app.request.pathInfo == 'drinks/admin' ? 'active' }}"
+      >
+        Beheer Drankjes
+      </a>
+    </li>
+    <li>
+      <a
+        href="{{ url('teams/admin') }}"
+        class="{{ craft.app.request.pathInfo == 'teams/admin' ? 'active' }}"
+      >
+        Beheer Planning
+      </a>
+    </li>
+    <li>
+      <a
+        href="{{ url('tabs/admin') }}"
+        class="{{ craft.app.request.pathInfo == 'tabs/admin' ? 'active' }}"
+      >
+        Beheer Rekeningen
+      </a>
+    </li>
     {% else %}
-    <li><a href="{{ url('drinks') }}">Bestel Drankjes</a></li>
-    <li><a href="{{ url('teams/admin') }}">Speeldata</a></li>
-    <li><a href="{{ url('tabs') }}">Rekeningen</a></li>
+    <li>
+      <a
+        href="{{ url('drinks') }}"
+        class="{{ craft.app.request.pathInfo == 'drinks' ? 'active' }}"
+      >
+        Bestel Drankjes
+      </a>
+    </li>
+    <li>
+      <a
+        href="{{ url('teams/admin') }}"
+        class="{{ craft.app.request.pathInfo == 'teams/admin' ? 'active' }}"
+      >
+        Speeldata
+      </a>
+    </li>
+    <li>
+      <a
+        href="{{ url('tabs') }}"
+        class="{{ craft.app.request.pathInfo == 'tabs' ? 'active' }}"
+      >
+        Rekeningen
+      </a>
+    </li>
     {% endif %}
     <li><a href="{{ url('logout') }}">Uitloggen</a></li>
     {% else %}
-    <li><a href="{{ url('login') }}">Login</a></li>
+    <li>
+      <a
+        href="{{ url('login') }}"
+        class="{{ craft.app.request.pathInfo == 'login' ? 'active' }}"
+      >
+        Login
+      </a>
+    </li>
     {% endif %}
   </ul>
 </nav>

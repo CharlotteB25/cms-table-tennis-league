@@ -1,18 +1,17 @@
 <style>
   :root {
-    --cream: #fdfaf6; /* soft cream white */
-    --soft-red: #d9534f; /* muted red */
+    --cream: #fdfaf6;
+    --soft-red: #d9534f;
     --soft-red-dark: #b52e2a;
     --text: #333;
   }
 
   header {
     display: flex;
-    justify-content: flex-end; /* push everything to the right */
+    justify-content: flex-end;
     align-items: center;
-    background-color: var(--cream);
     padding: 1rem 2rem;
-    border-bottom: 3px solid var(--soft-red);
+    border-bottom: 1px solid var(--soft-red);
   }
 
   .header-right {
@@ -24,30 +23,55 @@
   .header-right h1 {
     margin: 0;
     font-size: 1.4rem;
-    font-weight: 600;
+    font-weight: 400;
     color: var(--soft-red-dark);
   }
 
-  .header-links a {
-    text-decoration: none;
-    color: var(--soft-red);
-    font-weight: 600;
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    transition: background 0.2s, color 0.2s;
+  /* avatar link replaces the text link */
+  .profile-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--soft-red);
+    transition: transform 0.2s ease, border-color 0.2s ease;
   }
 
-  .header-links a:hover {
-    background: var(--soft-red);
-    color: var(--cream);
+  .profile-link img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .profile-link:hover {
+    transform: scale(1.06);
+    border-color: var(--soft-red-dark);
   }
 </style>
 
 <header>
   <div class="header-right">
     <h1>Welkom, {{ currentUser.friendlyName ?? "Gast" }}</h1>
-    <div class="header-links">
-      <a href="/profile">Profiel</a>
-    </div>
+    {% if currentUser %}
+    <a href="/profile" class="profile-link">
+      {% if currentUser.photo %}
+      <img
+        src="{{ currentUser.photo.url }}"
+        alt="{{ currentUser.friendlyName }}"
+      />
+      {% else %}
+      <!-- fallback if user has no uploaded photo -->
+      <img src="{{ siteUrl('uploads/avatar.png') }}" alt="avatar" />
+      {% endif %}
+    </a>
+    {% else %}
+    <a href="/login" class="profile-link">
+      <img src="{{ siteUrl('uploads/avatar.png') }}" alt="Login" />
+    </a>
+    {% endif %}
   </div>
 </header>

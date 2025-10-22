@@ -1,0 +1,51 @@
+altTranslationKeyFormat: null
+altTranslationMethod: none
+fieldLayouts:
+  f5822b30-0dd4-471d-8224-c85db3e1679e:
+    cardThumbAlignment: end
+    tabs:
+      -
+        elementCondition: null
+        elements:
+          -
+            autocapitalize: true
+            autocomplete: false
+            autocorrect: true
+            class: null
+            dateAdded: '2025-10-22T15:42:02+00:00'
+            disabled: false
+            elementCondition: null
+            id: null
+            includeInCards: false
+            inputType: null
+            instructions: null
+            label: null
+            max: null
+            min: null
+            name: null
+            orientation: null
+            placeholder: null
+            providesThumbs: false
+            readonly: false
+            requirable: false
+            size: null
+            step: null
+            tip: null
+            title: null
+            type: craft\fieldlayoutelements\assets\AssetTitleField
+            uid: fa00825d-dc2a-454e-9e38-24afae3ff8ff
+            userCondition: null
+            warning: null
+            width: 100
+        name: Content
+        uid: a05b5fda-c70d-40e0-8b7c-7c02419e1dc1
+        userCondition: null
+fs: uploads
+handle: avatar
+name: avatar
+sortOrder: 2
+subpath: avatar
+titleTranslationKeyFormat: null
+titleTranslationMethod: site
+transformFs: uploads
+transformSubpath: ''

@@ -30,23 +30,57 @@ CSRF_VALUE = craft.app.request.csrfToken %}
         --ring: #e9e9e9;
         --shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
         --tint: #fff7f5;
+        --bg-gradient-start: #fdfaf6;
+        --bg-gradient-end: #fff4f2;
+        --purple-700: #5e548e;
+      }
+      html {
+        background-color: var(--bg-gradient-start);
       }
       body {
         margin: 0;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        font-family: Arial, sans-serif;
+        font-family: "Inter", system-ui, Arial, sans-serif;
         color: var(--text);
-        background: var(--cream);
+        background-image: radial-gradient(
+            1200px 700px at 110% -10%,
+            color-mix(in oklab, var(--purple-700) 14%, transparent),
+            transparent 60%
+          ),
+          linear-gradient(
+            160deg,
+            var(--bg-gradient-start),
+            var(--bg-gradient-end)
+          );
+        background-repeat: no-repeat, no-repeat;
+        background-attachment: fixed, fixed; /* optional: nice parallax feel */
+        background-size: auto, auto; /* defaults are fine */
       }
+
+      /* Subtle animated band à la index */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: -10% -5% auto -5%;
+        height: 140%;
+        z-index: 0;
+        background: url("data:image/svg+xml,%3Csvg width='800' height='600' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 100 Q400 200 800 100 T1600 100 V600 H0 Z' fill='%235e548e' opacity='0.06'/%3E%3C/svg%3E");
+        background-repeat: repeat-x;
+        background-size: cover;
+        animation: floatBg 24s linear infinite;
+        pointer-events: none;
+      }
+
       main {
         margin-left: 200px;
         padding: 2rem;
         flex: 1;
+        z-index: 1;
       }
       .page-title {
-        margin: 0 0 12px;
+        margin: 10px 0 12px;
         font-size: 26px;
         font-weight: 800;
         color: var(--soft-red-dark);
@@ -243,6 +277,80 @@ CSRF_VALUE = craft.app.request.csrfToken %}
       #pay-modal p {
         color: var(--muted);
       }
+      .seg {
+        display: inline-flex;
+        border: 1px solid var(--ring);
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: var(--shadow);
+      }
+      .seg button {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        padding: 10px 14px;
+        font-weight: 800;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .seg button + button {
+        border-left: 1px solid var(--ring);
+      }
+      .seg button[aria-selected="true"] {
+        color: var(--soft-red-dark);
+        background: var(--tint);
+      }
+
+      .tabbar {
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+        align-items: center;
+        margin: 0 auto 16px;
+        max-width: 1100px;
+      }
+      .tabbar .meta {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      /* Show/hide panes */
+      .tab-pane {
+        display: none;
+      }
+      .tab-pane.active {
+        display: block;
+      }
+
+      /* little helper row for filters on Open tabs */
+      .filters {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 10px 0 0;
+      }
+      .filters label {
+        color: var(--muted);
+        font-size: 0.95rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .count-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 22px;
+        min-width: 22px;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        background: #fff;
+        border: 1px solid var(--ring);
+        color: var(--soft-red-dark);
+      }
     </style>
   </head>
   <body>
@@ -260,254 +368,228 @@ CSRF_VALUE = craft.app.request.csrfToken %}
         }}
       </p>
 
-      {# ADMIN EXTRAS — show admin’s own tabs too #} {% if isAdmin and user %}
-      {# Admin’s current open tab #} {% set adminTab =
-      craft.entries.section('tabs').tabOwner(user).tabStatus('open').with(['items.drink']).one()
-      %}
-      <section class="panel">
-        <div class="panel-header">Mijn huidige tab (admin)</div>
-        <div class="panel-body table-wrap">
-          {% if adminTab %} {% set total = 0 %}
-          <table>
-            <thead>
-              <tr>
-                <th>Drank</th>
-                <th style="width: 100px">Aantal</th>
-                <th style="width: 140px">Prijs</th>
-                <th style="width: 140px">Totaal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for b in adminTab.items.all() %} {% set qty = b.qty ?? 0 %} {%
-              set priceMoney = (b.price is defined and attribute(b.price,
-              'getAmount') is defined) ? b.price : (b.drink.one() and
-              b.drink.one().price is defined and attribute(b.drink.one().price,
-              'getAmount') is defined ? b.drink.one().price : null) %} {% set
-              priceNumber = priceMoney ? (priceMoney.getAmount() / 100) :
-              (b.price ?? 0)|float %} {% set line = qty * priceNumber %} {% set
-              total = total + line %}
-              <tr>
-                <td data-label="Drank">
-                  {{ b.title ?: (b.drink.one() ? b.drink.one().title : '—') }}
-                </td>
-                <td data-label="Aantal">{{ qty }}</td>
-                <td data-label="Prijs">
-                  {{ craft.app.formatter.asCurrency(priceNumber, "EUR") }}
-                </td>
-                <td data-label="Totaal">
-                  {{ craft.app.formatter.asCurrency(line, "EUR") }}
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td
-                  colspan="3"
-                  style="
-                    text-align: right;
-                    font-weight: 800;
-                    color: var(--soft-red-dark);
-                  "
-                >
-                  Totaal
-                </td>
-                <td class="total">
-                  {{ craft.app.formatter.asCurrency(total, "EUR") }}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+      {% if isAdmin %}
+  {# Open (all users) #}
+  {% set openTabs = craft.entries
+    .section('tabs')
+    .tabStatus('open')
+    .with(['tabOwner','items.drink'])
+    .orderBy('postDate desc')
+    .all() %}
 
-          <span
-            class="js-tab-status"
-            data-tab-id="{{ adminTab.id }}"
-            data-status="{{ adminTab.tabStatus ?? 'open' }}"
-            style="display: none"
-          ></span>
-          <div
-            class="actions"
-            style="margin-top: 12px; justify-content: center"
-          >
-            <form method="post" action="{{ CLOSE_URL }}">
-              {{ csrfInput() }}
-              <input type="hidden" name="tabId" value="{{ adminTab.id }}" />
-              <button type="submit" class="btn">Cash</button>
-            </form>
-            <button
-              type="button"
-              class="btn btn-primary"
-              data-online-pay="{{ adminTab.id }}"
-            >
-              Online betalen
-            </button>
-          </div>
-          {% else %}
-          <div class="empty">Je hebt momenteel geen open tab.</div>
-          {% endif %}
-        </div>
-      </section>
+  {# Closed (paid) - adjust limit if needed #}
+  {% set closedTabs = craft.entries
+    .section('tabs')
+    .tabStatus('paid')
+    .with(['tabOwner','items.drink'])
+    .orderBy('postDate desc')
+    .limit(100)
+    .all() %}
 
-      {# Admin’s complete tab history #} {% set myTabs =
-      craft.entries.section('tabs').tabOwner(user).with(['items.drink']).orderBy('postDate
-      desc').all() %}
-      <section class="panel">
-        <div class="panel-header">Mijn tabs (admin)</div>
-        <div class="panel-body table-wrap">
-          {% if myTabs|length %}
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 120px">Status</th>
-                <th>Items</th>
-                <th style="width: 140px">Totaal</th>
-                <th style="width: 220px; text-align: right">Acties</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for tab in myTabs %} {% set total = 0 %}
-              <tr data-tab-id="{{ tab.id }}">
-                <td data-label="Status">
-                  {% set status = (tab.tabStatus ?? '—')|lower %} {% if status
-                  == 'open' %}
-                  <span class="chip chip-open">Open</span>
-                  {% elseif status == 'paid' %}
-                  <span class="chip chip-paid">Betaald</span>
-                  {% else %}
-                  <span class="chip">{{ tab.tabStatus ?? "—" }}</span>
+  {# Admin's own history #}
+  {% set myTabs = craft.entries
+    .section('tabs')
+    .tabOwner(user)
+    .with(['items.drink'])
+    .orderBy('postDate desc')
+    .all() %}
+
+  {% set openCount = openTabs|length %}
+  {% set closedCount = closedTabs|length %}
+  {% set myCount = myTabs|length %}
+{% endif %}
+
+
+     {% if isAdmin %}
+  <div class="tabbar">
+    <div class="seg" role="tablist" aria-label="Tabs overzicht">
+      <button class="tab-btn" role="tab" aria-selected="true" data-tab="open">Open ( <span class="count-badge">{{ openCount }}</span> )</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="mine">Mijn tabs ( <span class="count-badge">{{ myCount }}</span> )</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="closed">Gesloten ( <span class="count-badge">{{ closedCount }}</span> )</button>
+    </div>
+   
+  </div>
+
+  {# ========== PANE: OPEN TABS (default) ========== #}
+  <section class="panel tab-pane active" id="pane-open">
+    <div class="panel-header">
+      Alle open tabs
+      <div class="filters">
+        <label><input type="checkbox" id="onlyMine"> Toon alleen mijn tabs</label>
+      </div>
+    </div>
+    <div class="panel-body table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 240px">Naam</th>
+            <th>Items</th>
+            <th style="width: 140px">Totaal</th>
+            <th style="width: 240px; text-align: right">Acties</th>
+          </tr>
+        </thead>
+        <tbody id="open-tbody">
+          {% if openTabs|length %}
+            {% for tab in openTabs %}
+              {% set owner = tab.tabOwner.one() %}
+              {% set total = 0 %}
+              <tr data-tab-id="{{ tab.id }}" data-owner="{{ (owner and owner.id == user.id) ? 'me' : 'other' }}">
+                <td data-label="Naam">
+                  {{ owner ? owner.friendlyName ?? owner.username : "—" }}
+                  {% if owner and owner.id == user.id %}
+                    <span class="chip chip-open" style="margin-left:6px;">Mijn</span>
                   {% endif %}
-                  <span
-                    class="js-tab-status"
-                    data-tab-id="{{ tab.id }}"
-                    data-status="{{ tab.tabStatus ?? 'open' }}"
-                    style="display: none"
-                  ></span>
                 </td>
                 <td data-label="Items">
                   <ul class="items-list">
-                    {% for b in tab.items.all() %} {% set qty = b.qty ?? 0 %} {%
-                    set priceMoney = (b.price is defined and
-                    attribute(b.price,'getAmount') is defined) ? b.price :
-                    (b.drink.one() and b.drink.one().price is defined and
-                    attribute(b.drink.one().price,'getAmount') is defined ?
-                    b.drink.one().price : null) %} {% set priceNumber =
-                    priceMoney ? (priceMoney.getAmount() / 100) : (b.price ??
-                    0)|float %} {% set total = total + (qty * priceNumber) %}
-                    <li>
-                      {{ b.title ?: (b.drink.one() ? b.drink.one().title : '—') }}
-                      × {{ qty }} —
-                      {{ craft.app.formatter.asCurrency(priceNumber, "EUR") }}
-                    </li>
+                    {% for b in tab.items.all() %}
+                      {% set qty = b.qty ?? 0 %}
+                      {% set priceMoney = (b.price is defined and attribute(b.price,'getAmount') is defined) ? b.price : (b.drink.one() and b.drink.one().price is defined and attribute(b.drink.one().price,'getAmount') is defined ? b.drink.one().price : null) %}
+                      {% set priceNumber = priceMoney ? (priceMoney.getAmount() / 100) : (b.price ?? 0)|float %}
+                      {% set total = total + (qty * priceNumber) %}
+                      <li>
+                        {{ b.title ?: (b.drink.one() ? b.drink.one().title : '—') }}
+                        × {{ qty }} — {{ craft.app.formatter.asCurrency(priceNumber, "EUR") }}
+                      </li>
                     {% endfor %}
                   </ul>
                 </td>
                 <td data-label="Totaal" class="total">
                   {{ craft.app.formatter.asCurrency(total, "EUR") }}
                 </td>
-                <td data-label="Acties" style="text-align: right">
-                  {% if (tab.tabStatus ?? null) == 'open' %}
+                <td data-label="Acties" style="text-align:right">
                   <div class="actions">
+                    <span class="js-tab-status" data-tab-id="{{ tab.id }}" data-status="{{ tab.tabStatus ?? 'open' }}" style="display:none"></span>
                     <form method="post" action="{{ CLOSE_URL }}">
                       {{ csrfInput() }}
                       <input type="hidden" name="tabId" value="{{ tab.id }}" />
                       <button type="submit" class="btn">Cash</button>
                     </form>
-                    <button
-                      type="button"
-                      class="btn btn-primary"
-                      data-online-pay="{{ tab.id }}"
-                    >
-                      Online betalen
-                    </button>
+                    <button type="button" class="btn btn-primary" data-online-pay="{{ tab.id }}">Online betalen</button>
                   </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="4" class="empty">Geen open tabs.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  {# ========== PANE: MIJN TABS (all statuses) ========== #}
+  <section class="panel tab-pane" id="pane-mine">
+    <div class="panel-header">Mijn tabs (admin)</div>
+    <div class="panel-body table-wrap">
+      {% if myTabs|length %}
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 120px">Status</th>
+              <th>Items</th>
+              <th style="width: 140px">Totaal</th>
+              <th style="width: 220px; text-align: right">Acties</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tab in myTabs %}
+              {% set total = 0 %}
+              {% set s = (tab.tabStatus ?? '—')|lower %}
+              <tr data-tab-id="{{ tab.id }}">
+                <td data-label="Status">
+                  {% if s == 'open' %}
+                    <span class="chip chip-open">Open</span>
+                  {% elseif s == 'paid' %}
+                    <span class="chip chip-paid">Betaald</span>
+                  {% else %}
+                    <span class="chip">{{ tab.tabStatus ?? "—" }}</span>
+                  {% endif %}
+                  <span class="js-tab-status" data-tab-id="{{ tab.id }}" data-status="{{ tab.tabStatus ?? 'open' }}" style="display:none"></span>
+                </td>
+                <td data-label="Items">
+                  <ul class="items-list">
+                    {% for b in tab.items.all() %}
+                      {% set qty = b.qty ?? 0 %}
+                      {% set priceMoney = (b.price is defined and attribute(b.price,'getAmount') is defined) ? b.price : (b.drink.one() and b.drink.one().price is defined and attribute(b.drink.one().price,'getAmount') is defined ? b.drink.one().price : null) %}
+                      {% set priceNumber = priceMoney ? (priceMoney.getAmount() / 100) : (b.price ?? 0)|float %}
+                      {% set total = total + (qty * priceNumber) %}
+                      <li>{{ b.title ?: (b.drink.one() ? b.drink.one().title : '—') }} × {{ qty }} — {{ craft.app.formatter.asCurrency(priceNumber, "EUR") }}</li>
+                    {% endfor %}
+                  </ul>
+                </td>
+                <td data-label="Totaal" class="total">{{ craft.app.formatter.asCurrency(total, "EUR") }}</td>
+                <td data-label="Acties" style="text-align:right">
+                  {% if (tab.tabStatus ?? null) == 'open' %}
+                    <div class="actions">
+                      <form method="post" action="{{ CLOSE_URL }}">
+                        {{ csrfInput() }}
+                        <input type="hidden" name="tabId" value="{{ tab.id }}" />
+                        <button type="submit" class="btn">Cash</button>
+                      </form>
+                      <button type="button" class="btn btn-primary" data-online-pay="{{ tab.id }}">Online betalen</button>
+                    </div>
                   {% else %} — {% endif %}
                 </td>
               </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-          {% else %}
-          <div class="empty">Je hebt nog geen tabs.</div>
-          {% endif %}
-        </div>
-      </section>
-      {% endif %} {# ADMIN overview of all open tabs (unchanged) OR user view if
-      not admin #} {% if isAdmin %} {% set openTabs =
-      craft.entries.section('tabs').tabStatus('open').with(['tabOwner','items.drink']).all()
-      %}
-      <section class="panel">
-        <div class="panel-header">Alle open tabs</div>
-        <div class="panel-body table-wrap">
-          <table>
-            <thead>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty">Je hebt nog geen tabs.</div>
+      {% endif %}
+    </div>
+  </section>
+
+  {# ========== PANE: CLOSED TABS (paid) ========== #}
+  <section class="panel tab-pane" id="pane-closed">
+    <div class="panel-header">Gesloten tabs</div>
+    <div class="panel-body table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 240px">Naam</th>
+            <th>Items</th>
+            <th style="width: 140px">Totaal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if closedTabs|length %}
+            {% for tab in closedTabs %}
+              {% set owner = tab.tabOwner.one() %}
+              {% set total = 0 %}
               <tr>
-                <th style="width: 220px">Naam</th>
-                <th>Items</th>
-                <th style="width: 140px">Totaal</th>
-                <th style="width: 240px; text-align: right">Acties</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% if openTabs|length %} {% for tab in openTabs %} {% set owner =
-              tab.tabOwner.one() %} {% set total = 0 %}
-              <tr data-tab-id="{{ tab.id }}">
-                <td data-label="Naam">
-                  {{ owner ? owner.friendlyName ?? owner.username : "—" }}
-                </td>
+                <td data-label="Naam">{{ owner ? owner.friendlyName ?? owner.username : "—" }}</td>
                 <td data-label="Items">
                   <ul class="items-list">
-                    {% for b in tab.items.all() %} {% set qty = b.qty ?? 0 %} {%
-                    set priceMoney = (b.price is defined and
-                    attribute(b.price,'getAmount') is defined) ? b.price :
-                    (b.drink.one() and b.drink.one().price is defined and
-                    attribute(b.drink.one().price,'getAmount') is defined ?
-                    b.drink.one().price : null) %} {% set priceNumber =
-                    priceMoney ? (priceMoney.getAmount() / 100) : (b.price ??
-                    0)|float %} {% set total = total + (qty * priceNumber) %}
-                    <li>
-                      {{ b.title ?: (b.drink.one() ? b.drink.one().title : '—') }}
-                      × {{ qty }} —
-                      {{ craft.app.formatter.asCurrency(priceNumber, "EUR") }}
-                    </li>
+                    {% for b in tab.items.all() %}
+                      {% set qty = b.qty ?? 0 %}
+                      {% set priceMoney = (b.price is defined and attribute(b.price,'getAmount') is defined) ? b.price : (b.drink.one() and b.drink.one().price is defined and attribute(b.drink.one().price,'getAmount') is defined ? b.drink.one().price : null) %}
+                      {% set priceNumber = priceMoney ? (priceMoney.getAmount() / 100) : (b.price ?? 0)|float %}
+                      {% set total = total + (qty * priceNumber) %}
+                      <li>{{ b.title ?: (b.drink.one() ? b.drink.one().title : '—') }} × {{ qty }} — {{ craft.app.formatter.asCurrency(priceNumber, "EUR") }}</li>
                     {% endfor %}
                   </ul>
                 </td>
-                <td data-label="Totaal" class="total">
-                  {{ craft.app.formatter.asCurrency(total, "EUR") }}
-                </td>
-                <td data-label="Acties" style="text-align: right">
-                  <div class="actions">
-                    <span
-                      class="js-tab-status"
-                      data-tab-id="{{ tab.id }}"
-                      data-status="{{ tab.tabStatus ?? 'open' }}"
-                      style="display: none"
-                    ></span>
-                    <form method="post" action="{{ CLOSE_URL }}">
-                      {{ csrfInput() }}
-                      <input type="hidden" name="tabId" value="{{ tab.id }}" />
-                      <button type="submit" class="btn">Cash</button>
-                    </form>
-                    <button
-                      type="button"
-                      class="btn btn-primary"
-                      data-online-pay="{{ tab.id }}"
-                    >
-                      Online betalen
-                    </button>
-                  </div>
-                </td>
+                <td data-label="Totaal" class="total">{{ craft.app.formatter.asCurrency(total, "EUR") }}</td>
               </tr>
-              {% endfor %} {% else %}
-              <tr>
-                <td colspan="4" class="empty">Geen open tabs.</td>
-              </tr>
-              {% endif %}
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="3" class="empty">Geen gesloten tabs.</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% else %}
+  {# keep your existing non-admin sections unchanged #}
+{% endif %}
+
             </tbody>
           </table>
         </div>
       </section>
-      {% else %} {# Non-admin user view (your original sections) #} {% set myTab
+     {# Non-admin user view (your original sections) #} {% set myTab
       =
       craft.entries.section('tabs').tabOwner(user).tabStatus('open').with(['items.drink']).one()
       %}
@@ -678,7 +760,6 @@ CSRF_VALUE = craft.app.request.csrfToken %}
           {% endif %}
         </div>
       </section>
-      {% endif %}
     </main>
 
     {% include 'global/footer.twig' %} {# Pay modal #}
@@ -797,6 +878,38 @@ CSRF_VALUE = craft.app.request.csrfToken %}
           f.action = CLOSE_URL;
         });
       });
+  document.addEventListener('DOMContentLoaded', () => {
+    // Tabs switcher
+    const btns = document.querySelectorAll('.tab-btn');
+    const panes = {
+      open:   document.getElementById('pane-open'),
+      mine:   document.getElementById('pane-mine'),
+      closed: document.getElementById('pane-closed'),
+    };
+    btns.forEach(b => {
+      b.addEventListener('click', () => {
+        btns.forEach(x => x.setAttribute('aria-selected', 'false'));
+        b.setAttribute('aria-selected', 'true');
+        Object.values(panes).forEach(p => p.classList.remove('active'));
+        const key = b.dataset.tab;
+        panes[key]?.classList.add('active');
+      });
+    });
+
+    // “Only my tabs” filter on OPEN list
+    const onlyMine = document.getElementById('onlyMine');
+    const openBody = document.getElementById('open-tbody');
+    if (onlyMine && openBody) {
+      onlyMine.addEventListener('change', () => {
+        const showMine = onlyMine.checked;
+        openBody.querySelectorAll('tr[data-owner]').forEach(tr => {
+          const isMine = tr.getAttribute('data-owner') === 'me';
+          tr.style.display = (showMine && !isMine) ? 'none' : '';
+        });
+      });
+    }
+  });
+
     </script>
   </body>
 </html>
