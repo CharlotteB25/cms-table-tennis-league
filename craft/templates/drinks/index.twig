@@ -13,6 +13,9 @@
     />
 
     <style>
+      /* =============================
+      Design tokens
+      ============================= */
       :root {
         --cream: #fdfaf6;
         --soft-red: #d9534f;
@@ -26,14 +29,17 @@
         --bg-gradient-start: #fdfaf6;
         --bg-gradient-end: #fff4f2;
         --purple-700: #5e548e;
+
+        /* reserved height for header/nav + panel header + paddings (desktop only) */
+        --drinks-offset: 260px;
       }
 
-      /* fallback so there's never a white flash */
+      /* =============================
+      Page background
+      ============================= */
       html {
-        background-color: var(--bg-gradient-start);
+        background: var(--bg-gradient-start);
       }
-
-      /* gradient backdrop */
       body {
         margin: 0;
         min-height: 100vh;
@@ -41,10 +47,7 @@
         flex-direction: column;
         font-family: Arial, sans-serif;
         color: var(--text);
-
-        /* index-like gradient */
-        background-color: var(--bg-gradient-start);
-        background-image: radial-gradient(
+        background: radial-gradient(
             1200px 700px at 110% -10%,
             color-mix(in oklab, var(--purple-700) 14%, transparent),
             transparent 60%
@@ -56,69 +59,83 @@
           );
         background-repeat: no-repeat, no-repeat;
         background-attachment: fixed, fixed;
-
         position: relative;
         overflow-x: hidden;
       }
-
-      /* static wave centered at 50% of viewport height */
       body::before {
         content: "";
         position: fixed;
         left: -5%;
         right: -5%;
         top: 50%;
-        height: 800px; /* wave band thickness; tweak as you like */
-        transform: translateY(-30%); /* centers the band exactly at mid-page */
+        height: 800px;
+        transform: translateY(-30%);
         z-index: 0;
         pointer-events: none;
-
-        /* same SVG as index, but static; repeated horizontally */
         background: url("data:image/svg+xml,%3Csvg width='800' height='600' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 100 Q400 200 800 100 T1600 100 V600 H0 Z' fill='%235e548e' opacity='0.06'/%3E%3C/svg%3E")
           repeat-x center / 1200px 100%;
       }
-
-      /* ensure content sits above the wave */
       main {
         position: relative;
         z-index: 1;
+        padding-inline: 20px;
       }
 
+      /* =============================
+      Layout (desktop two-column)
+      ============================= */
       .pos-grid {
         display: grid;
         grid-template-columns: minmax(340px, 1.4fr) minmax(280px, 1fr);
         gap: 1.5rem;
         align-items: start;
-        margin-top: 1rem;
-        margin-left: 1rem;
+        margin: 1rem;
       }
 
+      /* =============================
+      Panels
+      ============================= */
       .panel {
         background: var(--card);
         border: 1px solid var(--ring);
-        border-radius: 12px;
-        box-shadow: var(--shadow);
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(17, 12, 38, 0.08),
+          0 2px 10px rgba(0, 0, 0, 0.05);
         overflow: hidden;
       }
       .panel-header {
-        padding: 12px 16px;
-        background: var(--tint);
-        border-bottom: 1px solid var(--ring);
         color: var(--soft-red-dark);
-        font-weight: 700;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        font-weight: 800;
+        padding: 12px 16px;
+        background: linear-gradient(0deg, #fff0, #ffffff88), var(--tint);
+        backdrop-filter: saturate(110%) blur(2px);
+        border-bottom: 1px solid var(--ring);
+        position: sticky;
+        top: 0;
+        z-index: 1;
       }
       .panel-body {
-        padding: 12px 16px;
+        padding: 8px 8px;
       }
 
+      /* =============================
+      Tools row
+      ============================= */
       .tools {
-        display: flex;
-        gap: 10px;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: linear-gradient(180deg, #fff, #fff0);
+        padding-block: 8px 6px;
         margin-bottom: 10px;
+
+        display: flex;
         flex-wrap: wrap;
+        gap: 8px 10px;
+        align-items: center;
+      }
+      .tools > * {
+        min-width: 0;
       }
       .input {
         border: 1px solid var(--ring);
@@ -126,37 +143,68 @@
         padding: 10px 12px;
         background: #fff;
       }
+      .tools .input {
+        flex: 1 1 220px;
+        max-width: 480px;
+      }
+      .tools select.input {
+        flex: 0 1 200px;
+      }
+
+      /* =============================
+      Drinks scroller (desktop)
+      ============================= */
       .drinks-list {
         display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-        max-height: calc(100vh - 240px);
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 14px;
+        max-height: calc(100vh - var(--drinks-offset));
         overflow: auto;
-        padding-right: 4px;
+        padding-right: 6px;
+        scrollbar-gutter: stable both-edges;
+        overscroll-behavior: contain;
       }
+      @supports (height: 100dvh) {
+        .drinks-list {
+          max-height: calc(100dvh - var(--drinks-offset));
+        }
+      }
+
+      /* =============================
+      Drink card (desktop)
+      ============================= */
       .drink-row {
+        position: relative;
         display: grid;
-        grid-template-columns: 48px 1fr auto;
-        gap: 12px;
-        align-items: center;
-        padding: 10px;
-        border: 1px solid var(--ring);
-        border-radius: 10px;
+        grid-template-rows: auto auto 1fr auto; /* desktop card layout */
+        gap: 8px;
+        padding: 12px;
+        border-radius: 14px;
         background: #fff;
-        transition: background 0.15s ease, border-color 0.15s ease;
+        border: 1px solid var(--ring);
+        box-shadow: 0 8px 18px rgba(17, 12, 38, 0.06),
+          0 2px 6px rgba(0, 0, 0, 0.04);
+        transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+        min-width: 0; /* prevent overflow push */
       }
       .drink-row:hover {
-        background: var(--tint);
-        border-color: var(--soft-red);
+        transform: translateY(-3px);
+        box-shadow: 0 14px 28px rgba(17, 12, 38, 0.11),
+          0 8px 16px rgba(0, 0, 0, 0.06);
+        border-color: color-mix(in oklab, var(--purple-700) 18%, var(--ring));
       }
-      .thumb {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
+
+      /* Thumbnail (desktop card hero) */
+      .drink-row > .thumb {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 4/3;
         object-fit: cover;
+        border-radius: 12px;
         border: 1px solid #eee;
-        background: #f4f4f4;
+        background: #f6f6f6;
       }
+
       .dname {
         margin: 0;
         font-weight: 700;
@@ -170,24 +218,37 @@
       }
       .price {
         color: var(--soft-red-dark);
-        font-weight: 700;
+        font-weight: 800;
         white-space: nowrap;
       }
 
+      /* Actions block (third column) */
+      .actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      /* =============================
+      Buttons
+      ============================= */
       .btn {
         appearance: none;
-        border: none;
-        border-radius: 8px;
-        padding: 9px 12px;
-        font-weight: 700;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-weight: 800;
         cursor: pointer;
         transition: background 0.15s, color 0.15s, border-color 0.15s,
           transform 0.1s;
+        border: 2px solid transparent;
+        box-sizing: border-box;
       }
       .btn-add {
         background: var(--soft-red);
         color: var(--cream);
-        border: 2px solid var(--soft-red);
+        border-color: var(--soft-red);
       }
       .btn-add:hover {
         background: var(--soft-red-dark);
@@ -197,16 +258,20 @@
       .btn-outline {
         background: #fff;
         color: var(--soft-red);
-        border: 2px solid var(--soft-red);
+        border-color: var(--soft-red);
       }
       .btn-outline:hover {
         background: var(--soft-red);
         color: var(--cream);
       }
 
+      /* =============================
+      Cart (desktop sticky)
+      ============================= */
       .cart {
         position: sticky;
-        top: 1rem;
+        top: 0.75rem;
+        align-self: start;
       }
       .cart-items {
         display: flex;
@@ -284,6 +349,9 @@
         border-color: var(--soft-red-dark);
       }
 
+      /* =============================
+      Toast
+      ============================= */
       .notice {
         background: var(--soft-red);
         color: var(--cream);
@@ -304,17 +372,208 @@
         display: none;
       }
 
+      /* =============================
+      Modal (guest checkout)
+      ============================= */
+      .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.35);
+      }
+      .modal__dialog {
+        max-width: 420px;
+        margin: 10vh auto;
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid var(--ring);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .modal__body {
+        display: grid;
+        gap: 10px;
+        padding: 12px 16px;
+      }
+
+      /* =============================
+      Responsive
+      ============================= */
+
+      /* Under 1000px: stack columns; disable sticky cart; let page scroll */
       @media (max-width: 1000px) {
         .pos-grid {
           grid-template-columns: 1fr;
         }
         .cart {
           position: static;
+          top: auto;
+        }
+        .drinks-list {
+          max-height: none;
+          overflow: visible;
         }
       }
+
+      /* ≤700px: list view – compact rows + fixed-size "+" button */
       @media (max-width: 700px) {
         main {
           padding: 1.25rem;
+          padding-inline: 14px;
+        }
+
+        .tools {
+          gap: 10px;
+        }
+        .tools .input,
+        .tools select.input {
+          flex: 1 1 100%;
+          max-width: none;
+        }
+        .tools .btn {
+          width: 100%;
+        }
+
+        /* Turn grid into a vertical list */
+        .drinks-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          max-height: none;
+          overflow: visible; /* avoid overlaying cart */
+        }
+
+        /* Each drink becomes a horizontal row */
+        .drink-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 12px;
+          grid-template-rows: none;
+        }
+
+        /* Thumb: fixed square */
+        .drink-row > .thumb {
+          flex: 0 0 86px;
+          width: 86px;
+          height: 86px;
+          aspect-ratio: auto;
+          border-radius: 10px;
+          object-fit: cover;
+        }
+
+        /* Info grows, wraps, never pushes wide */
+        .drink-row > div:nth-of-type(1) {
+          flex: 1 1 auto;
+          min-width: 0;
+          overflow: hidden;
+        }
+        .dname {
+          line-height: 1.4;
+          overflow-wrap: anywhere;
+        }
+        .dmeta {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        /* Actions block on mobile */
+        .actions {
+          order: 3;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          justify-content: flex-start;
+          gap: 8px;
+          margin-top: 0;
+          flex: 0 1 clamp(120px, 38vw, 160px);
+          min-width: 0;
+        }
+
+        /* Price can wrap; never push row wider */
+        .actions .price {
+          font-size: 1rem;
+          text-align: right;
+          white-space: normal;
+          word-break: break-word;
+        }
+
+        /* Fixed-size + button (independent of content) */
+        .actions .btn:not(.btn-add) {
+          width: 100%;
+          max-width: 100%;
+        }
+        .actions .btn-add {
+          inline-size: 36px;
+          block-size: 36px;
+          min-inline-size: 36px;
+          min-block-size: 36px;
+          padding: 0;
+          border-radius: 30%;
+          display: inline-grid;
+          align-items: center;
+          justify-items: center;
+          font-size: 0;
+          line-height: 1;
+          flex: 0 0 auto;
+          align-self: flex-end;
+          box-sizing: border-box;
+        }
+        .actions .btn-add::after {
+          content: "+";
+          font-size: 24px;
+          line-height: 1.5;
+        }
+
+        /* Cart rows and CTA fit nicely on mobile */
+        .cart .cart-row {
+          grid-template-columns: 1fr auto;
+        }
+        .btn,
+        .qty .qbtn {
+          min-height: 40px;
+        }
+        .btn-pay {
+          width: 100%;
+        }
+      }
+
+      /* Ultra-narrow phones */
+      @media (max-width: 360px) {
+        .drink-row > .thumb {
+          flex-basis: 78px;
+          width: 78px;
+          height: 78px;
+        }
+        .actions {
+          flex-basis: 120px;
+        }
+        .actions .btn-add {
+          inline-size: 36px;
+          block-size: 36px;
+          min-inline-size: 36px;
+          min-block-size: 36px;
+        }
+      }
+
+      /* Hover subtlety on devices that support hover */
+      @media (hover: hover) {
+        .drink-row:hover {
+          transform: translateY(-2px);
+        }
+      }
+
+      /* Motion reduce */
+      @media (prefers-reduced-motion: reduce) {
+        .drink-row,
+        .btn,
+        .btn-add,
+        .btn-outline {
+          transition: none !important;
+        }
+        .drink-row:hover {
+          transform: none;
         }
       }
     </style>
@@ -325,10 +584,10 @@
       {% include 'global/header.twig' %}
 
       <div class="pos-grid">
+        <!-- Drinks -->
         <section class="panel">
-          <div class="panel-header">
-            <span>Drankjes</span>
-          </div>
+          <div class="panel-header"><span>Drankjes</span></div>
+
           <div class="panel-body">
             <div class="tools">
               <input
@@ -371,23 +630,34 @@
                     img ? img.getUrl() : 'https://via.placeholder.com/64'
                   }}"
                   alt="{{ drink.title }}"
+                  loading="lazy"
+                  decoding="async"
                 />
+
                 <div>
                   <h3 class="dname">{{ drink.title }}</h3>
                   <p class="dmeta">Categorie: {{ catLabel }}</p>
                 </div>
 
-                <div style="display: flex; align-items: center; gap: 10px">
+                <div class="actions">
                   <span class="price">{{ priceDisplay }}</span>
+
                   {% if drink.drinkVisibility %}
                   <button
+                    type="button"
                     class="btn btn-add add-btn"
                     data-mode="{{ currentUser ? 'user' : 'guest' }}"
+                    aria-label="Toevoegen {{ drink.title }}"
                   >
                     Toevoegen
                   </button>
                   {% else %}
-                  <button class="btn btn-outline" disabled>
+                  <button
+                    type="button"
+                    class="btn btn-outline"
+                    disabled
+                    aria-disabled="true"
+                  >
                     Niet beschikbaar
                   </button>
                   {% endif %}
@@ -400,6 +670,7 @@
           </div>
         </section>
 
+        <!-- Cart -->
         <aside class="panel cart">
           <div class="panel-header">Jouw selectie</div>
           <div class="panel-body">
@@ -423,7 +694,8 @@
                     font-weight: 700;
                     text-decoration: none;
                   "
-                  >rekeningpagina</a
+                >
+                  rekeningpagina </a
                 >.
               </p>
             </div>
@@ -434,27 +706,16 @@
       <!-- Guest Checkout Modal -->
       <div
         id="guestModal"
-        style="
-          display: none;
-          position: fixed;
-          inset: 0;
-          z-index: 1000;
-          background: rgba(0, 0, 0, 0.35);
-        "
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="guestModalTitle"
       >
-        <div
-          style="
-            max-width: 420px;
-            margin: 10vh auto;
-            background: #fff;
-            border-radius: 12px;
-            border: 1px solid var(--ring);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-          "
-        >
-          <div class="panel-header">Afrekenen als gast</div>
-          <div class="panel-body" style="display: grid; gap: 10px">
+        <div class="modal__dialog">
+          <div class="panel-header" id="guestModalTitle">
+            Afrekenen als gast
+          </div>
+          <div class="modal__body">
             <label class="dmeta" style="display: grid; gap: 6px">
               Naam of team
               <input
@@ -468,10 +729,10 @@
               <input id="guestTable" class="input" placeholder="bv. Tafel 7" />
             </label>
             <div style="display: flex; gap: 10px; justify-content: flex-end">
-              <button id="guestCancel" class="btn btn-outline">
+              <button id="guestCancel" class="btn btn-outline" type="button">
                 Annuleren
               </button>
-              <button id="guestConfirm" class="btn btn-add">
+              <button id="guestConfirm" class="btn btn-add" type="button">
                 Bevestigen & afrekenen
               </button>
             </div>
@@ -494,270 +755,384 @@
       aria-live="polite"
     ></div>
 
-    {% include 'global/footer.twig' %}
+    {% include 'global/footer.twig' %} {# =========================== JSON
+    config block — Twig side =========================== #}
+    <script type="application/json" id="pos-config">
+      {{ {
+        isLoggedIn: currentUser ? true : false,
+        csrfName: craft.app.config.general.csrfTokenName,
+        csrfValue: craft.app.request.csrfToken,
+        addToTabUrl: actionUrl('tabs/add'),
+        removeFromTabUrl: actionUrl('tabs/remove'),
+        startGuestUrl: actionUrl('tabs/start-guest'),
+        tabsUrl: url('tabs'),
+        cartKey: currentUser ? ('pos_cart_user_' ~ currentUser.id) : 'pos_cart_guest'
+      } | json_encode | raw }}
+    </script>
 
+    {# =========================== Main interactive script — JS side
+    =========================== #}
     <script>
-                  document.addEventListener('DOMContentLoaded', () => {
-                    // --- config / endpoints ---
-                    const IS_LOGGED_IN = {{ currentUser ? 'true' : 'false' }};
-                    const CSRF_NAME  = '{{ craft.app.config.general.csrfTokenName }}';
-                    const CSRF_VALUE = '{{ craft.app.request.csrfToken|e('js') }}';
-                    const ADD_TO_TAB_URL = '{{ actionUrl("tabs/add") }}';
-                    const REMOVE_FROM_TAB_URL = '{{ actionUrl("tabs/remove") }}';
-                    const START_GUEST_URL = '{{ actionUrl("tabs/start-guest") }}';
-                    const CART_KEY = IS_LOGGED_IN ? 'pos_cart_user_{{ currentUser ? currentUser.id : 0 }}' : 'pos_cart_guest';
-                    const fmt = new Intl.NumberFormat('nl-BE', { style:'currency', currency:'EUR' });
+      // @ts-nocheck
+      document.addEventListener("DOMContentLoaded", () => {
+        /* --------------------------
+     Load config from JSON tag
+  ---------------------------*/
+        const cfgEl = document.getElementById("pos-config");
+        const cfg = cfgEl ? JSON.parse(cfgEl.textContent || "{}") : {};
 
-                    // toast
-                    const noticeEl = document.getElementById('notice');
-                    function toast(msg){
-                      if (!noticeEl) return;
-                      noticeEl.textContent = msg;
-                      noticeEl.classList.remove('hidden');
-                      requestAnimationFrame(()=> noticeEl.style.opacity = 1);
-                      setTimeout(()=>{ noticeEl.style.opacity = 0; noticeEl.classList.add('hidden'); }, 1800);
-                    }
+        const IS_LOGGED_IN = !!cfg.isLoggedIn;
+        const CSRF_NAME = cfg.csrfName;
+        const CSRF_VALUE = cfg.csrfValue;
+        const ADD_TO_TAB_URL = cfg.addToTabUrl;
+        const REMOVE_FROM_TAB_URL = cfg.removeFromTabUrl;
+        const START_GUEST_URL = cfg.startGuestUrl;
+        const TABS_URL = cfg.tabsUrl;
+        const CART_KEY = cfg.cartKey || "pos_cart_guest";
 
-                    // state
-                    let state = loadState();
-                    function loadState(){
-                      try{
-                        const o = JSON.parse(localStorage.getItem(CART_KEY) || '{"items":{}}');
-                        for(const it of Object.values(o.items||{})){
-                          it.price = +it.price || 0;
-                          it.qty = +it.qty || 0;
-                          it.pending = +it.pending || 0;
-                        }
-                        return { items: o.items || {} };
-                      }catch(_){ return { items:{} }; }
-                    }
-                    function saveState(){ localStorage.setItem(CART_KEY, JSON.stringify(state)); }
+        const fmt = new Intl.NumberFormat("nl-BE", {
+          style: "currency",
+          currency: "EUR",
+        });
 
-                    // DOM
-                    const drinksListEl = document.getElementById('drinksList');
-                    const cartItemsEl = document.getElementById('cartItems');
-                    const totalEl = document.getElementById('cartTotal');
+        /* --------------------------
+     Toast + Local Cart State
+  ---------------------------*/
+        const noticeEl = document.getElementById("notice");
+        function toast(msg) {
+          if (!noticeEl) return;
+          noticeEl.textContent = msg;
+          noticeEl.classList.remove("hidden");
+          requestAnimationFrame(() => (noticeEl.style.opacity = 1));
+          setTimeout(() => {
+            noticeEl.style.opacity = 0;
+            noticeEl.classList.add("hidden");
+          }, 1800);
+        }
 
-                    function renderCart(){
-                      if (!cartItemsEl || !totalEl) return;
-                      cartItemsEl.innerHTML = '';
-                      const items = Object.values(state.items);
-                      if (!items.length){
-                        cartItemsEl.innerHTML = '<p class="dmeta">Nog geen items. Voeg links drankjes toe.</p>';
-                        totalEl.textContent = fmt.format(0);
-                        return;
-                      }
-                      let total = 0;
-                      for (const it of items){
-                        total += it.price * it.qty;
-                        const row = document.createElement('div');
-                        row.className = 'cart-row';
-                        row.innerHTML = `
-                          <div class="line"><strong>${it.title}</strong><br>
-                            <span>${fmt.format(it.price)} × ${it.qty}${IS_LOGGED_IN && it.pending>0 ? ` <em style="opacity:.7">(+${it.pending} in wachtrij)</em>`:''}</span>
-                          </div>
-                          <div class="qty">
-                            <button class="qbtn" data-action="dec" data-id="${it.id}">−</button>
-                            <button class="qbtn" data-action="inc" data-id="${it.id}">＋</button>
-                          </div>`;
-                        cartItemsEl.appendChild(row);
-                      }
-                      totalEl.textContent = fmt.format(total);
-                    }
+        let state = loadState();
+        function loadState() {
+          try {
+            const o = JSON.parse(
+              localStorage.getItem(CART_KEY) || '{"items":{}}'
+            );
+            for (const it of Object.values(o.items || {})) {
+              it.price = +it.price || 0;
+              it.qty = +it.qty || 0;
+              it.pending = +it.pending || 0;
+            }
+            return { items: o.items || {} };
+          } catch (_) {
+            return { items: {} };
+          }
+        }
+        function saveState() {
+          localStorage.setItem(CART_KEY, JSON.stringify(state));
+        }
 
-                    // server (only when logged in)
-                    async function addOneServer(id){
-                      const body = new URLSearchParams();
-                      body.append('drinkId', id);
-                      body.append('qty', '1');
-                      body.append(CSRF_NAME, CSRF_VALUE);
-                      const res = await fetch(ADD_TO_TAB_URL, {
-                        method:'POST',
-                        headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
-                        body: body.toString()
-                      });
-                      const j = await res.json().catch(()=>({}));
-                      if(!res.ok || !j.success) throw new Error('server add failed');
-                      return j.merged ? 'Aantal verhoogd!' : 'Toegevoegd aan je rekening!';
-                    }
-                    async function removeOneServer(id){
-                      if(!REMOVE_FROM_TAB_URL) return;
-                      const body = new URLSearchParams();
-                      body.append('drinkId', id);
-                      body.append('qty', '1');
-                      body.append(CSRF_NAME, CSRF_VALUE);
-                      await fetch(REMOVE_FROM_TAB_URL, {
-                        method:'POST',
-                        headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
-                        body: body.toString()
-                      });
-                    }
+        /* --------------------------
+     DOM + Cart Rendering
+  ---------------------------*/
+        const drinksListEl = document.getElementById("drinksList");
+        const cartItemsEl = document.getElementById("cartItems");
+        const totalEl = document.getElementById("cartTotal");
 
-                    // add / inc / dec
-                    async function addOne(id, title, price){
-                      const it = state.items[id] || { id, title, price:+price||0, qty:0, pending:0 };
-                      it.qty += 1;
-                      if (IS_LOGGED_IN) it.pending += 1;
-                      state.items[id] = it; saveState(); renderCart();
+        function renderCart() {
+          if (!cartItemsEl || !totalEl) return;
+          cartItemsEl.innerHTML = "";
+          const items = Object.values(state.items);
+          if (!items.length) {
+            cartItemsEl.innerHTML =
+              '<p class="dmeta">Nog geen items. Voeg links drankjes toe.</p>';
+            totalEl.textContent = fmt.format(0);
+            return;
+          }
+          let total = 0;
+          for (const it of items) {
+            total += it.price * it.qty;
+            const pendingNote =
+              IS_LOGGED_IN && it.pending > 0
+                ? ' <em style="opacity:.7">(+ ' +
+                  it.pending +
+                  " in wachtrij)</em>"
+                : "";
+            const row = document.createElement("div");
+            row.className = "cart-row";
+            row.innerHTML =
+              '<div class="line"><strong>' +
+              it.title +
+              "</strong><br>" +
+              "<span>" +
+              fmt.format(it.price) +
+              " × " +
+              it.qty +
+              pendingNote +
+              "</span>" +
+              "</div>" +
+              '<div class="qty">' +
+              '<button class="qbtn" data-action="dec" data-id="' +
+              it.id +
+              '">−</button>' +
+              '<button class="qbtn" data-action="inc" data-id="' +
+              it.id +
+              '">＋</button>' +
+              "</div>";
+            cartItemsEl.appendChild(row);
+          }
+          totalEl.textContent = fmt.format(total);
+        }
 
-                      if (IS_LOGGED_IN){
-                        try{
-                          const msg = await addOneServer(id);
-                          const now = state.items[id];
-                          if (now){ now.pending = Math.max(0, now.pending-1); saveState(); renderCart(); }
-                          toast(msg);
-                        }catch(_){ toast('Wachten op verbinding… item blijft in de wachtrij.'); }
-                      }
-                    }
-                    async function inc(id){
-                      const it = state.items[id]; if(!it) return;
-                      await addOne(it.id, it.title, it.price);
-                    }
-                    async function dec(id){
-                      const it = state.items[id]; if (!it) return;
-                      if (IS_LOGGED_IN && it.pending>0){
-                        it.pending--; it.qty--;
-                        if (it.qty<=0) delete state.items[id];
-                        saveState(); renderCart();
-                        return;
-                      }
-                      it.qty--;
-                      if (it.qty<=0) delete state.items[id];
-                      saveState(); renderCart();
-                      if (IS_LOGGED_IN) { try{ await removeOneServer(id); }catch(_){} }
-                    }
+        /* --------------------------
+     Server sync helpers
+  ---------------------------*/
+        async function addOneServer(id) {
+          const body = new URLSearchParams();
+          body.append("drinkId", id);
+          body.append("qty", "1");
+          body.append(CSRF_NAME, CSRF_VALUE);
+          const res = await fetch(ADD_TO_TAB_URL, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: body.toString(),
+          });
+          const j = await res.json().catch(() => ({}));
+          if (!res.ok || !j.success) throw new Error("server add failed");
+          return j.merged ? "Aantal verhoogd!" : "Toegevoegd aan je rekening!";
+        }
 
-                    async function flushPending(){
-                      if (!IS_LOGGED_IN) return;
-                      const items = Object.values(state.items);
-                      for (const it of items){
-                        let n = Math.min(20, it.pending||0);
-                        while(n-- > 0){
-                          try{
-                            const msg = await addOneServer(it.id);
-                            it.pending = Math.max(0, it.pending-1); saveState(); renderCart();
-                            if (n === it.pending) toast(`${it.title}: ${msg}`);
-                          }catch(_){ break; }
-                        }
-                      }
-                    }
+        async function removeOneServer(id) {
+          if (!REMOVE_FROM_TAB_URL) return;
+          const body = new URLSearchParams();
+          body.append("drinkId", id);
+          body.append("qty", "1");
+          body.append(CSRF_NAME, CSRF_VALUE);
+          await fetch(REMOVE_FROM_TAB_URL, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: body.toString(),
+          });
+        }
 
-                    // ---- Event delegation for add buttons (robust for guests) ----
-                    if (drinksListEl){
-                      drinksListEl.addEventListener('click', (e)=>{
-                        const btn = e.target.closest('.add-btn');
-                        if (!btn) return;
-                        const row = btn.closest('.drink-row');
-                        if (!row) return;
-                        const id = row.dataset.id;
-                        const title = row.dataset.title;
-                        const price = parseFloat(row.dataset.price || '0');
-                        if (!id || !title) return;
-                        addOne(id, title, price);
-                      });
-                    }
+        /* --------------------------
+     Add / Inc / Dec
+  ---------------------------*/
+        async function addOne(id, title, price) {
+          const it = state.items[id] || {
+            id,
+            title,
+            price: +price || 0,
+            qty: 0,
+            pending: 0,
+          };
+          it.qty += 1;
+          if (IS_LOGGED_IN) it.pending += 1;
+          state.items[id] = it;
+          saveState();
+          renderCart();
 
-                    // qty buttons (delegated)
-                    if (cartItemsEl){
-                      cartItemsEl.addEventListener('click', (e)=>{
-                        const b = e.target.closest('.qbtn'); if(!b) return;
-                        const id = b.dataset.id; const a = b.dataset.action;
-                        if (a === 'inc') inc(id); else dec(id);
-                      });
-                    }
-
-                    // search/filter
-                    const searchEl = document.getElementById('search');
-                    const filterCatEl = document.getElementById('filterCat');
-                    function applyFilters(){
-                      const term = (searchEl?.value||'').trim().toLowerCase();
-                      const cat = (filterCatEl?.value||'').trim().toLowerCase();
-                      document.querySelectorAll('.drink-row').forEach(row=>{
-                        const matchName = row.dataset.name.includes(term);
-                        const matchCat  = !cat || row.dataset.cat === cat;
-                        const visible   = row.dataset.visible === '1';
-                        row.style.display = (matchName && matchCat && visible) ? '' : 'none';
-                      });
-                    }
-                    searchEl?.addEventListener('input', applyFilters);
-                    filterCatEl?.addEventListener('change', applyFilters);
-
-                    // guest checkout modal
-                    const payBtn = document.querySelector('.btn-pay');
-                    const modal = document.getElementById('guestModal');
-                    const guestName = document.getElementById('guestName');
-                    const guestTable = document.getElementById('guestTable');
-                    const guestCancel = document.getElementById('guestCancel');
-                    const guestConfirm = document.getElementById('guestConfirm');
-                    const guestError = document.getElementById('guestError');
-
-                    if (payBtn){
-                      payBtn.addEventListener('click', async (e)=>{
-                        if (IS_LOGGED_IN){
-                          e.preventDefault();
-                          const original = payBtn.textContent;
-                          payBtn.textContent = 'Synchroniseren…';
-                          payBtn.style.pointerEvents = 'none';
-                          payBtn.setAttribute('disabled', 'disabled');
-                          try{ await flushPending(); }catch(_){}
-                          setTimeout(()=>{ window.location.href = payBtn.href; }, 150);
-                        } else {
-                          e.preventDefault();
-                          if (modal){ modal.style.display = 'block'; }
-                          if (guestError){ guestError.style.display = 'none'; }
-                          guestName?.focus();
-                        }
-                      });
-                    }
-                    guestCancel?.addEventListener('click', ()=> modal && (modal.style.display='none'));
-
-                   guestConfirm?.addEventListener('click', async ()=>{
-              const name = (guestName?.value||'').trim();
-              const table = (guestTable?.value||'').trim();
-              if (!name){ guestError.style.display='block'; return; }
-
-              const items = Object.values(state.items).filter(it=>it.qty>0).map(it=>({ id: it.id, qty: it.qty }));
-              if (!items.length){ toast('Je mandje is leeg.'); if (modal) modal.style.display='none'; return; }
-
-              const body = new URLSearchParams();
-              body.append('name', name);
-              body.append('table', table);
-              body.append('cart', JSON.stringify(items));
-              body.append(CSRF_NAME, CSRF_VALUE);
-
-              guestConfirm.setAttribute('disabled','disabled');
-              guestConfirm.textContent='Aanmaken…';
-
-              try{
-                const res = await fetch(START_GUEST_URL, {
-                  method:'POST',
-                  headers:{ 'Accept':'application/json','Content-Type':'application/x-www-form-urlencoded' },
-                  body: body.toString()
-                });
-                const text = await res.text();
-                let j = {};
-                try { j = JSON.parse(text); } catch(_) {}
-               // after a successful start-guest response
-      if (j.tabId) {
-        localStorage.setItem('guest_last_tab', String(j.tabId));
-      }
-      state = { items:{} };
-      saveState();
-      window.location.href = j.redirect || '{{ url('tabs') }}';
-
-              }catch(e){
-                guestConfirm.removeAttribute('disabled');
-                guestConfirm.textContent='Bevestigen & afrekenen';
-                toast(e.message || 'Kon geen gastrekening aanmaken.');
+          if (IS_LOGGED_IN) {
+            try {
+              const msg = await addOneServer(id);
+              const now = state.items[id];
+              if (now) {
+                now.pending = Math.max(0, now.pending - 1);
+                saveState();
+                renderCart();
               }
+              toast(msg);
+            } catch (_) {
+              toast("Wachten op verbinding… item blijft in de wachtrij.");
+            }
+          }
+        }
+
+        async function inc(id) {
+          const it = state.items[id];
+          if (!it) return;
+          await addOne(it.id, it.title, it.price);
+        }
+        async function dec(id) {
+          const it = state.items[id];
+          if (!it) return;
+          if (IS_LOGGED_IN && it.pending > 0) {
+            it.pending--;
+            it.qty--;
+            if (it.qty <= 0) delete state.items[id];
+            saveState();
+            renderCart();
+            return;
+          }
+          it.qty--;
+          if (it.qty <= 0) delete state.items[id];
+          saveState();
+          renderCart();
+          if (IS_LOGGED_IN) {
+            try {
+              await removeOneServer(id);
+            } catch (_) {}
+          }
+        }
+
+        async function flushPending() {
+          if (!IS_LOGGED_IN) return;
+          const items = Object.values(state.items);
+          for (const it of items) {
+            let n = Math.min(20, it.pending || 0);
+            while (n-- > 0) {
+              try {
+                const msg = await addOneServer(it.id);
+                it.pending = Math.max(0, it.pending - 1);
+                saveState();
+                renderCart();
+                if (n === it.pending) toast(it.title + ": " + msg);
+              } catch (_) {
+                break;
+              }
+            }
+          }
+        }
+
+        /* --------------------------
+     Events
+  ---------------------------*/
+        drinksListEl?.addEventListener("click", (e) => {
+          const btn = e.target.closest(".add-btn");
+          if (!btn) return;
+          const row = btn.closest(".drink-row");
+          if (!row) return;
+          const id = row.dataset.id;
+          const title = row.dataset.title;
+          const price = parseFloat(row.dataset.price || "0");
+          if (!id || !title) return;
+          addOne(id, title, price);
+        });
+
+        cartItemsEl?.addEventListener("click", (e) => {
+          const b = e.target.closest(".qbtn");
+          if (!b) return;
+          const id = b.dataset.id;
+          const a = b.dataset.action;
+          if (a === "inc") inc(id);
+          else dec(id);
+        });
+
+        const searchEl = document.getElementById("search");
+        const filterCatEl = document.getElementById("filterCat");
+        function applyFilters() {
+          const term = (searchEl?.value || "").trim().toLowerCase();
+          const cat = (filterCatEl?.value || "").trim().toLowerCase();
+          document.querySelectorAll(".drink-row").forEach((row) => {
+            const matchName = row.dataset.name.includes(term);
+            const matchCat = !cat || row.dataset.cat === cat;
+            const visible = row.dataset.visible === "1";
+            row.style.display = matchName && matchCat && visible ? "" : "none";
+          });
+        }
+        searchEl?.addEventListener("input", applyFilters);
+        filterCatEl?.addEventListener("change", applyFilters);
+
+        /* --------------------------
+     Guest checkout modal
+  ---------------------------*/
+        const payBtn = document.querySelector(".btn-pay");
+        const modal = document.getElementById("guestModal");
+        const guestName = document.getElementById("guestName");
+        const guestTable = document.getElementById("guestTable");
+        const guestCancel = document.getElementById("guestCancel");
+        const guestConfirm = document.getElementById("guestConfirm");
+        const guestError = document.getElementById("guestError");
+
+        payBtn?.addEventListener("click", async (e) => {
+          e.preventDefault();
+          if (IS_LOGGED_IN) {
+            payBtn.textContent = "Synchroniseren…";
+            payBtn.style.pointerEvents = "none";
+            payBtn.setAttribute("disabled", "disabled");
+            try {
+              await flushPending();
+            } catch (_) {}
+            setTimeout(() => {
+              window.location.href = TABS_URL;
+            }, 150);
+          } else {
+            if (modal) {
+              modal.style.display = "block";
+            }
+            if (guestError) {
+              guestError.style.display = "none";
+            }
+            guestName?.focus();
+          }
+        });
+        guestCancel?.addEventListener("click", () => {
+          if (modal) modal.style.display = "none";
+        });
+
+        guestConfirm?.addEventListener("click", async () => {
+          const name = (guestName?.value || "").trim();
+          const table = (guestTable?.value || "").trim();
+          if (!name) {
+            if (guestError) guestError.style.display = "block";
+            return;
+          }
+
+          const items = Object.values(state.items)
+            .filter((it) => it.qty > 0)
+            .map((it) => ({ id: it.id, qty: it.qty }));
+          if (!items.length) {
+            toast("Je mandje is leeg.");
+            if (modal) modal.style.display = "none";
+            return;
+          }
+
+          const body = new URLSearchParams();
+          body.append("name", name);
+          body.append("table", table);
+          body.append("cart", JSON.stringify(items));
+          body.append(CSRF_NAME, CSRF_VALUE);
+
+          guestConfirm.setAttribute("disabled", "disabled");
+          guestConfirm.textContent = "Aanmaken…";
+
+          try {
+            const res = await fetch(START_GUEST_URL, {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: body.toString(),
             });
+            const text = await res.text();
+            let j = {};
+            try {
+              j = JSON.parse(text);
+            } catch (_) {}
+            if (j.tabId)
+              localStorage.setItem("guest_last_tab", String(j.tabId));
+            state = { items: {} };
+            saveState();
+            window.location.href = j.redirect || TABS_URL;
+          } catch (e) {
+            guestConfirm.removeAttribute("disabled");
+            guestConfirm.textContent = "Bevestigen & afrekenen";
+            toast(e.message || "Kon geen gastrekening aanmaken.");
+          }
+        });
 
-
-                    // init
-                    applyFilters();
-                    renderCart();
-                    flushPending();
-                  });
+        /* --------------------------
+     Init
+  ---------------------------*/
+        applyFilters();
+        renderCart();
+        flushPending();
+      });
     </script>
   </body>
 </html>

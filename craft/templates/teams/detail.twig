@@ -1,10 +1,11 @@
-{% set slug = craft.app.request.getSegment(2) %} {% set match =
-craft.entries().section(['ploegA','ploegB','ploegC']).slug(slug).one() %} {% if
-match %} {% set availabilityEntries = craft.entries() .section('availability')
-.relatedTo({ field: 'match', targetElement: match.id }) .all() %} {% set
-existingEntry = craft.entries() .section('availability') .relatedTo({ and: [ {
-field: 'match', targetElement: match.id }, { field: 'player', targetElement:
-currentUser.id } ] }).one() %} {% endif %}
+{% set slug = craft.app.request.getSegment(2) %} {% set match = craft.entries()
+.section(['ploegA','ploegB','ploegC']) .slug(slug) .one() %} {% if match %} {%
+set availabilityEntries = craft.entries() .section('availability') .relatedTo({
+field: 'match', targetElement: match.id }) .siteId(currentSite.id)
+.with(['player']) .all() %} {% set existingEntry = currentUser ? craft.entries()
+.section('availability') .relatedTo({ and: [ { field: 'match', targetElement:
+match.id }, { field: 'player', targetElement: currentUser.id } ] })
+.siteId(currentSite.id) .status(null) .one() : null %} {% endif %}
 
 <!DOCTYPE html>
 <html lang="nl">
@@ -29,15 +30,10 @@ currentUser.id } ] }).one() %} {% endif %}
         --ring: #e9e9e9;
         --shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
         --tint: #fff7f5;
-        --purple-700: #5e548e; /* default secondary */
-        --purple-900: #231942; /* deeper option */
-        --purple-50: #f3effa;
-        --purple-100: #ebe6f5;
+        --purple-700: #5e548e;
         --bg-gradient-start: #fffaf6;
         --bg-gradient-end: #f4e7e3;
       }
-
-      /* Layout */
 
       html {
         background-color: var(--bg-gradient-start);
@@ -62,19 +58,23 @@ currentUser.id } ] }).one() %} {% endif %}
         position: relative;
         overflow-x: hidden;
       }
-      /* Subtle animated wave band */
       body::before {
         content: "";
         position: fixed;
         inset: -10% -5% auto -5%;
         height: 140%;
         z-index: 1;
-        background: url("data:image/svg+xml,%3Csvg width='800' height='600' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 100 Q400 200 800 100 T1600 100 V600 H0 Z' fill='%235e548e' opacity='0.06'/%3E%3C/svg%3E");
-        background-repeat: repeat-x;
-        background-size: cover;
+        background: url("data:image/svg+xml,%3Csvg width='800' height='600' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 100 Q400 200 800 100 T1600 100 V600 H0 Z' fill='%235e548e' opacity='0.06'/%3E%3C/svg%3E")
+          repeat-x / cover;
         animation: floatBg 24s linear infinite;
         pointer-events: none;
       }
+      @keyframes floatBg {
+        to {
+          transform: translateX(-50%);
+        }
+      }
+
       main {
         margin-left: 200px;
         padding: 2rem;
@@ -82,7 +82,6 @@ currentUser.id } ] }).one() %} {% endif %}
         z-index: 1;
       }
 
-      /* Header actions */
       .top-actions {
         display: flex;
         justify-content: space-between;
@@ -100,9 +99,8 @@ currentUser.id } ] }).one() %} {% endif %}
         border-radius: 8px;
         font-weight: 700;
         text-decoration: none;
-        display: inline-block;
-        transition: background 0.15s ease, color 0.15s ease,
-          border-color 0.15s ease, transform 0.1s ease;
+        transition: background 0.15s, color 0.15s, border-color 0.15s,
+          transform 0.1s;
       }
       .btn:hover {
         background: var(--soft-red);
@@ -119,7 +117,6 @@ currentUser.id } ] }).one() %} {% endif %}
         border-color: var(--soft-red-dark);
       }
 
-      /* Title + meta */
       h1 {
         margin: 6px 0 4px;
         text-align: center;
@@ -133,7 +130,6 @@ currentUser.id } ] }).one() %} {% endif %}
         margin: 0 0 16px;
       }
 
-      /* Two-column layout */
       .grid {
         display: grid;
         grid-template-columns: minmax(320px, 1fr) minmax(320px, 420px);
@@ -142,7 +138,6 @@ currentUser.id } ] }).one() %} {% endif %}
         margin-left: 1rem;
       }
 
-      /* Panels */
       .panel {
         background: var(--card);
         border: 1px solid var(--ring);
@@ -161,7 +156,6 @@ currentUser.id } ] }).one() %} {% endif %}
         padding: 14px 16px;
       }
 
-      /* Forms inside partials (admin/player) */
       .panel-body form {
         max-width: 640px;
       }
@@ -182,11 +176,6 @@ currentUser.id } ] }).one() %} {% endif %}
         border-radius: 10px;
         background: #fff;
       }
-      .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
       .form-actions {
         margin-top: 12px;
         display: flex;
@@ -203,8 +192,7 @@ currentUser.id } ] }).one() %} {% endif %}
         border-radius: 10px;
         font-weight: 800;
         cursor: pointer;
-        transition: background 0.15s ease, border-color 0.15s ease,
-          transform 0.1s ease;
+        transition: background 0.15s, border-color 0.15s, transform 0.1s;
       }
       .panel-body button:hover,
       .panel-body input[type="submit"]:hover {
@@ -213,7 +201,6 @@ currentUser.id } ] }).one() %} {% endif %}
         transform: translateY(-1px);
       }
 
-      /* Availability list (right panel) */
       .availability-list {
         list-style: none;
         margin-left: 1rem;
@@ -250,7 +237,6 @@ currentUser.id } ] }).one() %} {% endif %}
         color: var(--soft-red-dark);
       }
 
-      /* Messages */
       #message-container {
         margin-top: 12px;
       }
@@ -271,14 +257,12 @@ currentUser.id } ] }).one() %} {% endif %}
         color: #991b1b;
       }
 
-      /* No data */
       .no-data {
         text-align: center;
         font-size: 16px;
         color: var(--muted);
       }
 
-      /* Responsive */
       @media (max-width: 980px) {
         .grid {
           grid-template-columns: 1fr;
@@ -318,8 +302,8 @@ currentUser.id } ] }).one() %} {% endif %}
         <span
           >Datum & tijd: <strong>{{ dt }}</strong></span
         >
-        {% set loc = match.address ?? match.location ?? '' %} {% if loc %}
-        &middot;
+        {% set loc = match.address ?? match.location ?? '' %} {% if loc
+        %}&middot;
         <span
           >Locatie: <strong>{{ loc }}</strong></span
         >{% endif %}

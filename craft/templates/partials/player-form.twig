@@ -1,12 +1,35 @@
-{% if existingEntry %}
-<div class="msg success">
-  Je hebt je al ingeschreven voor deze wedstrijd. {% if existingEntry.url is
-  defined %}
+{% set flashError = craft.app.session.getFlash('error') %} {% set flashSuccess =
+craft.app.session.getFlash('success') %} {% set postedEntry =
+craft.app.session.getFlash('entry') %} {% set hasFieldErrors = postedEntry and
+postedEntry.getErrors()|length %}
+
+<div id="message-container" class="message-stack" style="margin: 10px 0">
+  {% if flashSuccess %}
+  <div class="msg success">{{ flashSuccess }}</div>
+  {% endif %} {# Only show the generic flash if we don't have field-level errors
+  #} {% if flashError and not hasFieldErrors %}
+  <div class="msg error">{{ flashError }}</div>
+  {% endif %} {% if hasFieldErrors %}
+  <div class="msg error">
+    <ul style="margin: 0 0 0 1rem">
+      {% for field, errs in postedEntry.getErrors() %} {% for err in errs %}
+      <li>{{ err }}</li>
+      {% endfor %} {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</div>
+
+{# --- EXISTING GUARD: hide form if user already has an entry --- #} {% if
+existingEntry %}
+<div class="msg error">
+  Je hebt voor deze wedstrijd al een keuze doorgegeven. {% if existingEntry.url
+  is defined and existingEntry.url %}
   <a
     href="{{ existingEntry.url }}"
     class="btn btn-primary"
     style="margin-left: 8px"
-    >Bekijken</a
+    >Bekijk inzending</a
   >
   {% endif %}
 </div>
@@ -14,30 +37,32 @@
 <form method="post" accept-charset="UTF-8">
   {{ csrfInput() }}
   {{ actionInput("entries/save-entry") }}
-  {{
-    hiddenInput(
-      "sectionId",
-      craft.app.sections.getSectionByHandle("availability").id
-    )
-  }}
-  {{
-    hiddenInput(
-      "typeId",
-      craft.app.sections.getSectionByHandle("availability").getEntryTypes()[0]
-        .id
-    )
-  }}
 
-  {# Relate to match + player #}
-  {{ hiddenInput("fields[match][]", match.id) }}
-  {{ hiddenInput("fields[player][]", currentUser.id) }}
+  {# redirect back to this page and jump to message block #}
+  {{ redirectInput(craft.app.request.absoluteUrl ~ '#message-container') }}
 
-  {# Example extra fields (status/rank/note) — adapt to your handles #}
-  <label for="status">Status</label>
-  <select id="status" name="fields[status]">
-    <option value="aanwezig">Aanwezig</option>
-    <option value="afwezig">Afwezig</option>
-    <option value="twijfel">Twijfel</option>
+  <!-- 🔒 Hard-code YOUR IDs -->
+  <input type="hidden" name="sectionId" value="5" />
+  <input type="hidden" name="typeId" value="3" />
+  <input type="hidden" name="enabled" value="1" />
+
+  {% if currentUser and match %}
+  {{ hiddenInput('slug',  'm' ~ match.id ~ '-u' ~ currentUser.id) }}
+  {{ hiddenInput('title', (currentUser.friendlyName ?? currentUser.username) ~ ' – ' ~ match.title) }}
+  {% endif %}
+
+  <!-- Relations -->
+  {{ hiddenInput("fields[match][0]", match.id) }}
+  {{ hiddenInput("fields[player][0]", currentUser.id) }}
+
+  <!-- Default coach status (string) -->
+  {{ hiddenInput("fields[statusAdmin]", "nogTeBepalen") }}
+
+  <label for="availability">Beschikbaarheid</label>
+  <select id="availability" name="fields[availability]" required>
+    <option value="ja">Ja</option>
+    <option value="nee">Nee</option>
+    <option value="reserve">Reserve</option>
   </select>
 
   <div class="form-actions">

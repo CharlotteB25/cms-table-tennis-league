@@ -7,15 +7,175 @@ use craft\elements\Entry;
 use craft\events\ElementEvent;
 use craft\services\Elements;
 use yii\base\Event;
+use yii\base\Model;
+use yii\base\ModelEvent;
+
+
 
 class Module extends \yii\base\Module
 {
     private static bool $inProgress = false;
 
-    public function init(): void
-    {
-        parent::init();
-        Craft::info('HNO module booted', __METHOD__);
+   public function init(): void
+{
+    parent::init();
+    Craft::info('HNO module booted', __METHOD__);
+
+    // 0) Helper closure to resolve matchId/playerId even before normalization
+    $resolveIds = static function(Entry $el): array {
+        $matchId = null;
+        $playerId = null;
+
+        // Try normalized relations first
+        try { $m = $el->getFieldValue('match');  $matchId  = $m ? ($m->one()->id ?? null) : null; } catch (\Throwable $e) {}
+        try { $p = $el->getFieldValue('player'); $playerId = $p ? ($p->one()->id ?? null) : null; } catch (\Throwable $e) {}
+
+        // Fallback to POST payload if still missing
+        if (!$matchId || !$playerId) {
+            $req = Craft::$app->getRequest();
+            if ($req->getIsPost()) {
+                $fields = (array)$req->getBodyParam('fields', []);
+                // Accept both [0] and flat values
+                $rawMatch  = $fields['match']  ?? null;
+                $rawPlayer = $fields['player'] ?? null;
+
+                $rawMatchIds  = is_array($rawMatch)  ? $rawMatch  : [$rawMatch];
+                $rawPlayerIds = is_array($rawPlayer) ? $rawPlayer : [$rawPlayer];
+
+                $matchId  = $matchId  ?: (int)($rawMatchIds[0]  ?? 0) ?: null;
+                $playerId = $playerId ?: (int)($rawPlayerIds[0] ?? 0) ?: null;
+            }
+        }
+        return [$matchId, $playerId];
+    };
+
+    // 1) EARLY GUARD: BEFORE_VALIDATE (runs before Craft generates unique slugs)
+    Event::on(
+        Entry::class,
+        Model::EVENT_BEFORE_VALIDATE,
+        function (ModelEvent $e) use ($resolveIds) {
+            /** @var Entry $el */
+            $el = $e->sender;
+            $section = $el->getSection();
+            if (!$section || $section->handle !== 'availability') return;
+
+            // Ignore drafts/revisions/propagations/non-canonical
+            if ((method_exists($el, 'getIsDraft') && $el->getIsDraft())
+                || (method_exists($el, 'getIsRevision') && $el->getIsRevision())
+                || (method_exists($el, 'getIsCanonical') && !$el->getIsCanonical())) {
+                return;
+            }
+
+            // Only care on create (not edits)
+            if ($el->id) return;
+
+            // Resolve IDs as early as possible
+            [$matchId, $playerId] = $resolveIds($el);
+            if (!$matchId || !$playerId) return;
+
+            // Force a deterministic slug so the user/admin paths behave the same
+            $fixedSlug = "m{$matchId}-u{$playerId}";
+            $el->slug = $fixedSlug;
+
+            // Slug-based dupe (most reliable because it doesn’t require normalized relations)
+            $slugDupe = Entry::find()
+                ->section('availability')
+                ->siteId($el->siteId)     // use ->site('*') if you want cross-site uniqueness
+                ->status(null)
+                ->slug($fixedSlug)
+                ->one();
+    if ($slugDupe) {
+    $el->addError('availability', 'Je hebt voor deze wedstrijd al een keuze doorgegeven.');
+    Craft::$app->getSession()->setError('Je hebt voor deze wedstrijd al een keuze doorgegeven.');
+    Craft::$app->getSession()->setFlash('entry', $el);
+    Craft::$app->getUrlManager()->setRouteParams(['entry' => $el]);
+    $e->isValid = false;
+    return;
+}
+
+            // Relation-based dupe (secondary safety net)
+            $dupe = Entry::find()
+                ->section('availability')
+                ->siteId($el->siteId)
+                ->status(null)
+                ->relatedTo([
+                    'and',
+                    ['field' => 'match',  'targetElement' => $matchId],
+                    ['field' => 'player', 'targetElement' => $playerId],
+                ])
+                ->one();
+
+            if ($dupe) {
+                $el->addError('availability', 'Je hebt je voor deze wedstrijd al een keuze doorgegeven.');
+                $e->isValid = false;
+            }
+        }
+    );
+
+    // 2) (Optional) Keep your BEFORE_SAVE guard — it’s fine to leave it,
+    //    but it will almost never be reached if BEFORE_VALIDATE blocked already.
+    Event::on(
+        Elements::class,
+        Elements::EVENT_BEFORE_SAVE_ELEMENT,
+        function (ElementEvent $e) use ($resolveIds) {
+            $el = $e->element;
+            if (!$el instanceof Entry) return;
+
+            // Ignore propagations/drafts/revisions/non-canonical
+            $isPropagation = isset($e->isPropagation) ? (bool)$e->isPropagation : false;
+            if ($isPropagation) return;
+            if ((method_exists($el, 'getIsDraft') && $el->getIsDraft())
+                || (method_exists($el, 'getIsRevision') && $el->getIsRevision())
+                || (method_exists($el, 'getIsCanonical') && !$el->getIsCanonical())) {
+                return;
+            }
+
+            $section = $el->getSection();
+            if (!$section || $section->handle !== 'availability') return;
+
+            // Only for new
+            if (!($e->isNew ?? false)) return;
+
+            // Slug guard (in case BEFORE_VALIDATE didn’t run for some reason)
+            $incomingSlug = (string)($el->slug ?? '');
+            if ($incomingSlug !== '') {
+                $slugDupe = Entry::find()
+                    ->section('availability')
+                    ->siteId($el->siteId)
+                    ->status(null)
+                    ->slug($incomingSlug)
+                    ->one();
+         if ($slugDupe) {
+    $el->addError('availability', 'Je hebt voor deze wedstrijd al een keuze doorgegeven.');
+    Craft::$app->getSession()->setError('Je hebt voor deze wedstrijd al een keuze doorgegeven.');
+    Craft::$app->getSession()->setFlash('entry', $el);
+    Craft::$app->getUrlManager()->setRouteParams(['entry' => $el]);
+    $e->isValid = false;
+    return;
+}
+            }
+
+            // Relation fallback
+            [$matchId, $playerId] = $resolveIds($el);
+            if ($matchId && $playerId) {
+                $dupe = Entry::find()
+                    ->section('availability')
+                    ->siteId($el->siteId)
+                    ->status(null)
+                    ->relatedTo([
+                        'and',
+                        ['field' => 'match',  'targetElement' => $matchId],
+                        ['field' => 'player', 'targetElement' => $playerId],
+                    ])
+                    ->one();
+                if ($dupe) {
+                    $el->addError('availability', 'Je hebt je voor deze wedstrijd al een keuze doorgegeven.');
+                    $e->isValid = false;
+                }
+            }
+        }
+    );
+
 
         Event::on(
             Elements::class,
@@ -31,6 +191,7 @@ class Module extends \yii\base\Module
                 if (!$el instanceof Entry) {
                     return;
                 }
+                
 
                 // --- Suppress common duplicate triggers ---
                 // 1) Ignore propagation saves

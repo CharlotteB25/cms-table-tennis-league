@@ -2,14 +2,24 @@
 
 {% if entries|length %}
 <ul class="availability-list">
-  {% for availability in entries %}
+  {% for availability in entries %} {% set user = availability.player.one() %}
+  {# Read the dropdowns. In Craft, Dropdown fields return a small object with
+  "value" & "label". Fall back to the raw if it’s already a string. #} {% set a
+  = availability.getFieldValue('availability') %} {% set availabilityValue = (a
+  is object and attribute(a,'value') is defined) ? attribute(a,'value') : a %}
+  {% set s = availability.getFieldValue('statusAdmin') %} {% set statusValue =
+  (s is object and attribute(s,'value') is defined) ? attribute(s,'value') : s
+  %}
+
   <li class="availability-item">
     <span class="label">Speler:</span>
-    <span>{{ availability.player.one().username }}</span>
+    <span>{{ user ? user.friendlyName ?? user.username : "—" }}</span>
+
     <span class="label">Beschikbaarheid:</span>
-    <span>{{ availability.availability }}</span>
+    <span>{{ availabilityValue ?? "—" }}</span>
+
     <span class="label">Status:</span>
-    <span>{{ availability.statusAdmin.label }}</span>
+    <span>{{ statusValue ?? "nogTeBepalen" }}</span>
 
     {% if currentUser and currentUser.admin %} {% include
     'partials/status-form.twig' with { availability: availability } %} {% endif

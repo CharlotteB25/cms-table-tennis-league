@@ -1,22 +1,27 @@
 <style>
   /* ================================
-   Curved Mid-Viewport Sidebar Nav
-   ================================ */
+     Curved Mid-Viewport Sidebar Nav
+     ================================ */
 
-  /* palette hook (uses your existing variables) */
   :root {
     --nav-w: 220px;
+    --topbar-h: 56px; /* mobile top bar height */
+    --nav-margin-y: 20px; /* breathing room for desktop */
   }
 
-  /* the new sidebar */
+  /* --- Sidebar (desktop) — fits viewport --- */
   nav.app-nav {
     position: fixed;
     left: 20px;
     top: 50%;
     transform: translateY(-50%);
     width: var(--nav-w);
-    min-height: 900px;
 
+    /* fit within viewport */
+    height: clamp(520px, calc(100vh - var(--nav-margin-y) * 2), 820px);
+    overflow: hidden; /* keep inner glow & content contained */
+
+    /* visuals (restored) */
     padding: 1rem 0.75rem;
     color: #fff;
     background: linear-gradient(
@@ -28,9 +33,15 @@
     border-radius: 16px;
     display: flex;
     flex-direction: column;
-    z-index: 3;
+    z-index: 30;
   }
-  /* subtle edge sheen + inner shadow for depth */
+  @supports (height: 100dvh) {
+    nav.app-nav {
+      height: clamp(520px, calc(100dvh - var(--nav-margin-y) * 2), 820px);
+    }
+  }
+
+  /* sheen + inner shadow */
   nav.app-nav::before,
   nav.app-nav::after {
     content: "";
@@ -54,9 +65,11 @@
     clip-path: inherit;
   }
 
+  /* header row */
   nav.app-nav h2 {
-    display: flex; /* was display:none */
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 0.6rem;
     margin: 0.25rem 0.25rem 1rem;
     font-size: 1rem;
@@ -75,7 +88,7 @@
     width: 28px;
     height: 28px;
     display: block;
-    border-radius: 6px; /* looks neat with your rounded nav */
+    border-radius: 6px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
   }
 
@@ -88,11 +101,14 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+
+    /* scrolling tweaks */
     overflow: auto;
-  }
-  nav.app-nav li {
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable both-edges;
   }
 
+  /* links */
   nav.app-nav a {
     display: flex;
     align-items: center;
@@ -105,8 +121,20 @@
     border-radius: 12px;
     transition: background 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
   }
+  nav.app-nav a:hover {
+    background: rgba(255, 255, 255, 0.14);
+    opacity: 1;
+    transform: translateX(2px);
+  }
+  nav.app-nav a.active,
+  nav.app-nav a[aria-current="page"] {
+    background: var(--cream);
+    color: var(--soft-red-dark);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    opacity: 1;
+  }
 
-  /* icon placeholders if you add SVGs later */
+  /* icon placeholder */
   nav.app-nav a .ico {
     inline-size: 1.15rem;
     block-size: 1.15rem;
@@ -116,136 +144,298 @@
     background: rgba(255, 255, 255, 0.12);
   }
 
-  nav.app-nav a:hover {
-    background: rgba(255, 255, 255, 0.14);
-    opacity: 1;
-    transform: translateX(2px);
-  }
-
-  /* active/current */
-  nav.app-nav a.active,
-  nav.app-nav a[aria-current="page"] {
-    background: var(--cream); /* persistent dark red */
-    color: var(--soft-red-dark); /* keep text white for contrast */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
-    opacity: 1;
-  }
-
-  /* ensure page content doesn’t sit underneath the nav */
+  /* content offset (desktop) */
   main {
-    margin-left: calc(var(--nav-w) + 25px);
+    margin-left: calc(var(--nav-w) + 70px);
   }
 
-  /* mobile: flatten to full-height bar (no clip-path) */
+  /* --- Controls & overlay --- */
+  .nav-toggle {
+    display: none;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    inline-size: 40px;
+    block-size: 40px;
+    border-radius: 10px;
+  }
+  .nav-toggle:focus-visible {
+    outline: 2px solid var(--cream);
+    outline-offset: 2px;
+  }
+  .nav-toggle .bar {
+    display: block;
+    height: 2px;
+    width: 22px;
+    margin: 4px auto;
+    background: #fff;
+    border-radius: 2px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .nav-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: saturate(120%) blur(2px);
+    z-index: 29;
+  }
+
+  /* ---------- ≤ 960px: left-pinned full height ---------- */
   @media (max-width: 960px) {
     nav.app-nav {
       top: 0;
       transform: none;
       height: 100vh;
-      min-height: auto;
       border-radius: 0;
       clip-path: none;
       width: var(--nav-w);
     }
     main {
       margin-left: var(--nav-w);
+      margin-top: 0;
     }
   }
+
+  /* ---------- ≤ 700px: top bar + compact drawer ---------- */
   @media (max-width: 700px) {
+    /* top bar */
     nav.app-nav {
-      position: fixed;
-      width: 100vw;
+      left: 0;
+      right: 0;
+      top: 0;
       height: auto;
-      padding: 0.5rem;
-      clip-path: none;
+      width: 100vw;
+      padding: 0.375rem 0.5rem;
       border-radius: 0;
       display: block;
     }
-    nav.app-nav ul {
+    nav.app-nav h2 {
+      gap: 0.5rem;
+      font-size: 0.95rem;
+      margin: 0 0.5rem 0.5rem 0.25rem;
+    }
+    nav.app-nav h2 img {
+      width: 22px;
+      height: 22px;
+      border-radius: 5px;
+    }
+
+    /* smaller button */
+    .nav-toggle {
+      display: inline-block;
+      inline-size: 36px;
+      block-size: 36px;
+      border-radius: 9px;
+    }
+    .nav-toggle .bar {
+      width: 18px;
+      height: 2px;
+      margin: 3px auto;
+    }
+
+    /* drawer (use width that keeps labels readable) */
+    .nav-panel {
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 0px) + var(--topbar-h));
+      left: 0;
+      bottom: 0;
+      width: min(80vw, 320px);
+      background: linear-gradient(
+        180deg,
+        color-mix(in oklab, var(--soft-red) 92%, #fff 8%),
+        var(--soft-red-dark)
+      );
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+      border-top-right-radius: 16px;
+      border-bottom-right-radius: 16px;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      z-index: 31;
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
+    }
+    .nav-panel ul {
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
       overflow: auto;
-      gap: 0.35rem;
     }
-    nav.app-nav a {
-      border-radius: 10px;
+
+    /* open state */
+    nav.app-nav.is-open .nav-panel {
+      transform: translateX(0);
     }
+    nav.app-nav.is-open .nav-overlay {
+      display: block;
+    }
+
+    /* compact X animation */
+    nav.app-nav.is-open .nav-toggle .bar:nth-child(1) {
+      transform: translateY(5px) rotate(45deg);
+    }
+    nav.app-nav.is-open .nav-toggle .bar:nth-child(2) {
+      opacity: 0;
+    }
+    nav.app-nav.is-open .nav-toggle .bar:nth-child(3) {
+      transform: translateY(-5px) rotate(-45deg);
+    }
+
+    /* content offset under the bar */
     main {
       margin-left: 0;
-      margin-top: 64px;
-    } /* push content below bar */
+      margin-top: var(--topbar-h);
+    }
+  }
+
+  /* Hover subtlety on devices that support hover */
+  @media (hover: hover) {
+    nav.app-nav a:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateX(1px);
+    }
+  }
+
+  /* Motion-respect */
+  @media (prefers-reduced-motion: reduce) {
+    .nav-toggle .bar,
+    .nav-panel {
+      transition: none !important;
+    }
   }
 </style>
 
-<nav class="app-nav">
+<nav class="app-nav" data-nav>
   <h2>
     <a href="{{ url('index') }}">
       <img src="{{ siteUrl('uploads/favicon/favicon.ico') }}" alt="Favicon" />
       HNO Menu
     </a>
+    <button
+      class="nav-toggle"
+      aria-controls="app-nav-panel"
+      aria-expanded="false"
+      aria-label="Open menu"
+    >
+      <span class="bar"></span><span class="bar"></span
+      ><span class="bar"></span>
+    </button>
   </h2>
-  <ul>
-    {% if currentUser %} {% if currentUser.admin %}
-    <li>
-      <a
-        href="{{ url('drinks/admin') }}"
-        class="{{ craft.app.request.pathInfo == 'drinks/admin' ? 'active' }}"
-      >
-        Beheer Drankjes
-      </a>
-    </li>
-    <li>
-      <a
-        href="{{ url('teams/admin') }}"
-        class="{{ craft.app.request.pathInfo == 'teams/admin' ? 'active' }}"
-      >
-        Beheer Planning
-      </a>
-    </li>
-    <li>
-      <a
-        href="{{ url('tabs/admin') }}"
-        class="{{ craft.app.request.pathInfo == 'tabs/admin' ? 'active' }}"
-      >
-        Beheer Rekeningen
-      </a>
-    </li>
-    {% else %}
-    <li>
-      <a
-        href="{{ url('drinks') }}"
-        class="{{ craft.app.request.pathInfo == 'drinks' ? 'active' }}"
-      >
-        Bestel Drankjes
-      </a>
-    </li>
-    <li>
-      <a
-        href="{{ url('teams/admin') }}"
-        class="{{ craft.app.request.pathInfo == 'teams/admin' ? 'active' }}"
-      >
-        Speeldata
-      </a>
-    </li>
-    <li>
-      <a
-        href="{{ url('tabs') }}"
-        class="{{ craft.app.request.pathInfo == 'tabs' ? 'active' }}"
-      >
-        Rekeningen
-      </a>
-    </li>
-    {% endif %}
-    <li><a href="{{ url('logout') }}">Uitloggen</a></li>
-    {% else %}
-    <li>
-      <a
-        href="{{ url('login') }}"
-        class="{{ craft.app.request.pathInfo == 'login' ? 'active' }}"
-      >
-        Login
-      </a>
-    </li>
-    {% endif %}
-  </ul>
+
+  <!-- Overlay (shown when .is-open) -->
+  <div class="nav-overlay" data-overlay></div>
+
+  <!-- Drawer on mobile; normal container on desktop -->
+  <div class="nav-panel" id="app-nav-panel" data-panel>
+    <ul>
+      {% if currentUser %} {% if currentUser.admin %}
+      <li>
+        <a
+          href="{{ url('drinks/admin') }}"
+          class="{{ craft.app.request.pathInfo == 'drinks/admin' ? 'active' }}"
+          >Beheer Drankjes</a
+        >
+      </li>
+      <li>
+        <a
+          href="{{ url('teams/admin') }}"
+          class="{{ craft.app.request.pathInfo == 'teams/admin' ? 'active' }}"
+          >Beheer Planning</a
+        >
+      </li>
+      <li>
+        <a
+          href="{{ url('tabs/admin') }}"
+          class="{{ craft.app.request.pathInfo == 'tabs/admin' ? 'active' }}"
+          >Beheer Rekeningen</a
+        >
+      </li>
+      {% else %}
+      <li>
+        <a
+          href="{{ url('drinks') }}"
+          class="{{ craft.app.request.pathInfo == 'drinks' ? 'active' }}"
+          >Bestel Drankjes</a
+        >
+      </li>
+      <li>
+        <a
+          href="{{ url('teams/admin') }}"
+          class="{{ craft.app.request.pathInfo == 'teams/admin' ? 'active' }}"
+          >Speeldata</a
+        >
+      </li>
+      <li>
+        <a
+          href="{{ url('tabs') }}"
+          class="{{ craft.app.request.pathInfo == 'tabs' ? 'active' }}"
+          >Rekeningen</a
+        >
+      </li>
+      {% endif %}
+      <li><a href="{{ url('logout') }}">Uitloggen</a></li>
+      {% else %}
+      <li>
+        <a
+          href="{{ url('login') }}"
+          class="{{ craft.app.request.pathInfo == 'login' ? 'active' }}"
+          >Login</a
+        >
+      </li>
+      {% endif %}
+    </ul>
+  </div>
 </nav>
+
+<script>
+  (function () {
+    const nav = document.querySelector("[data-nav]");
+    const btn = nav?.querySelector(".nav-toggle");
+    const panel = nav?.querySelector("[data-panel]");
+    const overlay = nav?.querySelector("[data-overlay]");
+
+    if (!nav || !btn || !panel || !overlay) return;
+
+    // (optional) keep a responsive --vh var for iOS quirks if you use it elsewhere
+    function setVH() {
+      document.documentElement.style.setProperty(
+        "--vh",
+        window.innerHeight * 0.01 + "px"
+      );
+    }
+    setVH();
+    window.addEventListener("resize", setVH);
+
+    function openNav() {
+      nav.classList.add("is-open");
+      btn.setAttribute("aria-expanded", "true");
+      btn.setAttribute("aria-label", "Close menu");
+      document.body.style.overflow = "hidden";
+      const firstLink = panel.querySelector("a");
+      firstLink && firstLink.focus({ preventScroll: true });
+    }
+    function closeNav() {
+      nav.classList.remove("is-open");
+      btn.setAttribute("aria-expanded", "false");
+      btn.setAttribute("aria-label", "Open menu");
+      document.body.style.overflow = "";
+      btn.focus({ preventScroll: true });
+    }
+    function toggleNav() {
+      nav.classList.contains("is-open") ? closeNav() : openNav();
+    }
+
+    btn.addEventListener("click", toggleNav);
+    overlay.addEventListener("click", closeNav);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeNav();
+    });
+
+    // close after clicking a link
+    panel.addEventListener("click", (e) => {
+      const a = e.target.closest("a");
+      if (a) closeNav();
+    });
+  })();
+</script>

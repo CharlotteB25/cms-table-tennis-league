@@ -10,8 +10,15 @@
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding: 1rem 2rem;
+    padding: 0 1.5rem;
     border-bottom: 1px solid var(--soft-red);
+  }
+  @media (max-width: 480px) {
+    header {
+      padding: 0.5rem 1rem;
+      justify-content: center;
+      gap: 1rem;
+    }
   }
 
   .header-right {
@@ -19,7 +26,6 @@
     align-items: center;
     gap: 1.5rem;
   }
-
   .header-right h1 {
     margin: 0;
     font-size: 1.4rem;
@@ -27,19 +33,23 @@
     color: var(--soft-red-dark);
   }
 
-  /* avatar link replaces the text link */
+  /* avatar */
   .profile-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
+    inline-size: 42px;
+    block-size: 42px;
     border-radius: 50%;
     overflow: hidden;
     border: 2px solid var(--soft-red);
     transition: transform 0.2s ease, border-color 0.2s ease;
+    text-decoration: none;
   }
-
+  .profile-link:hover {
+    transform: scale(1.06);
+    border-color: var(--soft-red-dark);
+  }
   .profile-link img {
     width: 100%;
     height: 100%;
@@ -47,30 +57,112 @@
     display: block;
   }
 
-  .profile-link:hover {
-    transform: scale(1.06);
-    border-color: var(--soft-red-dark);
+  /* fake avatar (initials or icon) */
+  .avatar-fake {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #2b2b2b;
+    user-select: none;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+  }
+  /* subtle inner ring + soft tint */
+  .avatar-fake::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 2px #0000000f, inset 0 1px 6px #00000012;
+    pointer-events: none;
+  }
+  .profile-link {
+    position: relative;
+  }
+
+  /* optional: darker text in dark mode */
+  @media (prefers-color-scheme: dark) {
+    .avatar-fake {
+      color: #111;
+    }
   }
 </style>
 
+{# ---------- Twig helpers ---------- #} {% set user = currentUser ?? null %} {%
+set displayName = user ? (user.friendlyName ?? user.username ?? 'Gebruiker') :
+'Gast' %} {% set parts = displayName|split(' ') %} {% set initials =
+(parts|length ? (parts[0]|slice(0,1) ~ (parts|length > 1 ?
+parts[parts|length-1]|slice(0,1) : '')) : 'G')|upper %} {# soft, stable
+background by hashing length; tweak palette to your brand #} {% set palette =
+['#FFE8CC', '#E7CFFF', '#CDEBFF', '#E8F5E9', '#FFF0F3', '#EAEAEA'] %} {% set bg
+= palette[(displayName|length) % (palette|length)] %}
+
 <header>
   <div class="header-right">
-    <h1>Welkom, {{ currentUser.friendlyName ?? "Gast" }}</h1>
-    {% if currentUser %}
-    <a href="/profile" class="profile-link">
-      {% if currentUser.photo %}
+    <h1>Welkom, {{ user ? displayName : "Gast" }}</h1>
+
+    {% if user %}
+    <a
+      href="{{ url('profile') }}"
+      class="profile-link"
+      aria-label="Profiel van {{ displayName }}"
+    >
+      {% if user.photo %} {# If you want, use a transform: user.photo.getUrl({
+      width: 160, height: 160, mode: 'crop' }) #}
       <img
-        src="{{ currentUser.photo.url }}"
-        alt="{{ currentUser.friendlyName }}"
+        src="{{ user.photo.url }}"
+        alt="{{ displayName }}"
+        loading="lazy"
+        decoding="async"
       />
-      {% else %}
-      <!-- fallback if user has no uploaded photo -->
-      <img src="{{ siteUrl('uploads/avatar.png') }}" alt="avatar" />
+      {% else %} {# Fake avatar with initials #}
+      <span
+        class="avatar-fake"
+        style="background: {{ bg }};"
+        aria-hidden="true"
+        title="{{ displayName }}"
+        >{{ initials }}</span
+      >
       {% endif %}
     </a>
     {% else %}
-    <a href="/login" class="profile-link">
-      <img src="{{ siteUrl('uploads/avatar.png') }}" alt="Login" />
+    <a href="{{ url('login') }}" class="profile-link" aria-label="Inloggen">
+      {# Guest: show a generic icon or initials 'G' #} {# Option A: use your PNG
+      fallback #} {#
+      <img
+        src="{{ siteUrl('uploads/avatar.png') }}"
+        alt="Login"
+        loading="lazy"
+        decoding="async"
+      />
+      #} {# Option B (prettier & no asset required): fake avatar with a person
+      glyph #}
+      <span
+        class="avatar-fake"
+        style="background: #eaeaea"
+        aria-hidden="true"
+        title="Gast"
+      >
+        <!-- simple person icon as inline SVG -->
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="8" r="4" stroke="#555" stroke-width="2" />
+          <path
+            d="M4 20c0-4 4-6 8-6s8 2 8 6"
+            stroke="#555"
+            stroke-width="2"
+            fill="none"
+          />
+        </svg>
+      </span>
     </a>
     {% endif %}
   </div>

@@ -3,11 +3,14 @@
   {{ actionInput('entries/save-entry') }}
   <input type="hidden" name="entryId" value="{{ availability.id }}">
 
+  {% set s = availability.getFieldValue('statusAdmin') %}
+  {% set statusValue = (s is object and attribute(s,'value') is defined) ? attribute(s,'value') : s %}
+
   <label for="statusAdmin-{{ availability.id }}">Update Status:</label>
   <select name="fields[statusAdmin]" id="statusAdmin-{{ availability.id }}">
-    <option value="geselecteerd" {% if availability.statusAdmin == 'geselecteerd' %}selected{% endif %}>Geselecteerd</option>
-    <option value="nietGeselecteerd" {% if availability.statusAdmin == 'nietGeselecteerd' %}selected{% endif %}>Niet geselecteerd</option>
-    <option value="nogTeBepalen" {% if availability.statusAdmin == 'nogTeBepalen' %}selected{% endif %}>Nog te bepalen</option>
+    <option value="nogTeBepalen"     {{ statusValue == 'nogTeBepalen'     ? 'selected' : '' }}>Nog te bepalen</option>
+    <option value="geselecteerd"     {{ statusValue == 'geselecteerd'     ? 'selected' : '' }}>Geselecteerd</option>
+    <option value="nietGeselecteerd" {{ statusValue == 'nietGeselecteerd' ? 'selected' : '' }}>Niet geselecteerd</option>
   </select>
 
   <button type="submit">Bijwerken</button>
